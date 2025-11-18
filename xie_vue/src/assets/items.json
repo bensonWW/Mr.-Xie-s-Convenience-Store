@@ -1,0 +1,149 @@
+[
+  {
+    "id": "手機-1",
+    "name": "Apple iPhone 15 Pro Max",
+    "price": 48900,
+    "img": "./123.png",
+    "category": "手機"
+  },
+  {
+    "id": "手機-2",
+    "name": "Samsung Galaxy S24 Ultra",
+    "price": 42900,
+    "img": "123.png",
+    "category": "手機"
+  },
+  {
+    "id": "手機-3",
+    "name": "Xiaomi 14 Ultra",
+    "price": 35999,
+    "img": "123.png",
+    "category": "手機"
+  },
+  {
+    "id": "手機-3",
+    "name": "Xiaomi 14 Ultra",
+    "price": 35999,
+    "img": "123.png",
+    "category": "手機"
+  },
+  {
+    "id": "手機-3",
+    "name": "Xiaomi 14 Ultra",
+    "price": 35999,
+    "img": "123.png",
+    "category": "手機"
+  },
+  {
+    "id": "手機-3",
+    "name": "Xiaomi 14 Ultra",
+    "price": 35999,
+    "img": "123.png",
+    "category": "手機"
+  },
+  {
+    "id": "手機-3",
+    "name": "Xiaomi 14 Ultra",
+    "price": 35999,
+    "img": "123.png",
+    "category": "手機"
+  },
+  {
+    "id": "家電-1",
+    "name": "Dyson V12 無線吸塵器",
+    "price": 18900,
+    "img": "123.png",
+    "category": "家電"
+  },
+  {
+    "id": "家電-2",
+    "name": "Panasonic 國際牌 變頻冷氣",
+    "price": 28900,
+    "img": "123.png",
+    "category": ["家電","日用品"]
+  },
+  {
+    "id": "美妝-1",
+    "name": "SK-II 青春露 230ml",
+    "price": 3999,
+    "img": "123.png",
+    "category": "美妝"
+  },
+  {
+    "id": "美妝-2",
+    "name": "資生堂紅妍肌活露",
+    "price": 2999,
+    "img": "123.png",
+    "category": "美妝"
+  },
+  {
+    "id": "食品-1",
+    "name": "義美小泡芙",
+    "price": 39,
+    "img": "123.png",
+    "category": "食品"
+  },
+  {
+    "id": "食品-2",
+    "name": "統一肉燥麵",
+    "price": 15,
+    "img": "123.png",
+    "category": "食品"
+  },
+  {
+    "id": "日用品-1",
+    "name": "五月花抽取式衛生紙",
+    "price": 199,
+    "img": "123.png",
+    "category": "日用品"
+  },
+  {
+    "id": "日用品-2",
+    "name": "舒潔棉柔衛生紙",
+    "price": 189,
+    "img": "123.png",
+    "category": "日用品"
+  },
+  {
+    "id": "玩具-1",
+    "name": "LEGO 樂高城市系列",
+    "price": 1299,
+    "img": "123.png",
+    "category": "玩具"
+  },
+  {
+    "id": "玩具-2",
+    "name": "NERF 火力發射槍",
+    "price": 799,
+    "img": "123.png",
+    "category": "玩具"
+  },
+  {
+    "id": "服飾-1",
+    "name": "UNIQLO 極暖發熱衣",
+    "price": 499,
+    "img": "123.png",
+    "category": "服飾"
+  },
+  {
+    "id": "服飾-2",
+    "name": "Nike Air Max 270",
+    "price": 3990,
+    "img": "123.png",
+    "category": "服飾"
+  },
+  {
+    "id": "書籍-1",
+    "name": "解憂雜貨店",
+    "price": 320,
+    "img": "123.png",
+    "category": "書籍"
+  },
+  {
+    "id": "書籍-2",
+    "name": "原子習慣",
+    "price": 380,
+    "img": "123.png",
+    "category": "書籍"
+  }
+]

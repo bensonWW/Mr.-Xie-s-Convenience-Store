@@ -1,0 +1,40 @@
+.dark .item-grid {
+  /* 可加強 grid 背景或間距效果 */
+}
+.dark .items-main h2 {
+  color: #fff;
+}
+.dark .item-card {
+  background: #232323;
+  box-shadow: 0 0 16px 2px #fff, 0 2px 8px #222;
+}
+.dark .item-name,
+.dark .item-price {
+  color: #fff;
+}
+.dark .category-menu {
+  background: #2c2c2c;
+  border-right: 1px solid #444;
+}
+.dark .category-menu h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #fff;
+}
+.dark .category-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.dark .category-menu li {
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #fff;
+  transition: background 0.2s, color 0.2s;
+}
+.dark .category-menu li.active, .dark .category-menu li:hover {
+  background: #1976d2;
+  color: #e3f2fd;
+}
