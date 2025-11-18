@@ -1,0 +1,27 @@
+step1:安裝 PHP 及一些常用 extension => sudo apt install -y php php-cli php-mbstring php-xml php-curl php-zip php-json php-gd php-mysql unzip git
+
+step2:檢查php => php -v
+
+step3:安裝Composer => php composer-setup.php
+
+step4:刪除composer => php -r "unlink('composer-setup.php');"
+
+step5:給予權限 => chmod +x ~/composer.phar
+
+step6:設置環變數 => echo 'export PATH="$HOME:$PATH"' >> ~/.bashrc
+
+step7:重載source => ~/.bashrc
+
+step8:安裝composer => sudo apt update , sudo apt install composer
+
+step9:確認安裝 => composer -V
+
+step10:create project => composer create-project laravel/laravel my-app  //my-app 是資料夾名稱
+
+step11:啟用官方的 API route => php artisan install:api
+
+step12: 設定env => 請觀察env是否有錯誤
+	
+step13:進入 => cd my-app
+
+step14:執行 => php artisan serve
