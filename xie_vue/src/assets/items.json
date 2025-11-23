@@ -3,15 +3,41 @@
     "id": "手機-1",
     "name": "Apple iPhone 15 Pro Max",
     "price": 48900,
-    "img": "./123.png",
-    "category": "手機"
+    "img": "123.png",
+    "category": "手機",
+    "description": "Apple 最新旗艦機，搭載 A17 晶片、ProMotion 顯示器與專業級相機模組。"
   },
   {
     "id": "手機-2",
     "name": "Samsung Galaxy S24 Ultra",
     "price": 42900,
     "img": "123.png",
-    "category": "手機"
+    "category": "手機",
+    "description": "三星旗艦，擁有頂級相機與大電池，適合攝影與重度使用者。"
+  },
+  {
+    "id": "手機-3",
+    "name": "Xiaomi 14 Ultra",
+    "price": 35999,
+    "img": "123.png",
+    "category": "手機",
+    "description": "小米高階機種，性價比高，具備大容量記憶體與快速充電。"
+  },
+  {
+    "id": "手機-4",
+    "name": "Google Pixel 8",
+    "price": 26900,
+    "img": "123.png",
+    "category": "手機",
+    "description": "Google 原生 Android 體驗，AI 功能與拍照表現優異。"
+  },
+  {
+    "id": "手機-5",
+    "name": "OnePlus 12",
+    "price": 29900,
+    "img": "123.png",
+    "category": "手機",
+    "description": "旗艦級效能並重視系統流暢度，充電速度快。"
   },
   {
     "id": "手機-3",
@@ -19,34 +45,8 @@
     "price": 35999,
     "img": "123.png",
     "category": "手機"
-  },
-  {
-    "id": "手機-3",
-    "name": "Xiaomi 14 Ultra",
-    "price": 35999,
-    "img": "123.png",
-    "category": "手機"
-  },
-  {
-    "id": "手機-3",
-    "name": "Xiaomi 14 Ultra",
-    "price": 35999,
-    "img": "123.png",
-    "category": "手機"
-  },
-  {
-    "id": "手機-3",
-    "name": "Xiaomi 14 Ultra",
-    "price": 35999,
-    "img": "123.png",
-    "category": "手機"
-  },
-  {
-    "id": "手機-3",
-    "name": "Xiaomi 14 Ultra",
-    "price": 35999,
-    "img": "123.png",
-    "category": "手機"
+    ,
+    "description": "Dyson 技術的小型無線吸塵器，吸力強、方便收納。"
   },
   {
     "id": "家電-1",
@@ -54,6 +54,8 @@
     "price": 18900,
     "img": "123.png",
     "category": "家電"
+    ,
+    "description": "節能變頻冷氣，適合居家長時間使用並降低電費。"
   },
   {
     "id": "家電-2",
@@ -61,6 +63,8 @@
     "price": 28900,
     "img": "123.png",
     "category": ["家電","日用品"]
+    ,
+    "description": "經典護膚精華，幫助改善肌膚質感與光澤。"
   },
   {
     "id": "美妝-1",
@@ -68,6 +72,8 @@
     "price": 3999,
     "img": "123.png",
     "category": "美妝"
+    ,
+    "description": "資生堂高效保濕精華，適合乾燥肌膚。"
   },
   {
     "id": "美妝-2",
@@ -75,6 +81,8 @@
     "price": 2999,
     "img": "123.png",
     "category": "美妝"
+    ,
+    "description": "酥脆外皮搭配香甜內餡，零食首選。"
   },
   {
     "id": "食品-1",
@@ -82,6 +90,8 @@
     "price": 39,
     "img": "123.png",
     "category": "食品"
+    ,
+    "description": "經典速食麵，方便又有家常風味。"
   },
   {
     "id": "食品-2",
@@ -89,6 +99,8 @@
     "price": 15,
     "img": "123.png",
     "category": "食品"
+    ,
+    "description": "高品質抽取式衛生紙，柔軟且不易掉屑。"
   },
   {
     "id": "日用品-1",
@@ -96,6 +108,8 @@
     "price": 199,
     "img": "123.png",
     "category": "日用品"
+    ,
+    "description": "舒潔品牌，親膚且吸水性佳。"
   },
   {
     "id": "日用品-2",
@@ -103,6 +117,8 @@
     "price": 189,
     "img": "123.png",
     "category": "日用品"
+    ,
+    "description": "經典拼砌玩具，適合親子共玩與創意發揮。"
   },
   {
     "id": "玩具-1",
@@ -110,6 +126,8 @@
     "price": 1299,
     "img": "123.png",
     "category": "玩具"
+    ,
+    "description": "戶外競賽玩具，安全發射軟彈。"
   },
   {
     "id": "玩具-2",
@@ -117,6 +135,8 @@
     "price": 799,
     "img": "123.png",
     "category": "玩具"
+    ,
+    "description": "UNIQLO 熱賣款，貼身保暖且透氣。"
   },
   {
     "id": "服飾-1",
@@ -124,6 +144,8 @@
     "price": 499,
     "img": "123.png",
     "category": "服飾"
+    ,
+    "description": "潮流跑鞋，兼顧緩震與時尚外型。"
   },
   {
     "id": "服飾-2",
@@ -131,6 +153,8 @@
     "price": 3990,
     "img": "123.png",
     "category": "服飾"
+    ,
+    "description": "治癒系小說，溫暖人心的故事集。"
   },
   {
     "id": "書籍-1",
@@ -138,6 +162,8 @@
     "price": 320,
     "img": "123.png",
     "category": "書籍"
+    ,
+    "description": "暢銷書，提供可實行的小習慣改變方法。"
   },
   {
     "id": "書籍-2",

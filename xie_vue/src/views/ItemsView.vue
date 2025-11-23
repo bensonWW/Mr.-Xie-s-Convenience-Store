@@ -10,11 +10,11 @@
     <main class="items-main">
       <h2>{{ selectedCategory }}商品</h2>
       <div class="item-grid">
-        <div class="item-card" v-for="item in filteredItems" :key="item.id">
+        <router-link class="item-card" v-for="item in filteredItems" :key="item.id" :to="`/items/${item.id}`">
           <img class="item-img" :src="item.img" :alt="item.name" />
           <div class="item-name">{{ item.name }}</div>
           <div class="item-price">${{ item.price.toLocaleString() }}</div>
-        </div>
+        </router-link>
       </div>
     </main>
   </div>
