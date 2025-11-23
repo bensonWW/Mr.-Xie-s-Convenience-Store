@@ -20,8 +20,10 @@ step10:create project => composer create-project laravel/laravel my-app  //my-ap
 
 step11:啟用官方的 API route => php artisan install:api
 
-step12: 設定env => 請觀察env是否有錯誤
-	
-step13:進入 => cd my-app
+step12:生成 APP_KEY => php artisan key:generate
 
-step14:執行 => php artisan serve
+step13:設定env => env設置
+	
+step14:進入 => cd my-app
+
+step15:執行 => php artisan serve
