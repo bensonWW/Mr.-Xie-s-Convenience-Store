@@ -1,10 +1,6 @@
 <template>
   <div :class="theme">
-    <div class="theme-toggle">
-      <button @click="setTheme('light')" :class="{ active: theme === 'light' }">☀️ </button>
-      <button @click="setTheme('dark')" :class="{ active: theme === 'dark' }">🌙 </button>
-    </div>
-    <Navbar />
+    <Navbar :theme="theme" @set-theme="setTheme" />
     <router-view/>
   </div>
 </template>
@@ -62,26 +58,5 @@ html, body {
   color: var(--main-text);
   min-height: 100vh;
   transition: background 0.3s, color 0.3s;
-}
-.theme-toggle {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  padding: 1rem 2rem 0 0;
-}
-.theme-toggle button {
-  background: none;
-  border: 1px solid #bbb;
-  color: var(--main-text);
-  padding: 0.3rem 1.1rem;
-  border-radius: 20px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-.theme-toggle button.active, .theme-toggle button:hover {
-  background: #e67e22;
-  color: #fff;
-  border-color: #e67e22;
 }
 </style>
