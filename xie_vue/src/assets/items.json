@@ -3,147 +3,179 @@
     "id": "手機-1",
     "name": "Apple iPhone 15 Pro Max",
     "price": 48900,
-    "img": "./123.png",
-    "category": "手機"
+    "img": "123.png",
+    "category": "手機",
+    "description": "Apple 最新旗艦機，搭載 A17 晶片、ProMotion 顯示器與專業級相機模組。",
+    "amount": 100
   },
   {
     "id": "手機-2",
     "name": "Samsung Galaxy S24 Ultra",
     "price": 42900,
     "img": "123.png",
-    "category": "手機"
+    "category": "手機",
+    "description": "三星旗艦，擁有頂級相機與大電池，適合攝影與重度使用者。",
+    "amount": 100
   },
   {
     "id": "手機-3",
     "name": "Xiaomi 14 Ultra",
     "price": 35999,
     "img": "123.png",
-    "category": "手機"
+    "category": "手機",
+    "description": "小米高階機種，性價比高，具備大容量記憶體與快速充電。",
+    "amount": 100
+  },
+  {
+    "id": "手機-4",
+    "name": "Google Pixel 8",
+    "price": 26900,
+    "img": "123.png",
+    "category": "手機",
+    "description": "Google 原生 Android 體驗，AI 功能與拍照表現優異。",
+    "amount": 100
+  },
+  {
+    "id": "手機-5",
+    "name": "OnePlus 12",
+    "price": 29900,
+    "img": "123.png",
+    "category": "手機",
+    "description": "旗艦級效能並重視系統流暢度，充電速度快。",
+    "amount": 100
   },
   {
     "id": "手機-3",
     "name": "Xiaomi 14 Ultra",
     "price": 35999,
     "img": "123.png",
-    "category": "手機"
-  },
-  {
-    "id": "手機-3",
-    "name": "Xiaomi 14 Ultra",
-    "price": 35999,
-    "img": "123.png",
-    "category": "手機"
-  },
-  {
-    "id": "手機-3",
-    "name": "Xiaomi 14 Ultra",
-    "price": 35999,
-    "img": "123.png",
-    "category": "手機"
-  },
-  {
-    "id": "手機-3",
-    "name": "Xiaomi 14 Ultra",
-    "price": 35999,
-    "img": "123.png",
-    "category": "手機"
+    "category": "手機",
+    "description": "Dyson 技術的小型無線吸塵器，吸力強、方便收納。",
+    "amount": 100
   },
   {
     "id": "家電-1",
     "name": "Dyson V12 無線吸塵器",
     "price": 18900,
     "img": "123.png",
-    "category": "家電"
+    "category": "家電",
+    "description": "節能變頻冷氣，適合居家長時間使用並降低電費。",
+    "amount": 100
   },
   {
     "id": "家電-2",
     "name": "Panasonic 國際牌 變頻冷氣",
     "price": 28900,
     "img": "123.png",
-    "category": ["家電","日用品"]
+    "category": ["家電","日用品"],
+    "description": "經典護膚精華，幫助改善肌膚質感與光澤。",
+    "amount": 100
   },
   {
     "id": "美妝-1",
     "name": "SK-II 青春露 230ml",
     "price": 3999,
     "img": "123.png",
-    "category": "美妝"
+    "category": "美妝",
+    "description": "資生堂高效保濕精華，適合乾燥肌膚。",
+    "amount": 100
   },
   {
     "id": "美妝-2",
     "name": "資生堂紅妍肌活露",
     "price": 2999,
     "img": "123.png",
-    "category": "美妝"
+    "category": "美妝",
+    "description": "酥脆外皮搭配香甜內餡，零食首選。",
+    "amount": 100
   },
   {
     "id": "食品-1",
     "name": "義美小泡芙",
     "price": 39,
     "img": "123.png",
-    "category": "食品"
+    "category": "食品",
+    "description": "經典速食麵，方便又有家常風味。",
+    "amount": 100
   },
   {
     "id": "食品-2",
     "name": "統一肉燥麵",
     "price": 15,
     "img": "123.png",
-    "category": "食品"
+    "category": "食品",
+    "description": "高品質抽取式衛生紙，柔軟且不易掉屑。",
+    "amount": 100
   },
   {
     "id": "日用品-1",
     "name": "五月花抽取式衛生紙",
     "price": 199,
     "img": "123.png",
-    "category": "日用品"
+    "category": "日用品",
+    "description": "舒潔品牌，親膚且吸水性佳。",
+    "amount": 100
   },
   {
     "id": "日用品-2",
     "name": "舒潔棉柔衛生紙",
     "price": 189,
     "img": "123.png",
-    "category": "日用品"
+    "category": "日用品",
+    "description": "經典拼砌玩具，適合親子共玩與創意發揮。",
+    "amount": 100
   },
   {
     "id": "玩具-1",
     "name": "LEGO 樂高城市系列",
     "price": 1299,
     "img": "123.png",
-    "category": "玩具"
+    "category": "玩具",
+    "description": "戶外競賽玩具，安全發射軟彈。",
+    "amount": 100
   },
   {
     "id": "玩具-2",
     "name": "NERF 火力發射槍",
     "price": 799,
     "img": "123.png",
-    "category": "玩具"
+    "category": "玩具",
+    "description": "UNIQLO 熱賣款，貼身保暖且透氣。",
+    "amount": 10
   },
   {
     "id": "服飾-1",
     "name": "UNIQLO 極暖發熱衣",
     "price": 499,
     "img": "123.png",
-    "category": "服飾"
+    "category": "服飾",
+    "description": "潮流跑鞋，兼顧緩震與時尚外型。",
+    "amount": 10
   },
   {
     "id": "服飾-2",
     "name": "Nike Air Max 270",
     "price": 3990,
     "img": "123.png",
-    "category": "服飾"
+    "category": "服飾",
+    "description": "治癒系小說，溫暖人心的故事集。",
+    "amount": 10
   },
   {
     "id": "書籍-1",
     "name": "解憂雜貨店",
     "price": 320,
     "img": "123.png",
-    "category": "書籍"
+    "category": "書籍",
+    "description": "暢銷書，提供可實行的小習慣改變方法。",
+    "amount": 10
   },
   {
     "id": "書籍-2",
     "name": "原子習慣",
     "price": 380,
     "img": "123.png",
-    "category": "書籍"
+    "category": "書籍",
+    "amount": 10
   }
 ]
