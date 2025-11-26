@@ -2,30 +2,23 @@
   <nav class="navbar">
     <div class="nav-inner">
       <ul class="nav-links">
-        <li><router-link to="/">首頁</router-link></li>
-        <li><router-link to="/items">物品頁面</router-link></li>
-        <li><router-link to="/profile">個人資料</router-link></li>
-      </ul>
-      <div class="theme-toggle">
-        <button @click="setTheme('light')" :class="{ active: theme === 'light' }">☀️</button>
-        <button @click="setTheme('dark')" :class="{ active: theme === 'dark' }">🌙</button>
-      </div>
-    </div>
-    <ul>
       <li><router-link to="/">首頁</router-link></li>
       <li><router-link to="/items">物品頁面</router-link></li>
-
-      <!-- 未登入 -->
+      <li><router-link to="/car">購物車</router-link></li>
       <li v-if="!isLoggedIn">
         <router-link to="/profile">登入 / 註冊</router-link>
       </li>
-
       <!-- 已登入 -->
       <li v-else class="member-area">
         <router-link to="/profile">會員中心</router-link>
         <button class="logout-btn" @click="logout">登出</button>
       </li>
     </ul>
+      <div class="theme-toggle">
+        <button @click="setTheme('light')" :class="{ active: theme === 'light' }">☀️</button>
+        <button @click="setTheme('dark')" :class="{ active: theme === 'dark' }">🌙</button>
+      </div>
+    </div>
   </nav>
 </template>
 
@@ -47,7 +40,7 @@ export default {
     logout () {
       this.$store.commit('setLoggedIn', false)
       this.$router.push('/profile')
-    }
+    },
     setTheme (t) {
       this.$emit('set-theme', t)
     }
