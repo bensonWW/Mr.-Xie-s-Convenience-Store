@@ -4,10 +4,11 @@
       <ul class="nav-links">
       <li><router-link to="/">首頁</router-link></li>
       <li><router-link to="/items">物品頁面</router-link></li>
+      <li><router-link to="/profile">個人資料</router-link></li>
+      <li><router-link to="/car">購物車</router-link></li>
       <li v-if="!isLoggedIn">
         <router-link to="/profile">登入 / 註冊</router-link>
       </li>
-
       <!-- 已登入 -->
       <li v-else class="member-area">
         <router-link to="/profile">會員中心</router-link>
