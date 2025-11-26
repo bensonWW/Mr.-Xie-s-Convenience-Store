@@ -4,6 +4,8 @@
       <li><router-link to="/">首頁</router-link></li>
       <li><router-link to="/items">物品頁面</router-link></li>
       <li><router-link to="/profile">個人資料</router-link></li>
+      <li><router-link to="/car">購物車</router-link></li>
+
     </ul>
   </nav>
 </template>
