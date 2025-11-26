@@ -78,10 +78,10 @@ export default {
       this.updateTotalPrice()
     },
     addToCart () {
-      // 空白函式，待實作購物車邏輯
+      // TODO: 實作加入購物車邏輯
     },
     buyNow () {
-      // 空白函式，待實作直接購買邏輯
+      // TODO: 實作直接購買邏輯
     },
     loadItemFromRoute (idParam) {
       const id = idParam || this.$route.params.id

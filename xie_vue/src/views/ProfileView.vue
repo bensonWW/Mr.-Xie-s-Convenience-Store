@@ -175,6 +175,7 @@ export default {
   },
   methods: {
     handleLogin () {
+      // TODO: 更完整的登入驗證
       const stored = localStorage.getItem('user')
       if (!stored) {
         alert('目前尚未有註冊帳號，請先註冊。')
@@ -189,6 +190,7 @@ export default {
       }
     },
     handleRegister () {
+      // TODO: 更完整的註冊驗證
       if (!this.registerUsername || !this.registerPassword || !this.registerPasswordConfirm) {
         alert('請把註冊帳號與兩次密碼都填寫完整。')
         return
