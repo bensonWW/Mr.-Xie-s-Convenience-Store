@@ -21,70 +21,53 @@
 </template>
 
 <script>
-import items from '@/assets/items.json'
+import api from '@/services/api'
 
 // 根據主題動態引入 CSS
 import './css/light/ItemsView.css'
 import './css/dark/ItemsView.css'
 
-// 以下為從資料庫撈資料的範例框架（需後端 API 支援）
-/*
-import axios from 'axios'
-
 export default {
   name: 'ItemsView',
   data () {
     return {
-      categories: [],
+      categories: ['Fruit', 'Dairy', '手機', '家電', '美妝', '食品', '日用品', '玩具', '服飾', '書籍'], // Updated with seeded categories
       items: [],
-      selectedCategory: ''
+      selectedCategory: 'Fruit'
     }
   },
-  created() {
-    // 取得分類
-    axios.get('/api/categories').then(res => {
-      this.categories = res.data
-      this.selectedCategory = this.categories[0] || ''
-    })
-    // 取得商品
-    axios.get('/api/items').then(res => {
-      this.items = res.data
-    })
+  created () {
+    this.fetchProducts()
   },
   computed: {
-    filteredItems() {
+    filteredItems () {
       return this.items.filter(item => item.category === this.selectedCategory)
     }
   },
   methods: {
-    selectCategory(cat) {
-      this.selectedCategory = cat
-    }
-  }
-}
-*/
-export default {
-  name: 'ItemsView',
-  data () {
-    return {
-      categories: ['手機', '家電', '美妝', '食品', '日用品', '玩具', '服飾', '書籍'],
-      items,
-      selectedCategory: '手機'
-    }
-  },
-  computed: {
-    filteredItems () {
-      // 支援 category 為字串或陣列
-      return this.items.filter(item => {
-        if (Array.isArray(item.category)) {
-          return item.category.includes(this.selectedCategory)
-        } else {
-          return item.category === this.selectedCategory
-        }
-      })
-    }
-  },
-  methods: {
+    async fetchProducts () {
+      try {
+        const response = await api.get('/products')
+        this.items = response.data.map(item => {
+          let imgUrl = ''
+          if (item.image) {
+            try {
+              // Resolve local asset
+              imgUrl = new URL(`../assets/${item.image}`, import.meta.url).href
+            } catch (e) {
+              // Fallback to original string if not a local asset or resolution fails
+              imgUrl = item.image
+            }
+          }
+          return {
+            ...item,
+            img: imgUrl
+          }
+        })
+      } catch (error) {
+        console.error('Error fetching products:', error)
+      }
+    },
     selectCategory (cat) {
       this.selectedCategory = cat
     }

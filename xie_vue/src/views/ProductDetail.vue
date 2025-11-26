@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import items from '@/assets/items.json'
+import api from '@/services/api'
 import './css/light/productDetail.css'
 import './css/dark/productDetail.css'
 
@@ -77,42 +77,52 @@ export default {
       if (this.qty < this.maxQty) this.qty++
       this.updateTotalPrice()
     },
-    addToCart () {
-      // TODO: 實作加入購物車邏輯
+    async addToCart () {
+      if (!localStorage.getItem('token')) {
+        alert('請先登入')
+        this.$router.push('/profile')
+        return
+      }
+
+      try {
+        await api.post('/cart/items', {
+          product_id: this.item.id,
+          quantity: this.qty
+        })
+        alert('已加入購物車')
+      } catch (error) {
+        console.error('Add to cart error:', error)
+        alert('加入購物車失敗')
+      }
     },
     buyNow () {
-      // TODO: 實作直接購買邏輯
+      this.addToCart().then(() => {
+        this.$router.push('/car')
+      })
     },
-    loadItemFromRoute (idParam) {
+    async loadItemFromRoute (idParam) {
       const id = idParam || this.$route.params.id
-      // debug log to confirm created/route-update runs
-      // eslint-disable-next-line no-console
-      console.log('[ProductDetail] loading item id=', id)
-      this.item = items.find(i => i.id === id) || null
-      if (this.item) {
-        const imgName = String(this.item.img || '').replace(/^\.\/?/, '')
-        try {
-          this.imgUrl = new URL(`../assets/${imgName}`, import.meta.url)
-          console.log('[ProductDetail] loaded image URL:', this.imgUrl)
-        } catch (e) {
+      try {
+        const response = await api.get(`/products/${id}`)
+        this.item = response.data
+
+        if (this.item.image) {
           try {
-            this.imgUrl = new URL('../assets/logo.png', import.meta.url).href
-          } catch (err) {
-            this.imgUrl = this.item.img || ''
+            this.imgUrl = new URL(`../assets/${this.item.image}`, import.meta.url).href
+          } catch (e) {
+            this.imgUrl = this.item.image
           }
+        } else {
+          this.imgUrl = ''
         }
-        // set default qty: 1, maxQty 為庫存amount
-        const stock = Number(this.item.amount || 0)
+
+        const stock = Number(this.item.stock || 0)
         this.maxQty = stock > 0 ? stock : 1
         this.qty = 1
         this.updateTotalPrice()
-      } else {
-        console.log('[ProductDetail] item not found for id:', id)
-        try {
-          this.imgUrl = new URL('../assets/logo.png', import.meta.url).href
-        } catch (err) {
-          this.imgUrl = ''
-        }
+      } catch (error) {
+        console.error('Fetch product error:', error)
+        this.item = null
       }
     },
     formatCategory (cat) {

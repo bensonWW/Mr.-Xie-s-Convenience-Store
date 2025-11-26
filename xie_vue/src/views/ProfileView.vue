@@ -13,11 +13,11 @@
           <!-- 登入 -->
           <div class="auth-box">
             <h3>已經有帳號</h3>
-            <p class="hint">請輸入帳號與密碼登入。</p>
+            <p class="hint">請輸入 Email 與密碼登入。</p>
             <input
-              v-model="loginUsername"
-              type="text"
-              placeholder="帳號"
+              v-model="loginEmail"
+              type="email"
+              placeholder="Email"
             >
             <input
               v-model="loginPassword"
@@ -32,9 +32,14 @@
             <h3>還沒有帳號？</h3>
             <p class="hint">註冊一個簡單的會員帳號吧！</p>
             <input
-              v-model="registerUsername"
+              v-model="registerName"
               type="text"
-              placeholder="註冊帳號"
+              placeholder="姓名"
+            >
+            <input
+              v-model="registerEmail"
+              type="email"
+              placeholder="Email"
             >
             <input
               v-model="registerPassword"
@@ -71,13 +76,12 @@
         </div>
 
         <div class="profile-info">
-          <h2>沒良心先生</h2>
-          <p class="level">會員等級：黑心 VIP</p>
-          <p class="spent">累積消費：<span class="money">$99,999</span></p>
+          <h2>{{ user.name }}</h2>
+          <p class="level">會員等級：一般會員</p>
+          <p class="spent">累積消費：<span class="money">$0</span></p>
 
           <div class="tag-row">
-            <span class="tag">本月下單 3 次</span>
-            <span class="tag tag-warning">再消費 $1,001 升級</span>
+            <span class="tag">本月下單 {{ orders.length }} 次</span>
           </div>
         </div>
 
@@ -92,29 +96,21 @@
       <div class="grid">
         <div class="card">
           <h3>最近購物紀錄</h3>
-          <ul class="orders">
-            <li>
+          <ul class="orders" v-if="orders.length > 0">
+            <li v-for="order in orders" :key="order.id">
               <div class="order-top">
-                <span class="order-title">Whey Protein多口味乳清蛋白飲 (500/1kg裝)</span>
-                <span class="status received">已收貨</span>
+                <span class="order-title">訂單編號：{{ order.id }}</span>
+                <span class="status" :class="getStatusClass(order.status)">{{ getStatusText(order.status) }}</span>
               </div>
               <div class="order-bottom">
-                <span>訂單編號：NO20231101001</span>
-                <span>數量：1 ｜ 金額：$1,280</span>
-              </div>
-            </li>
-            <li>
-              <div class="order-top">
-                <span class="order-title">隔日配玩偶 濃魚娃娃</span>
-                <span class="status waiting">待收貨</span>
-              </div>
-              <div class="order-bottom">
-                <span>訂單編號：NO20231102009</span>
-                <span>數量：1 ｜ 金額：$599</span>
+                <span>{{ formatDate(order.created_at) }}</span>
+                <span>數量：{{ order.items.length }} ｜ 金額：$ {{ order.total_amount }}</span>
               </div>
             </li>
           </ul>
-          <button class="link-btn">查看全部訂單 ➜</button>
+          <div v-else class="no-orders">
+            尚無訂單紀錄
+          </div>
         </div>
 
         <div class="card">
@@ -123,27 +119,27 @@
             <li>
               <span class="dot all"></span>
               全部訂單
-              <span class="badge">8</span>
+              <span class="badge">{{ orders.length }}</span>
             </li>
             <li>
               <span class="dot pay"></span>
               待付款
-              <span class="badge">1</span>
+              <span class="badge">{{ countStatus('pending_payment') }}</span>
             </li>
             <li>
               <span class="dot ship"></span>
               待出貨
-              <span class="badge">2</span>
+              <span class="badge">{{ countStatus('processing') }}</span>
             </li>
             <li>
               <span class="dot receive"></span>
               待收貨
-              <span class="badge">1</span>
+              <span class="badge">{{ countStatus('shipped') }}</span>
             </li>
             <li>
               <span class="dot done"></span>
               已完成
-              <span class="badge">4</span>
+              <span class="badge">{{ countStatus('completed') }}</span>
             </li>
           </ul>
         </div>
@@ -154,45 +150,78 @@
 </template>
 
 <script>
+import api from '@/services/api'
+
 export default {
   name: 'ProfileView',
   data () {
     return {
       avatarUrl: 'https://img.icons8.com/color/96/000000/user-male-circle--v2.png',
       // 登入
-      loginUsername: '',
+      loginEmail: '',
       loginPassword: '',
       // 註冊
-      registerUsername: '',
+      registerName: '',
+      registerEmail: '',
       registerPassword: '',
-      registerPasswordConfirm: ''
+      registerPasswordConfirm: '',
+      user: null,
+      orders: []
     }
   },
   computed: {
     isLoggedIn () {
-      return this.$store.state.isLoggedIn
+      return !!this.user
     }
   },
+  created () {
+    this.fetchUser()
+    this.fetchOrders()
+  },
   methods: {
-    handleLogin () {
-      // TODO: 更完整的登入驗證
-      const stored = localStorage.getItem('user')
-      if (!stored) {
-        alert('目前尚未有註冊帳號，請先註冊。')
-        return
-      }
-      const user = JSON.parse(stored)
-      if (this.loginUsername === user.username && this.loginPassword === user.password) {
-        this.$store.commit('setLoggedIn', true)
-        this.loginPassword = ''
-      } else {
-        alert('帳號或密碼錯誤')
+    async fetchUser () {
+      const token = localStorage.getItem('token')
+      if (token) {
+        try {
+          const response = await api.get('/user')
+          this.user = response.data
+          this.fetchOrders()
+        } catch (error) {
+          console.error('Error fetching user:', error)
+          localStorage.removeItem('token')
+          this.user = null
+        }
       }
     },
-    handleRegister () {
-      // TODO: 更完整的註冊驗證
-      if (!this.registerUsername || !this.registerPassword || !this.registerPasswordConfirm) {
-        alert('請把註冊帳號與兩次密碼都填寫完整。')
+    async fetchOrders () {
+      if (!this.user) return
+      try {
+        const response = await api.get('/orders')
+        this.orders = response.data
+      } catch (error) {
+        console.error('Error fetching orders:', error)
+      }
+    },
+    async handleLogin () {
+      try {
+        const response = await api.post('/login', {
+          email: this.loginEmail,
+          password: this.loginPassword
+        })
+        const { access_token: accessToken, user } = response.data
+        localStorage.setItem('token', accessToken)
+        this.user = user
+        this.loginPassword = ''
+        this.fetchOrders()
+        alert('登入成功！')
+      } catch (error) {
+        console.error('Login error:', error)
+        alert('登入失敗，請檢查帳號密碼。')
+      }
+    },
+    async handleRegister () {
+      if (!this.registerName || !this.registerEmail || !this.registerPassword || !this.registerPasswordConfirm) {
+        alert('請把註冊資料填寫完整。')
         return
       }
       if (this.registerPassword !== this.registerPasswordConfirm) {
@@ -200,22 +229,41 @@ export default {
         return
       }
 
-      const user = {
-        username: this.registerUsername,
-        password: this.registerPassword
-      }
-      localStorage.setItem('user', JSON.stringify(user))
-      alert('註冊成功，請使用此帳號登入。')
+      try {
+        const response = await api.post('/register', {
+          name: this.registerName,
+          email: this.registerEmail,
+          password: this.registerPassword,
+          password_confirmation: this.registerPasswordConfirm
+        })
+        const { access_token: accessToken, user } = response.data
+        localStorage.setItem('token', accessToken)
+        this.user = user
 
-      // 把登入帳號帶好
-      this.loginUsername = this.registerUsername
-      this.loginPassword = ''
-      this.registerUsername = ''
-      this.registerPassword = ''
-      this.registerPasswordConfirm = ''
+        // Clear form
+        this.registerName = ''
+        this.registerEmail = ''
+        this.registerPassword = ''
+        this.registerPasswordConfirm = ''
+        this.fetchOrders()
+
+        alert('註冊成功！')
+      } catch (error) {
+        console.error('Register error:', error)
+        alert('註冊失敗，請稍後再試。')
+      }
     },
-    logout () {
-      this.$store.commit('setLoggedIn', false)
+    async logout () {
+      try {
+        await api.post('/logout')
+      } catch (error) {
+        console.error('Logout error:', error)
+      } finally {
+        localStorage.removeItem('token')
+        this.user = null
+        this.orders = []
+        alert('已登出')
+      }
     },
     triggerFileInput () {
       this.$el.querySelector('#avatarInput').click()
@@ -229,6 +277,36 @@ export default {
         }
         reader.readAsDataURL(file)
       }
+    },
+    getStatusClass (status) {
+      const map = {
+        pending_payment: 'waiting',
+        processing: 'waiting',
+        shipped: 'waiting',
+        delivered: 'received',
+        completed: 'received',
+        cancelled: 'waiting', // or error color
+        returned: 'waiting'
+      }
+      return map[status] || ''
+    },
+    getStatusText (status) {
+      const map = {
+        pending_payment: '待付款',
+        processing: '處理中',
+        shipped: '已出貨',
+        delivered: '已送達',
+        completed: '已完成',
+        cancelled: '已取消',
+        returned: '已退貨'
+      }
+      return map[status] || status
+    },
+    formatDate (dateString) {
+      return new Date(dateString).toLocaleDateString()
+    },
+    countStatus (status) {
+      return this.orders.filter(o => o.status === status).length
     }
   }
 }
@@ -505,6 +583,12 @@ export default {
   color: #3498db;
   cursor: pointer;
   font-size: 0.9rem;
+}
+
+.no-orders {
+  padding: 1rem;
+  color: #888;
+  text-align: center;
 }
 
 /* 狀態總覽 */
