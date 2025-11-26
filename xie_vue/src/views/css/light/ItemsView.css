@@ -1,3 +1,11 @@
+.item-card {
+  transition: transform 0.2s cubic-bezier(.4,2,.3,1), box-shadow 0.2s;
+}
+.item-card:hover {
+  transform: translateY(-8px) scale(1.04);
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 2px 8px #e67e22;
+  z-index: 2;
+}
 .items-view {
   display: flex;
   min-height: 80vh;
