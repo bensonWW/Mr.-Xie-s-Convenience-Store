@@ -1,13 +1,29 @@
 <template>
   <div class="product-detail">
-    <button class="back" @click="$router.back()">← 返回</button>
     <div v-if="item" class="detail-card">
-      <img class="detail-img" :src="imgUrl" :alt="item.name || ''" />
+      <div class="img-wrap">
+        <button class="back" @click="$router.back()">← 返回</button>
+        <img class="detail-img" :src="imgUrl" :alt="item.name || ''" />
+      </div>
       <div class="detail-info">
         <h1 class="detail-name">{{ item.name }}</h1>
         <div class="detail-price">$ {{ item.price ? item.price.toLocaleString() : '' }}</div>
         <div class="detail-category">分類：{{ formatCategory(item.category) }}</div>
         <p class="detail-desc">{{ item.description || '此商品尚無描述，請在 items.json 中新增 description 欄位。' }}</p>
+        <div class="detail-stock">庫存：{{ item.amount }}</div>
+        <div class="detail-total">總價：{{ totalPrice }}</div>
+        <div class="detail-qty">
+            <label for="qty-input">數量：</label>
+            <div class="qty-selector">
+              <button class="qty-btn" @click="decreaseQty" :disabled="qty <= 1">-</button>
+              <input id="qty-input" type="number" v-model.number="qty" :min="1" :max="maxQty" @input="onQtyInput" @keydown="preventInputArrows" />
+              <button class="qty-btn" @click="increaseQty" :disabled="qty >= maxQty">+</button>
+            </div>
+            <div class="cart-actions">
+              <button class="cart-btn" @click="addToCart">加入購物車</button>
+              <button class="buy-btn" @click="buyNow">直接購買</button>
+            </div>
+        </div>
       </div>
     </div>
     <div v-else class="not-found">
@@ -18,25 +34,55 @@
 
 <script>
 import items from '@/assets/items.json'
+import './css/light/productDetail.css'
+import './css/dark/productDetail.css'
 
 export default {
   name: 'ProductDetail',
   data () {
+    /* 讓返回按鈕在圖片左上角 */
     return {
       item: null,
-      imgUrl: ''
+      imgUrl: '',
+      qty: 1,
+      maxQty: 1,
+      totalPrice: 0
     }
   },
   created () {
+    // 初始載入 item
     this.loadItemFromRoute()
   },
-  beforeRouteUpdate (to, from, next) {
-    // when route param changes but component is reused, re-load
-    this.loadItemFromRoute(to.params.id)
-    next()
+  watch: {
+    // 當路由變更時重新載入
+    '$route.params.id' (newId) {
+      this.loadItemFromRoute(newId)
+    }
   },
-  // 不使用 safeItem，模板由 v-if="item" 保護
   methods: {
+    preventInputArrows (e) {
+      // 禁用上下鍵
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        e.preventDefault()
+      }
+    },
+    updateTotalPrice () {
+      this.totalPrice = (this.item && this.item.price) ? this.qty * this.item.price : 0
+    },
+    decreaseQty () {
+      if (this.qty > 1) this.qty--
+      this.updateTotalPrice()
+    },
+    increaseQty () {
+      if (this.qty < this.maxQty) this.qty++
+      this.updateTotalPrice()
+    },
+    addToCart () {
+      // 空白函式，待實作購物車邏輯
+    },
+    buyNow () {
+      // 空白函式，待實作直接購買邏輯
+    },
     loadItemFromRoute (idParam) {
       const id = idParam || this.$route.params.id
       // debug log to confirm created/route-update runs
@@ -55,6 +101,11 @@ export default {
             this.imgUrl = this.item.img || ''
           }
         }
+        // set default qty: 1, maxQty 為庫存amount
+        const stock = Number(this.item.amount || 0)
+        this.maxQty = stock > 0 ? stock : 1
+        this.qty = 1
+        this.updateTotalPrice()
       } else {
         console.log('[ProductDetail] item not found for id:', id)
         try {
@@ -71,16 +122,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.product-detail { padding: 2rem; }
-.back { background: none; border: none; color: var(--main-text); cursor: pointer; margin-bottom: 1rem; }
-.detail-card { display: flex; gap: 2rem; align-items: flex-start; justify-content: center; }
-.detail-img { width: 360px; height: 360px; object-fit: contain; background: var(--main-card); border-radius: 8px; }
-.detail-info { max-width: 600px; text-align: left; }
-.detail-name { color: var(--main-text); margin: 0 0 0.5rem 0; }
-.detail-price { color: #e74c3c; font-size: 1.8rem; margin-bottom: 0.5rem; }
-.detail-category { color: #666; margin-bottom: 1rem; }
-.detail-desc { line-height: 1.6; }
-.not-found { text-align: center; color: #999; }
-</style>
