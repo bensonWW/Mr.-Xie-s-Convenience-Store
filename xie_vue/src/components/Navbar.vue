@@ -11,12 +11,32 @@
         <button @click="setTheme('dark')" :class="{ active: theme === 'dark' }">🌙</button>
       </div>
     </div>
+    <ul>
+      <li><router-link to="/">首頁</router-link></li>
+      <li><router-link to="/items">物品頁面</router-link></li>
+
+      <!-- 未登入 -->
+      <li v-if="!isLoggedIn">
+        <router-link to="/profile">登入 / 註冊</router-link>
+      </li>
+
+      <!-- 已登入 -->
+      <li v-else class="member-area">
+        <router-link to="/profile">會員中心</router-link>
+        <button class="logout-btn" @click="logout">登出</button>
+      </li>
+    </ul>
   </nav>
 </template>
 
 <script>
 export default {
   name: 'Navbar',
+  computed: {
+    isLoggedIn () {
+      return this.$store.state.isLoggedIn
+    }
+  },
   props: {
     theme: {
       type: String,
@@ -24,6 +44,10 @@ export default {
     }
   },
   methods: {
+    logout () {
+      this.$store.commit('setLoggedIn', false)
+      this.$router.push('/profile')
+    }
     setTheme (t) {
       this.$emit('set-theme', t)
     }
@@ -36,6 +60,7 @@ export default {
   background: #2c3e50;
   padding: 1rem 0;
 }
+
 .nav-inner {
   max-width: 1100px;
   margin: 0 auto;
@@ -52,6 +77,7 @@ export default {
   margin: 0;
   padding: 0;
 }
+
 .navbar a {
   color: #fff;
   text-decoration: none;
@@ -62,6 +88,20 @@ export default {
 .navbar a.router-link-exact-active {
   color: #e67e22;
 }
+.member-area {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.logout-btn {
+  background: transparent;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  color: #fff;
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  }
 .theme-toggle {
   display: flex;
   gap: 0.5rem;

@@ -115,3 +115,19 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.home {
+  margin-top: 2rem;
+  text-align: center;
+}
+.home h1 {
+  color: #e67e22;
+  margin-bottom: 1rem;
+}
+.home p {
+  font-size: 1.2rem;
+  color: #555;
+}
+</style>
+
