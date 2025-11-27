@@ -685,7 +685,14 @@ export default {
 
 .outline-btn {
   background: transparent;
-  border: 1px solid #ccc;
+  border: 1px solid #ecf0f1;
+  color: #ecf0f1;
+  transition: all 0.3s;
+}
+
+.outline-btn:hover {
+  background: #ecf0f1;
+  color: #2c3e50;
 }
 
 .danger-btn {
