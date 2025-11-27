@@ -96,14 +96,14 @@ export default {
         // Since we don't have full URL, we might just show a placeholder or try to resolve it
         // For now, let's just leave preview empty or try to load if it's a URL
         if (prod.image) {
-           // Simple check if it's a full URL or local file
-           if (prod.image.startsWith('http')) {
-             this.previewImage = prod.image
-           } else {
-             // Try to require it if it's in assets (won't work dynamically with require)
-             // Or assume it's in public/images
-             this.previewImage = '/images/' + prod.image
-           }
+          // Simple check if it's a full URL or local file
+          if (prod.image.startsWith('http')) {
+            this.previewImage = prod.image
+          } else {
+            // Try to require it if it's in assets (won't work dynamically with require)
+            // Or assume it's in public/images
+            this.previewImage = '/images/' + prod.image
+          }
         }
       } catch (e) {
         console.error(e)
@@ -137,17 +137,17 @@ export default {
         formData.append('stock', this.form.stock)
         formData.append('category', this.form.category)
         formData.append('information', this.form.information || '')
-        
+
         if (this.form.image) {
           formData.append('image', this.form.image)
         }
 
         // For PUT request with FormData in Laravel, we often need to use POST with _method=PUT
-        // or just use POST for update if we handle it. 
+        // or just use POST for update if we handle it.
         // Standard Laravel resource controller expects PUT/PATCH for update.
         // However, PHP has trouble parsing multipart/form-data on PUT requests.
         // The workaround is sending POST with _method field.
-        
+
         if (this.isEdit) {
           formData.append('_method', 'PUT')
           await api.post(`/admin/products/${this.$route.params.id}`, formData, {
