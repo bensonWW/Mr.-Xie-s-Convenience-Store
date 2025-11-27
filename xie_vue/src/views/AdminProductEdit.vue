@@ -157,17 +157,11 @@ export default {
           formData.append('image', this.form.image)
         }
 
-        const config = {
-          headers: {
-            'Content-Type': undefined
-          }
-        }
-
         if (this.isEdit) {
           formData.append('_method', 'PUT')
-          await api.post(`/admin/products/${this.$route.params.id}`, formData, config)
+          await api.post(`/admin/products/${this.$route.params.id}`, formData)
         } else {
-          await api.post('/admin/products', formData, config)
+          await api.post('/admin/products', formData)
         }
 
         alert('儲存成功')
