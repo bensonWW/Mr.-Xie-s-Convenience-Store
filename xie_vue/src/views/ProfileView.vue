@@ -350,6 +350,23 @@ export default {
         }
       }
     },
+    async logout () {
+      try {
+        await api.post('/logout')
+      } catch (error) {
+        console.error('Logout error:', error)
+      } finally {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user_role')
+        this.user = null
+        this.orders = []
+        alert('已登出')
+      }
+    },
+    triggerFileInput () {
+      this.$el.querySelector('#avatarInput').click()
+    },
+    onFileChange (e) {
       const file = e.target.files[0]
       if (file) {
         const reader = new FileReader()
