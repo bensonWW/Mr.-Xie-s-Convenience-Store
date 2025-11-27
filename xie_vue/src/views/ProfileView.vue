@@ -658,7 +658,9 @@ export default {
   font-size: 0.8rem;
   padding: 0.15rem 0.6rem;
   border-radius: 999px;
-  background: #f3f3f3;
+  background: #ecf0f1;
+  color: #2c3e50;
+  font-weight: 600;
 }
 
 .tag-warning {
