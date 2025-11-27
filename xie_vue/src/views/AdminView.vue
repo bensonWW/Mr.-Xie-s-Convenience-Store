@@ -213,11 +213,15 @@ export default {
   margin-bottom: 2rem;
 }
 .stat-card {
-  background: white;
+  background: #2c3e50;
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   text-align: center;
+  color: white;
+}
+.stat-card h3 {
+  color: #ecf0f1;
 }
 .stat-value {
   font-size: 2rem;
@@ -228,6 +232,28 @@ export default {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+}
+.card {
+  background: #2c3e50;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  color: white;
+}
+.card h3 {
+  color: #ecf0f1;
+  margin-bottom: 1rem;
+}
+.recent-orders {
+  list-style: none;
+  padding: 0;
+}
+.recent-orders li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #465c71;
+}
+.recent-orders li:last-child {
+  border-bottom: none;
 }
 .data-table {
   width: 100%;

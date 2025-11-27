@@ -588,10 +588,11 @@ export default {
 
 .card {
   border-radius: 16px;
-  background: var(--main-card);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  background: #2c3e50;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   padding: 1.6rem 2rem;
   text-align: left;
+  color: white;
 }
 
 .profile-header {
@@ -620,23 +621,26 @@ export default {
   font-size: 0.8rem;
   padding: 0.2rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid #ddd;
+  border: 1px solid #465c71;
   background: transparent;
+  color: #ecf0f1;
   cursor: pointer;
 }
 
 .profile-info h2 {
   margin: 0 0 0.4rem;
+  color: white;
 }
 
 .level {
   margin: 0.1rem 0;
-  color: #888;
+  color: #bdc3c7;
 }
 
 .spent {
   margin: 0.2rem 0 0.8rem;
   font-size: 0.95rem;
+  color: #ecf0f1;
 }
 
 .money {
@@ -704,7 +708,7 @@ export default {
 
 .orders li {
   padding: 0.8rem 0.4rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #465c71;
 }
 
 .order-top {
@@ -718,12 +722,13 @@ export default {
   display: flex;
   justify-content: space-between;
   font-size: 0.85rem;
-  color: #888;
+  color: #bdc3c7;
   margin-top: 0.2rem;
 }
 
 .order-title {
   font-weight: 600;
+  color: #ecf0f1;
 }
 
 .status {
@@ -733,12 +738,12 @@ export default {
 }
 
 .status.received {
-  background: rgba(39, 174, 96, 0.1);
-  color: #27ae60;
+  background: rgba(39, 174, 96, 0.2);
+  color: #2ecc71;
 }
 
 .status.waiting {
-  background: rgba(230, 126, 34, 0.1);
+  background: rgba(230, 126, 34, 0.2);
   color: #e67e22;
 }
 
@@ -753,7 +758,7 @@ export default {
 
 .no-orders {
   padding: 1rem;
-  color: #888;
+  color: #bdc3c7;
   text-align: center;
 }
 
@@ -773,6 +778,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   font-size: 0.95rem;
+  color: #ecf0f1;
 }
 
 .status-list li > span:nth-child(2) {
@@ -798,6 +804,9 @@ export default {
   padding: 0.1rem 0.4rem;
   text-align: center;
   border-radius: 999px;
+  background: #ecf0f1;
+  color: #2c3e50;
+  font-weight: bold;
   font-size: 0.8rem;
   background: #f3f3f3;
 }
