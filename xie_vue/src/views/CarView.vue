@@ -74,12 +74,7 @@ async function removeItem (id) {
     console.error('Remove item error:', error)
     alert('刪除失敗')
   }
-    }
-  } catch (error) {
-    console.error('Remove item error:', error)
-    alert('刪除失敗')
-  }
-}
+
 
 async function updateQuantity (item, change) {
   const newQty = item.quantity + change
