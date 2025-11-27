@@ -40,6 +40,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // Profile
     Route::put('/profile', [ProfileController::class, 'update']);
 
-    // Staff/Admin routes (should have middleware for role check, simplified here)
-    Route::put('/stores/{id}', [StoreController::class, 'update']);
+    // Staff/Admin routes
+    Route::middleware('is_admin')->prefix('admin')->group(function () {
+        Route::get('/stats', [App\Http\Controllers\AdminController::class, 'stats']);
+        Route::get('/users', [App\Http\Controllers\AdminController::class, 'users']);
+        Route::post('/products', [ProductController::class, 'store']);
+        Route::put('/products/{id}', [ProductController::class, 'update']);
+        Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+        Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+        Route::put('/stores/{id}', [StoreController::class, 'update']);
+    });
 });

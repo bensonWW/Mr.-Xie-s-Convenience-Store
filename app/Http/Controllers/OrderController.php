@@ -91,4 +91,15 @@ class OrderController extends Controller
 
         return response()->json(['message' => 'Payment successful', 'order' => $order]);
     }
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|string|in:pending_payment,processing,shipped,completed,cancelled'
+        ]);
+
+        $order = Order::findOrFail($id);
+        $order->update(['status' => $request->status]);
+
+        return response()->json($order);
+    }
 }

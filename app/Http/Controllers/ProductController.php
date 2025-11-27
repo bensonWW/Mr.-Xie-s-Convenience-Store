@@ -29,36 +29,63 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        // Add authorization check here (e.g., if user is staff)
-        
         $request->validate([
             'name' => 'required|string',
             'price' => 'required|numeric',
             'category' => 'required|string',
-            'store_id' => 'required|exists:stores,id',
+            'stock' => 'required|integer',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $product = Product::create($request->all());
+        $data = $request->all();
 
+        // Default store_id if not provided (e.g. for single store setup)
+        if (!isset($data['store_id'])) {
+            $store = \App\Models\Store::first();
+            $data['store_id'] = $store ? $store->id : 1;
+        }
+
+        if ($request->hasFile('image')) {
+            $imageName = time() . '.' . $request->image->extension();
+            $request->image->move(public_path('images'), $imageName);
+            // Frontend expects image path relative to assets or public URL
+            // Here we save just filename, frontend needs to handle it
+            // Or we can save full URL if we use Storage
+            // For now, let's save filename and assume we serve from public/images
+            $data['image'] = $imageName;
+        }
+
+        $product = Product::create($data);
         return response()->json($product, 201);
     }
 
     public function update(Request $request, $id)
     {
-        // Add authorization check here
-
         $product = Product::findOrFail($id);
-        $product->update($request->all());
 
+        $request->validate([
+            'name' => 'string',
+            'price' => 'numeric',
+            'category' => 'string',
+            'stock' => 'integer',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $data = $request->all();
+
+        if ($request->hasFile('image')) {
+            $imageName = time() . '.' . $request->image->extension();
+            $request->image->move(public_path('images'), $imageName);
+            $data['image'] = $imageName;
+        }
+
+        $product->update($data);
         return response()->json($product);
     }
 
     public function destroy($id)
     {
-        // Add authorization check here
-
         Product::destroy($id);
-
         return response()->json(['message' => 'Product deleted']);
     }
 }
