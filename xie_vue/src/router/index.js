@@ -44,6 +44,32 @@ const routes = [
         next('/')
       }
     }
+  },
+  {
+    path: '/admin/products/new',
+    name: 'admin-product-create',
+    component: () => import('../views/AdminProductEdit.vue'),
+    beforeEnter: (to, from, next) => {
+      const role = localStorage.getItem('user_role')
+      if (role === 'admin' || role === 'staff') {
+        next()
+      } else {
+        next('/')
+      }
+    }
+  },
+  {
+    path: '/admin/products/:id/edit',
+    name: 'admin-product-edit',
+    component: () => import('../views/AdminProductEdit.vue'),
+    beforeEnter: (to, from, next) => {
+      const role = localStorage.getItem('user_role')
+      if (role === 'admin' || role === 'staff') {
+        next()
+      } else {
+        next('/')
+      }
+    }
   }
 ]
 

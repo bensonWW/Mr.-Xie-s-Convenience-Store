@@ -50,7 +50,7 @@
     <!-- Products Tab -->
     <div v-if="activeTab === 'products'" class="tab-content">
       <div class="actions-bar">
-        <button class="primary-btn" @click="openProductModal()">新增商品</button>
+        <button class="primary-btn" @click="$router.push('/admin/products/new')">新增商品</button>
       </div>
       <table class="data-table">
         <thead>
@@ -72,7 +72,7 @@
             <td>{{ prod.category }}</td>
             <td>{{ prod.stock }}</td>
             <td>
-              <button class="sm-btn" @click="openProductModal(prod)">編輯</button>
+              <button class="sm-btn" @click="$router.push(`/admin/products/${prod.id}/edit`)">編輯</button>
               <button class="sm-btn danger" @click="deleteProduct(prod.id)">刪除</button>
             </td>
           </tr>
@@ -116,41 +116,7 @@
       </table>
     </div>
 
-    <!-- Product Modal -->
-    <div v-if="showProductModal" class="modal-overlay" @click.self="showProductModal = false">
-      <div class="modal-content">
-        <h3>{{ editingProduct ? '編輯商品' : '新增商品' }}</h3>
-        <div class="form-group">
-          <label>名稱</label>
-          <input v-model="prodForm.name" type="text">
-        </div>
-        <div class="form-group">
-          <label>價格</label>
-          <input v-model="prodForm.price" type="number">
-        </div>
-        <div class="form-group">
-          <label>分類</label>
-          <input v-model="prodForm.category" type="text">
-        </div>
-        <div class="form-group">
-          <label>庫存</label>
-          <input v-model="prodForm.stock" type="number">
-        </div>
-        <div class="form-group">
-          <label>描述</label>
-          <textarea v-model="prodForm.information"></textarea>
-        </div>
-        <!-- Image upload simplified for now -->
-        <!-- <div class="form-group">
-          <label>圖片</label>
-          <input type="file" @change="handleFileUpload">
-        </div> -->
-        <div class="modal-actions">
-          <button class="outline-btn" @click="showProductModal = false">取消</button>
-          <button class="primary-btn" @click="saveProduct">儲存</button>
-        </div>
-      </div>
-    </div>
+
 
   </div>
 </template>
@@ -165,16 +131,7 @@ export default {
       activeTab: 'dashboard',
       stats: {},
       products: [],
-      orders: [],
-      showProductModal: false,
-      editingProduct: null,
-      prodForm: {
-        name: '',
-        price: 0,
-        category: '',
-        stock: 0,
-        information: ''
-      }
+      orders: []
     }
   },
   created () {
@@ -204,30 +161,6 @@ export default {
         const res = await api.get('/admin/orders')
         this.orders = res.data
       } catch (e) {
-        console.error(e)
-      }
-    },
-    openProductModal (prod = null) {
-      this.editingProduct = prod
-      if (prod) {
-        this.prodForm = { ...prod }
-      } else {
-        this.prodForm = { name: '', price: 0, category: '', stock: 0, information: '' }
-      }
-      this.showProductModal = true
-    },
-    async saveProduct () {
-      try {
-        if (this.editingProduct) {
-          await api.put(`/admin/products/${this.editingProduct.id}`, this.prodForm)
-        } else {
-          await api.post('/admin/products', this.prodForm)
-        }
-        this.showProductModal = false
-        this.fetchProducts()
-        alert('儲存成功')
-      } catch (e) {
-        alert('儲存失敗')
         console.error(e)
       }
     },
