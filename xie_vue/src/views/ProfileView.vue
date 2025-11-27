@@ -306,6 +306,7 @@ export default {
         this.loginPassword = ''
         this.fetchOrders()
         alert('登入成功！')
+        window.location.reload()
       } catch (error) {
         console.error('Login error:', error)
         alert('登入失敗，請檢查帳號密碼。')
@@ -361,6 +362,7 @@ export default {
         this.user = null
         this.orders = []
         alert('已登出')
+        window.location.reload()
       }
     },
     triggerFileInput () {
