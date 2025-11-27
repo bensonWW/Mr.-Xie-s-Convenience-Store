@@ -107,10 +107,12 @@ export default {
         this.item = response.data
 
         if (this.item.image) {
-          try {
-            this.imgUrl = new URL(`../assets/${this.item.image}`, import.meta.url).href
-          } catch (e) {
+          if (this.item.image.startsWith('http')) {
             this.imgUrl = this.item.image
+          } else {
+            // Construct backend URL
+            const baseUrl = api.defaults.baseURL.replace('/api', '')
+            this.imgUrl = `${baseUrl}/images/${this.item.image}`
           }
         } else {
           this.imgUrl = ''
