@@ -1,6 +1,6 @@
 # API Reference
 
-Base URL: `https://<your-laravel-cloud-url>/api`
+Base URL: `https://mr-xie-s-convenience-store-ch-back-icvbux.laravel.cloud/api`
 
 ## Authentication
 

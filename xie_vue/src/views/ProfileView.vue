@@ -250,7 +250,12 @@ export default {
         alert('註冊成功！')
       } catch (error) {
         console.error('Register error:', error)
-        alert('註冊失敗，請稍後再試。')
+        if (error.response && error.response.data) {
+           const msg = error.response.data.message || JSON.stringify(error.response.data)
+           alert('註冊失敗：' + msg)
+        } else {
+           alert('註冊失敗，請稍後再試。')
+        }
       }
     },
     async logout () {
