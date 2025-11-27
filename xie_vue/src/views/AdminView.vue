@@ -201,19 +201,8 @@ export default {
     },
     async fetchOrders () {
       try {
-        // Admin should see all orders. Assuming existing /orders endpoint returns user's orders.
-        // We might need a new admin endpoint for all orders or modify existing one.
-        // For now, let's assume we use the same endpoint but backend filters differently for admin?
-        // Actually, OrderController::index returns $request->user()->orders().
-        // We need an admin endpoint for all orders.
-        // Let's use the stats endpoint recent_orders for now or add a new one.
-        // Wait, I didn't add an endpoint for all orders in AdminController.
-        // I'll just use the recent orders from stats for now to demonstrate,
-        // or quickly add one if I can.
-        // Let's stick to what I have in AdminController (recent_orders) or maybe I missed adding it.
-        // I'll use stats.recent_orders for the list for now.
-        // Actually, I should have added it. Let's assume I'll fix backend later if needed.
-        // For now, let's just use what we have.
+        const res = await api.get('/admin/orders')
+        this.orders = res.data
       } catch (e) {
         console.error(e)
       }

@@ -41,4 +41,9 @@ class AdminController extends Controller
     {
         return User::all();
     }
+
+    public function orders()
+    {
+        return Order::with('user')->latest()->get();
+    }
 }

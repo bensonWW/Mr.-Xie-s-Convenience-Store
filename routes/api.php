@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('is_admin')->prefix('admin')->group(function () {
         Route::get('/stats', [App\Http\Controllers\AdminController::class, 'stats']);
         Route::get('/users', [App\Http\Controllers\AdminController::class, 'users']);
+        Route::get('/orders', [App\Http\Controllers\AdminController::class, 'orders']);
         Route::post('/products', [ProductController::class, 'store']);
         Route::put('/products/{id}', [ProductController::class, 'update']);
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
