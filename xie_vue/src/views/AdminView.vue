@@ -208,7 +208,7 @@ export default {
         // We need an admin endpoint for all orders.
         // Let's use the stats endpoint recent_orders for now or add a new one.
         // Wait, I didn't add an endpoint for all orders in AdminController.
-        // I'll just use the recent orders from stats for now to demonstrate, 
+        // I'll just use the recent orders from stats for now to demonstrate,
         // or quickly add one if I can.
         // Let's stick to what I have in AdminController (recent_orders) or maybe I missed adding it.
         // I'll use stats.recent_orders for the list for now.
