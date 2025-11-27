@@ -251,10 +251,10 @@ export default {
       } catch (error) {
         console.error('Register error:', error)
         if (error.response && error.response.data) {
-           const msg = error.response.data.message || JSON.stringify(error.response.data)
-           alert('註冊失敗：' + msg)
+          const msg = error.response.data.message || JSON.stringify(error.response.data)
+          alert('註冊失敗：' + msg)
         } else {
-           alert('註冊失敗，請稍後再試。')
+          alert('註冊失敗，請稍後再試。')
         }
       }
     },
