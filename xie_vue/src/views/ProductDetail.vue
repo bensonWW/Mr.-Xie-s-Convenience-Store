@@ -9,7 +9,7 @@
         <h1 class="detail-name">{{ item.name }}</h1>
         <div class="detail-price">$ {{ item.price ? item.price.toLocaleString() : '' }}</div>
         <div class="detail-category">分類：{{ formatCategory(item.category) }}</div>
-        <p class="detail-desc">{{ item.description || '此商品尚無描述，請在 items.json 中新增 description 欄位。' }}</p>
+        <p class="detail-desc">{{ item.information || '此商品尚無描述。' }}</p>
         <div class="detail-stock">庫存：{{ item.amount }}</div>
         <div class="detail-total">總價：{{ totalPrice }}</div>
         <div class="detail-qty">
