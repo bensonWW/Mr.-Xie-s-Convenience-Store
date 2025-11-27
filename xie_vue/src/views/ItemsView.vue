@@ -70,12 +70,13 @@ export default {
         this.items = response.data.map(item => {
           let imgUrl = ''
           if (item.image) {
-            try {
-              // Resolve local asset
-              imgUrl = new URL(`../assets/${item.image}`, import.meta.url).href
-            } catch (e) {
-              // Fallback to original string if not a local asset or resolution fails
+            if (item.image.startsWith('http')) {
               imgUrl = item.image
+            } else {
+              // Construct backend URL
+              // api.defaults.baseURL is like '.../api', we need '.../images/'
+              const baseUrl = api.defaults.baseURL.replace('/api', '')
+              imgUrl = `${baseUrl}/images/${item.image}`
             }
           }
           return {
