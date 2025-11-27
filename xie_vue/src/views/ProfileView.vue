@@ -380,7 +380,7 @@ export default {
         name: this.user.name,
         phone: this.user.phone || '',
         address: this.user.address || '',
-        birthday: this.user.birthday || ''
+        birthday: this.user.birthday ? this.user.birthday.split('T')[0] : ''
       }
       this.showEditProfile = true
     },
