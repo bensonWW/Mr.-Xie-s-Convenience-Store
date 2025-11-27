@@ -15,6 +15,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
+Route::get('/categories', [ProductController::class, 'categories']);
 
 Route::get('/stores', [StoreController::class, 'index']);
 Route::get('/stores/{id}', [StoreController::class, 'show']);

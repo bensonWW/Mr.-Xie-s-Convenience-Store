@@ -32,12 +32,13 @@ export default {
   name: 'ItemsView',
   data () {
     return {
-      categories: ['Fruit', 'Dairy', '手機', '家電', '美妝', '食品', '日用品', '玩具', '服飾', '書籍'], // Updated with seeded categories
+      categories: [],
       items: [],
       selectedCategory: 'Fruit'
     }
   },
   created () {
+    this.fetchCategories()
     this.fetchProducts()
   },
   computed: {
@@ -51,6 +52,18 @@ export default {
     }
   },
   methods: {
+    async fetchCategories () {
+      try {
+        const response = await api.get('/categories')
+        this.categories = response.data
+        // Ensure selectedCategory is valid, if not set to first one
+        if (this.categories.length > 0 && !this.categories.includes(this.selectedCategory)) {
+          this.selectedCategory = this.categories[0]
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+      }
+    },
     async fetchProducts () {
       try {
         const response = await api.get('/products')

@@ -88,4 +88,9 @@ class ProductController extends Controller
         Product::destroy($id);
         return response()->json(['message' => 'Product deleted']);
     }
+
+    public function categories()
+    {
+        return Product::distinct()->pluck('category');
+    }
 }
