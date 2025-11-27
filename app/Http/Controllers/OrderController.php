@@ -78,4 +78,17 @@ class OrderController extends Controller
     {
         return $request->user()->orders()->with('items.product')->findOrFail($id);
     }
+
+    public function pay(Request $request, $id)
+    {
+        $order = $request->user()->orders()->findOrFail($id);
+
+        if ($order->status !== 'pending_payment') {
+            return response()->json(['message' => 'Order is not pending payment'], 400);
+        }
+
+        $order->update(['status' => 'processing']);
+
+        return response()->json(['message' => 'Payment successful', 'order' => $order]);
+    }
 }

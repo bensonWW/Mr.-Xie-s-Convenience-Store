@@ -34,6 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Orders
     Route::post('/coupons/check', [CouponController::class, 'check']);
     Route::get('/coupons', [CouponController::class, 'index']);
+    Route::post('/orders/{id}/pay', [OrderController::class, 'pay']);
     Route::apiResource('orders', OrderController::class)->only(['index', 'store', 'show']);
 
     // Profile

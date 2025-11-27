@@ -90,22 +90,6 @@
           <button class="outline-btn" @click="openEditProfile">編輯個人資料</button>
           <button class="danger-btn" @click="logout">登出</button>
         </div>
-      </div>
-
-      <!-- 購物紀錄 + 狀態清單 -->
-      <div class="grid">
-        <div class="card">
-          <h3>最近購物紀錄</h3>
-          <ul class="orders" v-if="orders.length > 0">
-            <li v-for="order in orders" :key="order.id">
-              <div class="order-top">
-                <span class="order-title">訂單編號：{{ order.id }}</span>
-                <span class="status" :class="getStatusClass(order.status)">{{ getStatusText(order.status) }}</span>
-              </div>
-              <div class="order-bottom">
-                <span>{{ formatDate(order.created_at) }}</span>
-                <span>數量：{{ order.items.length }} ｜ 金額：$ {{ order.total_amount }}</span>
-              </div>
             </li>
           </ul>
           <div v-else class="no-orders">
@@ -196,6 +180,33 @@
       </div>
     </div>
 
+    <!-- Order Details Modal -->
+    <div v-if="showOrderDetails && selectedOrder" class="modal-overlay" @click.self="showOrderDetails = false">
+      <div class="modal-content">
+        <h3>訂單詳情 #{{ selectedOrder.id }}</h3>
+        <div class="order-meta">
+          <p><strong>下單日期：</strong> {{ new Date(selectedOrder.created_at).toLocaleString() }}</p>
+          <p><strong>訂單狀態：</strong> {{ getStatusText(selectedOrder.status) }}</p>
+          <p><strong>物流狀態：</strong> <span class="highlight">{{ getLogisticsStatus(selectedOrder.status) }}</span></p>
+          <p><strong>總金額：</strong> ${{ selectedOrder.total_amount }}</p>
+        </div>
+
+        <h4>商品列表</h4>
+        <ul class="order-items-list">
+          <li v-for="item in selectedOrder.items" :key="item.id" class="order-item-row">
+            <span>{{ item.product.name }}</span>
+            <span>x{{ item.quantity }}</span>
+            <span>${{ item.price * item.quantity }}</span>
+          </li>
+        </ul>
+
+        <div class="modal-actions">
+          <button class="outline-btn" @click="showOrderDetails = false">關閉</button>
+          <button v-if="selectedOrder.status === 'pending_payment'" class="primary-btn" @click="payOrder">立即付款</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -220,6 +231,8 @@ export default {
       // Modals
       showEditProfile: false,
       showCoupons: false,
+      showOrderDetails: false,
+      selectedOrder: null,
       // Edit Profile Form
       editForm: {
         name: '',
@@ -408,6 +421,38 @@ export default {
       navigator.clipboard.writeText(code).then(() => {
         alert('優惠碼已複製：' + code)
       })
+    },
+    async openOrderDetails (orderId) {
+      try {
+        const response = await api.get(`/orders/${orderId}`)
+        this.selectedOrder = response.data
+        this.showOrderDetails = true
+      } catch (error) {
+        console.error('Fetch order details error:', error)
+        alert('無法取得訂單詳情')
+      }
+    },
+    getLogisticsStatus (status) {
+      const map = {
+        pending_payment: '待付款',
+        processing: '備貨中',
+        shipped: '已出貨',
+        completed: '已送達',
+        cancelled: '已取消'
+      }
+      return map[status] || status
+    },
+    async payOrder () {
+      if (!this.selectedOrder) return
+      try {
+        await api.post(`/orders/${this.selectedOrder.id}/pay`)
+        alert('付款成功！')
+        this.showOrderDetails = false
+        this.fetchOrders() // Refresh list
+      } catch (error) {
+        console.error('Payment error:', error)
+        alert('付款失敗，請稍後再試。')
+      }
     }
   }
 }
@@ -869,5 +914,34 @@ export default {
   text-align: center;
   color: #888;
   padding: 1rem;
+}
+
+.order-meta p {
+  margin: 0.5rem 0;
+  color: #555;
+}
+
+.highlight {
+  color: #e67e22;
+  font-weight: bold;
+}
+
+.order-items-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+}
+
+.order-item-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid #f9f9f9;
+}
+
+.order-item-row:last-child {
+  border-bottom: none;
 }
 </style>
