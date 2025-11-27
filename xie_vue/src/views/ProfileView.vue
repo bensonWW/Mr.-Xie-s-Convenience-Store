@@ -301,6 +301,7 @@ export default {
         })
         const { access_token: accessToken, user } = response.data
         localStorage.setItem('token', accessToken)
+        localStorage.setItem('user_role', user.role)
         this.user = user
         this.loginPassword = ''
         this.fetchOrders()
@@ -349,22 +350,6 @@ export default {
         }
       }
     },
-    async logout () {
-      try {
-        await api.post('/logout')
-      } catch (error) {
-        console.error('Logout error:', error)
-      } finally {
-        localStorage.removeItem('token')
-        this.user = null
-        this.orders = []
-        alert('已登出')
-      }
-    },
-    triggerFileInput () {
-      this.$el.querySelector('#avatarInput').click()
-    },
-    onFileChange (e) {
       const file = e.target.files[0]
       if (file) {
         const reader = new FileReader()
