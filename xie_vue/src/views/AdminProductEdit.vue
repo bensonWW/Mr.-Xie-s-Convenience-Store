@@ -157,11 +157,24 @@ export default {
           formData.append('image', this.form.image)
         }
 
+        const token = localStorage.getItem('token')
+        if (!token) {
+          alert('請先登入')
+          this.$router.push('/profile')
+          return
+        }
+
+        const config = {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+
         if (this.isEdit) {
           formData.append('_method', 'PUT')
-          await api.post(`/admin/products/${this.$route.params.id}`, formData)
+          await api.post(`/admin/products/${this.$route.params.id}`, formData, config)
         } else {
-          await api.post('/admin/products', formData)
+          await api.post('/admin/products', formData, config)
         }
 
         alert('儲存成功')
