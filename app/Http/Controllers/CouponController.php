@@ -52,4 +52,8 @@ class CouponController extends Controller
             'message' => 'Coupon applied successfully'
         ]);
     }
+    public function index()
+    {
+        return response()->json(Coupon::all());
+    }
 }

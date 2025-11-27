@@ -6,6 +6,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -32,7 +33,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Orders
     Route::post('/coupons/check', [CouponController::class, 'check']);
+    Route::get('/coupons', [CouponController::class, 'index']);
     Route::apiResource('orders', OrderController::class)->only(['index', 'store', 'show']);
+
+    // Profile
+    Route::put('/profile', [ProfileController::class, 'update']);
 
     // Staff/Admin routes (should have middleware for role check, simplified here)
     Route::put('/stores/{id}', [StoreController::class, 'update']);

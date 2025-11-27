@@ -86,8 +86,8 @@
         </div>
 
         <div class="quick-actions">
-          <button class="outline-btn">查看優惠券</button>
-          <button class="outline-btn">編輯個人資料</button>
+          <button class="outline-btn" @click="openCoupons">查看優惠券</button>
+          <button class="outline-btn" @click="openEditProfile">編輯個人資料</button>
           <button class="danger-btn" @click="logout">登出</button>
         </div>
       </div>
@@ -146,6 +146,58 @@
       </div>
     </div>
 
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div v-if="showEditProfile" class="modal-overlay" @click.self="showEditProfile = false">
+      <div class="modal-content">
+        <h3>編輯個人資料</h3>
+        <div class="form-group">
+          <label>姓名</label>
+          <input v-model="editForm.name" type="text">
+        </div>
+        <div class="form-group">
+          <label>電話</label>
+          <input v-model="editForm.phone" type="text">
+        </div>
+        <div class="form-group">
+          <label>地址</label>
+          <input v-model="editForm.address" type="text">
+        </div>
+        <div class="form-group">
+          <label>生日</label>
+          <input v-model="editForm.birthday" type="date">
+        </div>
+        <div class="modal-actions">
+          <button class="outline-btn" @click="showEditProfile = false">取消</button>
+          <button class="primary-btn" @click="updateProfile">儲存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coupons Modal -->
+    <div v-if="showCoupons" class="modal-overlay" @click.self="showCoupons = false">
+      <div class="modal-content">
+        <h3>我的優惠券</h3>
+        <ul class="coupon-list" v-if="coupons.length > 0">
+          <li v-for="coupon in coupons" :key="coupon.id" class="coupon-item">
+            <div class="coupon-info">
+              <span class="code">{{ coupon.code }}</span>
+              <span class="desc">
+                {{ coupon.type === 'fixed' ? '折抵 $' + coupon.discount_amount : '打 ' + (100 - coupon.discount_amount) + ' 折' }}
+              </span>
+              <span class="limit" v-if="coupon.limit_price">滿 ${{ coupon.limit_price }} 可用</span>
+            </div>
+            <button class="copy-btn" @click="copyCode(coupon.code)">複製</button>
+          </li>
+        </ul>
+        <div v-else class="no-data">暫無優惠券</div>
+        <div class="modal-actions">
+          <button class="primary-btn" @click="showCoupons = false">關閉</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -166,7 +218,19 @@ export default {
       registerPassword: '',
       registerPasswordConfirm: '',
       user: null,
-      orders: []
+      orders: [],
+      // Modals
+      showEditProfile: false,
+      showCoupons: false,
+      // Edit Profile Form
+      editForm: {
+        name: '',
+        phone: '',
+        address: '',
+        birthday: ''
+      },
+      // Coupons
+      coupons: []
     }
   },
   computed: {
@@ -312,6 +376,40 @@ export default {
     },
     countStatus (status) {
       return this.orders.filter(o => o.status === status).length
+    },
+    openEditProfile () {
+      this.editForm = {
+        name: this.user.name,
+        phone: this.user.phone || '',
+        address: this.user.address || '',
+        birthday: this.user.birthday || ''
+      }
+      this.showEditProfile = true
+    },
+    async updateProfile () {
+      try {
+        const response = await api.put('/profile', this.editForm)
+        this.user = response.data.user
+        this.showEditProfile = false
+        alert('個人資料更新成功！')
+      } catch (error) {
+        console.error('Update profile error:', error)
+        alert('更新失敗，請稍後再試。')
+      }
+    },
+    async openCoupons () {
+      this.showCoupons = true
+      try {
+        const response = await api.get('/coupons')
+        this.coupons = response.data
+      } catch (error) {
+        console.error('Fetch coupons error:', error)
+      }
+    },
+    copyCode (code) {
+      navigator.clipboard.writeText(code).then(() => {
+        alert('優惠碼已複製：' + code)
+      })
     }
   }
 }
@@ -662,5 +760,116 @@ export default {
   .grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--main-card);
+  padding: 2rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modal-content h3 {
+  margin-top: 0;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.8rem;
+  margin-top: 1.5rem;
+}
+
+.coupon-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.coupon-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem;
+  border: 1px dashed #e67e22;
+  border-radius: 8px;
+  margin-bottom: 0.8rem;
+  background: rgba(230, 126, 34, 0.05);
+}
+
+.coupon-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.coupon-info .code {
+  font-weight: bold;
+  color: #e67e22;
+  font-size: 1.1rem;
+}
+
+.coupon-info .desc {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.coupon-info .limit {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.copy-btn {
+  background: #e67e22;
+  color: #fff;
+  border: none;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.no-data {
+  text-align: center;
+  color: #888;
+  padding: 1rem;
 }
 </style>
