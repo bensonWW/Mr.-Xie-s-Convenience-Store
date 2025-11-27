@@ -154,13 +154,9 @@ export default {
 
         if (this.isEdit) {
           formData.append('_method', 'PUT')
-          await api.post(`/admin/products/${this.$route.params.id}`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-          })
+          await api.post(`/admin/products/${this.$route.params.id}`, formData)
         } else {
-          await api.post('/admin/products', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-          })
+          await api.post('/admin/products', formData)
         }
 
         alert('儲存成功')
