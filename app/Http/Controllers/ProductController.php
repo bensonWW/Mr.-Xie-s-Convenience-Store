@@ -34,7 +34,7 @@ class ProductController extends Controller
             'price' => 'required|numeric',
             'category' => 'required|string',
             'stock' => 'required|integer',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
         ]);
 
         $data = $request->all();
@@ -63,12 +63,24 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
+        \Log::info('Product Update Request:', $request->all());
+        if ($request->hasFile('image')) {
+            \Log::info('Image File:', [
+                'isValid' => $request->file('image')->isValid(),
+                'mime' => $request->file('image')->getMimeType(),
+                'size' => $request->file('image')->getSize(),
+                'error' => $request->file('image')->getError(),
+            ]);
+        } else {
+            \Log::info('No image file in request');
+        }
+
         $request->validate([
             'name' => 'string',
             'price' => 'numeric',
             'category' => 'string',
             'stock' => 'integer',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
         ]);
 
         $data = $request->all();
