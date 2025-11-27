@@ -90,6 +90,22 @@
           <button class="outline-btn" @click="openEditProfile">編輯個人資料</button>
           <button class="danger-btn" @click="logout">登出</button>
         </div>
+      </div>
+
+      <!-- 購物紀錄 + 狀態清單 -->
+      <div class="grid">
+        <div class="card">
+          <h3>最近購物紀錄</h3>
+          <ul class="orders" v-if="orders.length > 0">
+            <li v-for="order in orders" :key="order.id" @click="openOrderDetails(order.id)" style="cursor: pointer;">
+              <div class="order-top">
+                <span class="order-title">訂單編號：{{ order.id }}</span>
+                <span class="status" :class="order.status">{{ getStatusText(order.status) }}</span>
+              </div>
+              <div class="order-bottom">
+                <span>{{ new Date(order.created_at).toLocaleDateString() }}</span>
+                <span>數量：{{ order.items.length }} ｜ 金額：$ {{ order.total_amount }}</span>
+              </div>
             </li>
           </ul>
           <div v-else class="no-orders">
