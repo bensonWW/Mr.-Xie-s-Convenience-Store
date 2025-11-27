@@ -118,6 +118,11 @@ export default {
     handleFileUpload (e) {
       const file = e.target.files[0]
       if (file) {
+        if (file.size > 2 * 1024 * 1024) {
+          alert('圖片大小請勿超過 2MB')
+          e.target.value = ''
+          return
+        }
         this.form.image = file
         const reader = new FileReader()
         reader.onload = (e) => {
@@ -152,11 +157,17 @@ export default {
           formData.append('image', this.form.image)
         }
 
+        const config = {
+          headers: {
+            'Content-Type': undefined
+          }
+        }
+
         if (this.isEdit) {
           formData.append('_method', 'PUT')
-          await api.post(`/admin/products/${this.$route.params.id}`, formData)
+          await api.post(`/admin/products/${this.$route.params.id}`, formData, config)
         } else {
-          await api.post('/admin/products', formData)
+          await api.post('/admin/products', formData, config)
         }
 
         alert('儲存成功')
