@@ -74,6 +74,28 @@ async function removeItem (id) {
     console.error('Remove item error:', error)
     alert('刪除失敗')
   }
+    }
+  } catch (error) {
+    console.error('Remove item error:', error)
+    alert('刪除失敗')
+  }
+}
+
+async function updateQuantity (item, change) {
+  const newQty = item.quantity + change
+  if (newQty < 1) return
+
+  try {
+    await api.put(`/cart/items/${item.id}`, { quantity: newQty })
+    item.quantity = newQty
+    // Re-validate coupon if total changed
+    if (appliedCoupon.value) {
+      applyCoupon()
+    }
+  } catch (error) {
+    console.error('Update quantity error:', error)
+    alert('更新數量失敗')
+  }
 }
 
 async function checkout () {
@@ -121,7 +143,11 @@ async function checkout () {
             <tr v-for="item in cartItems" :key="item.id">
             <td>{{ item.name }}</td>
             <td>$ {{ item.price }}</td>
-            <td>{{ item.quantity }}</td>
+            <td class="quantity-cell">
+              <button class="qty-btn" @click="updateQuantity(item, -1)" :disabled="item.quantity <= 1">-</button>
+              <span class="qty-value">{{ item.quantity }}</span>
+              <button class="qty-btn" @click="updateQuantity(item, 1)">+</button>
+            </td>
             <td>$ {{ item.price * item.quantity }}</td>
             <td>
                 <button class="remove-btn" @click="removeItem(item.id)">刪除</button>
@@ -235,5 +261,40 @@ async function checkout () {
     font-size: 18px;
     color: #e74c3c;
     margin-bottom: 5px;
+}
+
+.quantity-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qty-btn {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #ccc;
+  background: #f8f9fa;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #333;
+}
+
+.qty-btn:hover:not(:disabled) {
+  background: #e9ecef;
+}
+
+.qty-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.qty-value {
+  min-width: 20px;
+  text-align: center;
+  font-weight: bold;
 }
 </style>
