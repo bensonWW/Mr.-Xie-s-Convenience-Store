@@ -8,7 +8,8 @@
       </ul>
     </aside>
     <main class="items-main">
-      <h2>{{ selectedCategory }}商品</h2>
+      <h2 v-if="$route.query.search">搜尋結果: "{{ $route.query.search }}"</h2>
+      <h2 v-else>{{ selectedCategory }}商品</h2>
       <div class="item-grid">
         <router-link class="item-card" v-for="item in filteredItems" :key="item.id" :to="`/items/${item.id}`">
           <img class="item-img" :src="item.img" :alt="item.name" />
@@ -41,6 +42,11 @@ export default {
   },
   computed: {
     filteredItems () {
+      const search = this.$route.query.search
+      if (search) {
+        const q = search.toLowerCase()
+        return this.items.filter(item => item.name.toLowerCase().includes(q))
+      }
       return this.items.filter(item => item.category === this.selectedCategory)
     }
   },
@@ -70,6 +76,9 @@ export default {
     },
     selectCategory (cat) {
       this.selectedCategory = cat
+      if (this.$route.query.search) {
+        this.$router.push({ path: '/items' })
+      }
     }
   }
 }
