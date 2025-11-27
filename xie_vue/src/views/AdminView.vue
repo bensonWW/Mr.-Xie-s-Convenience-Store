@@ -232,13 +232,22 @@ export default {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  background: white;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  background: #2c3e50;
+  color: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.data-table th {
+  background-color: #34495e;
+  color: #ecf0f1;
+  font-weight: bold;
 }
 .data-table th, .data-table td {
   padding: 1rem;
   text-align: left;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #465c71;
+}
+.data-table tr:hover {
+  background-color: #3b5062;
 }
 .status-badge {
   padding: 0.2rem 0.5rem;
