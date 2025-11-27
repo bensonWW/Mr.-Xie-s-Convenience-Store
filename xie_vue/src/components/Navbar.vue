@@ -5,7 +5,7 @@
         <li><router-link to="/">首頁</router-link></li>
         <li><router-link to="/items">物品頁面</router-link></li>
         <li><router-link to="/car">購物車</router-link></li>
-        <li v-if="isAdmin">
+        <li v-if="isLoggedIn && isAdmin">
           <router-link to="/admin">後台管理</router-link>
         </li>
         <li v-if="!isLoggedIn">
