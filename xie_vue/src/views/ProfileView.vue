@@ -146,8 +146,6 @@
       </div>
     </div>
 
-
-
     <!-- Edit Profile Modal -->
     <div v-if="showEditProfile" class="modal-overlay" @click.self="showEditProfile = false">
       <div class="modal-content">
