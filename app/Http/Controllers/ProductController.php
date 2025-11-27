@@ -34,7 +34,7 @@ class ProductController extends Controller
             'price' => 'required|numeric',
             'category' => 'required|string',
             'stock' => 'required|integer',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:10240',
         ]);
 
         $data = $request->all();
@@ -71,8 +71,6 @@ class ProductController extends Controller
                 'size' => $request->file('image')->getSize(),
                 'error' => $request->file('image')->getError(),
             ]);
-        } else {
-            \Log::info('No image file in request');
         }
 
         $request->validate([
@@ -80,7 +78,7 @@ class ProductController extends Controller
             'price' => 'numeric',
             'category' => 'string',
             'stock' => 'integer',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:10240',
         ]);
 
         $data = $request->all();
