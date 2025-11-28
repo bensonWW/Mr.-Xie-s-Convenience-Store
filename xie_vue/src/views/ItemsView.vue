@@ -8,7 +8,8 @@
       </ul>
     </aside>
     <main class="items-main">
-      <h2>{{ selectedCategory }}商品</h2>
+      <h2 v-if="$route.query.search">搜尋結果: "{{ $route.query.search }}"</h2>
+      <h2 v-else>{{ selectedCategory }}商品</h2>
       <div class="item-grid">
         <router-link class="item-card" v-for="item in filteredItems" :key="item.id" :to="`/items/${item.id}`">
           <img class="item-img" :src="item.img" :alt="item.name" />
@@ -21,15 +22,11 @@
 </template>
 
 <script>
-import items from '@/assets/items.json'
+import api from '@/services/api'
 
 // 根據主題動態引入 CSS
 import './css/light/ItemsView.css'
 import './css/dark/ItemsView.css'
-
-// 以下為從資料庫撈資料的範例框架（需後端 API 支援）
-/*
-import axios from 'axios'
 
 export default {
   name: 'ItemsView',
@@ -37,56 +34,65 @@ export default {
     return {
       categories: [],
       items: [],
-      selectedCategory: ''
+      selectedCategory: 'Fruit'
     }
   },
-  created() {
-    // 取得分類
-    axios.get('/api/categories').then(res => {
-      this.categories = res.data
-      this.selectedCategory = this.categories[0] || ''
-    })
-    // 取得商品
-    axios.get('/api/items').then(res => {
-      this.items = res.data
-    })
+  created () {
+    this.fetchCategories()
+    this.fetchProducts()
   },
   computed: {
-    filteredItems() {
+    filteredItems () {
+      const search = this.$route.query.search
+      if (search) {
+        const q = search.toLowerCase()
+        return this.items.filter(item => item.name.toLowerCase().includes(q))
+      }
       return this.items.filter(item => item.category === this.selectedCategory)
     }
   },
   methods: {
-    selectCategory(cat) {
-      this.selectedCategory = cat
-    }
-  }
-}
-*/
-export default {
-  name: 'ItemsView',
-  data () {
-    return {
-      categories: ['手機', '家電', '美妝', '食品', '日用品', '玩具', '服飾', '書籍'],
-      items,
-      selectedCategory: '手機'
-    }
-  },
-  computed: {
-    filteredItems () {
-      // 支援 category 為字串或陣列
-      return this.items.filter(item => {
-        if (Array.isArray(item.category)) {
-          return item.category.includes(this.selectedCategory)
-        } else {
-          return item.category === this.selectedCategory
+    async fetchCategories () {
+      try {
+        const response = await api.get('/categories')
+        this.categories = response.data
+        // Ensure selectedCategory is valid, if not set to first one
+        if (this.categories.length > 0 && !this.categories.includes(this.selectedCategory)) {
+          this.selectedCategory = this.categories[0]
         }
-      })
-    }
-  },
-  methods: {
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+      }
+    },
+    async fetchProducts () {
+      try {
+        const response = await api.get('/products')
+        this.items = response.data.map(item => {
+          let imgUrl = ''
+          if (item.image) {
+            if (item.image.startsWith('http')) {
+              imgUrl = item.image
+            } else {
+              // Construct backend URL
+              // api.defaults.baseURL is like '.../api', we need '.../images/'
+              const baseUrl = api.defaults.baseURL.replace('/api', '')
+              imgUrl = `${baseUrl}/images/${item.image}`
+            }
+          }
+          return {
+            ...item,
+            img: imgUrl
+          }
+        })
+      } catch (error) {
+        console.error('Error fetching products:', error)
+      }
+    },
     selectCategory (cat) {
       this.selectedCategory = cat
+      if (this.$route.query.search) {
+        this.$router.push({ path: '/items' })
+      }
     }
   }
 }

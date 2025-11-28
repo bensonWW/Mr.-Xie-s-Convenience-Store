@@ -108,8 +108,7 @@ export default {
     },
     doSearch () {
       if (this.search.trim()) {
-        // 這裡可導向搜尋頁或顯示搜尋結果
-        alert('搜尋：' + this.search)
+        this.$router.push({ path: '/items', query: { search: this.search.trim() } })
       }
     }
   }
