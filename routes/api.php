@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Staff/Admin routes
     Route::middleware('is_admin')->prefix('admin')->group(function () {
+        Route::apiResource('coupons', CouponController::class);
         Route::get('/stats', [App\Http\Controllers\AdminController::class, 'stats']);
         Route::get('/users', [App\Http\Controllers\AdminController::class, 'users']);
         Route::get('/orders', [App\Http\Controllers\AdminController::class, 'orders']);

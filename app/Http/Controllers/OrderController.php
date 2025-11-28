@@ -55,7 +55,7 @@ class OrderController extends Controller
             $order = Order::create([
                 'user_id' => $user->id,
                 'status' => 'pending_payment',
-                'total_amount' => max(0, $totalAmount), // Ensure not negative
+                'total_amount' => max(0, round($totalAmount)), // Ensure not negative and integer
             ]);
 
             foreach ($cart->items as $item) {

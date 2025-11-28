@@ -6,6 +6,7 @@
         <button :class="{ active: activeTab === 'dashboard' }" @click="activeTab = 'dashboard'">儀表板</button>
         <button :class="{ active: activeTab === 'products' }" @click="activeTab = 'products'">商品管理</button>
         <button :class="{ active: activeTab === 'orders' }" @click="activeTab = 'orders'">訂單管理</button>
+        <button :class="{ active: activeTab === 'coupons' }" @click="activeTab = 'coupons'">優惠卷管理</button>
       </div>
     </div>
 
@@ -115,14 +116,23 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Coupons Tab -->
+    <div v-if="activeTab === 'coupons'" class="tab-content">
+      <AdminCoupon />
+    </div>
   </div>
 </template>
 
 <script>
 import api from '@/services/api'
+import AdminCoupon from './AdminCoupon.vue'
 
 export default {
   name: 'AdminView',
+  components: {
+    AdminCoupon
+  },
   data () {
     return {
       activeTab: 'dashboard',

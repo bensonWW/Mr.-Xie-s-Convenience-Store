@@ -5,13 +5,24 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const cartItems = ref([])
-const couponCode = ref('')
+const availableCoupons = ref([])
+const selectedCouponId = ref('')
 const discountAmount = ref(0)
 const appliedCoupon = ref(null)
 
 onMounted(() => {
   fetchCart()
+  fetchCoupons()
 })
+
+async function fetchCoupons () {
+  try {
+    const response = await api.get('/coupons')
+    availableCoupons.value = response.data
+  } catch (error) {
+    console.error('Fetch coupons error:', error)
+  }
+}
 
 async function fetchCart () {
   const token = localStorage.getItem('token')
@@ -40,24 +51,33 @@ const cartTotal = computed(() =>
 )
 
 const finalTotal = computed(() => {
-  return Math.max(0, cartTotal.value - discountAmount.value)
+  return Math.max(0, Math.round(cartTotal.value - discountAmount.value))
 })
 
 async function applyCoupon () {
-  if (!couponCode.value) return
+  if (!selectedCouponId.value) {
+    discountAmount.value = 0
+    appliedCoupon.value = null
+    return
+  }
+
+  const coupon = availableCoupons.value.find(c => c.id === selectedCouponId.value)
+  if (!coupon) return
+
   try {
     const response = await api.post('/coupons/check', {
-      code: couponCode.value,
+      code: coupon.code,
       total_amount: cartTotal.value
     })
     appliedCoupon.value = response.data
-    discountAmount.value = response.data.discount_amount
+    discountAmount.value = Math.round(response.data.discount_amount)
     alert(`優惠卷已套用：${response.data.message}`)
   } catch (error) {
     console.error('Coupon error:', error)
     alert(error.response?.data?.message || '優惠卷無效')
     discountAmount.value = 0
     appliedCoupon.value = null
+    selectedCouponId.value = ''
   }
 }
 
@@ -105,7 +125,7 @@ async function checkout () {
     cartItems.value = []
     discountAmount.value = 0
     appliedCoupon.value = null
-    couponCode.value = ''
+    selectedCouponId.value = ''
     router.push('/profile')
   } catch (error) {
     console.error('Checkout error:', error)
@@ -152,8 +172,13 @@ async function checkout () {
         </table>
 
         <div class="coupon-section">
-            <input v-model="couponCode" type="text" placeholder="輸入優惠卷代碼" class="coupon-input">
-            <button @click="applyCoupon" class="coupon-btn">套用</button>
+            <label>選擇優惠卷：</label>
+            <select v-model="selectedCouponId" @change="applyCoupon" class="coupon-select">
+                <option value="">不使用優惠卷</option>
+                <option v-for="coupon in availableCoupons" :key="coupon.id" :value="coupon.id">
+                    {{ coupon.code }} - {{ coupon.type === 'fixed' ? '$' + coupon.discount_amount : coupon.discount_amount + '%' }} OFF
+                </option>
+            </select>
         </div>
 
         <div class="cart-total">
@@ -234,22 +259,17 @@ async function checkout () {
 .coupon-section {
     margin-top: 20px;
     text-align: right;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
 }
 
-.coupon-input {
+.coupon-select {
     padding: 8px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    margin-right: 10px;
-}
-
-.coupon-btn {
-    padding: 8px 16px;
-    background-color: #f39c12;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+    min-width: 200px;
 }
 
 .discount-row {
