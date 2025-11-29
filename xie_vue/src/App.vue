@@ -1,14 +1,17 @@
 <template>
-  <div :class="theme">
-    <Navbar :theme="theme" @set-theme="setTheme" />
-    <router-view/>
+  <div :class="theme" class="min-h-screen flex flex-col">
+    <AppHeader />
+    <router-view class="flex-grow"/>
+    <AppFooter />
   </div>
 </template>
 
 <script>
-import Navbar from './components/Navbar.vue'
+import AppHeader from './components/AppHeader.vue'
+import AppFooter from './components/AppFooter.vue'
+
 export default {
-  components: { Navbar },
+  components: { AppHeader, AppFooter },
   data () {
     return {
       theme: localStorage.getItem('theme') || 'light'
@@ -35,25 +38,17 @@ html, body {
   background: var(--main-bg);
 }
 :root {
-  --main-bg: #fff;
-  --main-text: #2c3e50;
-  --main-card: #fff;
+  --main-bg: #f7fafc; /* bg-gray-100 */
+  --main-text: #2d3748;
 }
 .dark {
-  --main-bg: #181818;
-  --main-text: #f5f5f5;
-  --main-card: #232323;
-}
-.light {
-  --main-bg: #fff;
-  --main-text: #2c3e50;
-  --main-card: #fff;
+  --main-bg: #1a202c;
+  --main-text: #f7fafc;
 }
 #app, .light, .dark {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   background: var(--main-bg);
   color: var(--main-text);
   min-height: 100vh;
