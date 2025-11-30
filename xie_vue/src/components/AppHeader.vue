@@ -5,9 +5,9 @@
       <div class="container mx-auto px-4 flex justify-between items-center">
         <span><i class="fas fa-check-circle text-xieOrange mr-2"></i>謝先生便利商店 - 您最信賴的居家夥伴</span>
         <div class="space-x-4">
-          <a href="#" class="hover:text-xieOrange">下載 App</a>
-          <a href="#" class="hover:text-xieOrange">店家中心</a>
-          <a href="#" class="hover:text-xieOrange">幫助中心</a>
+          <a href="#" class="text-white hover:text-xieOrange no-underline">下載 App</a>
+          <a href="#" class="text-white hover:text-xieOrange no-underline">店家中心</a>
+          <a href="#" class="text-white hover:text-xieOrange no-underline">幫助中心</a>
         </div>
       </div>
     </div>
@@ -15,7 +15,7 @@
     <!-- Main Header -->
     <header class="bg-white shadow-md sticky top-0 z-50">
       <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
-        <router-link to="/" class="flex items-center gap-2 group">
+        <router-link to="/" class="flex items-center gap-2 group no-underline">
           <div class="bg-xieBlue text-white p-2 rounded text-xl font-bold">Mr. Xie</div>
           <div class="text-2xl font-bold text-xieBlue tracking-tighter group-hover:text-xieOrange transition">
             謝先生<span class="text-xieOrange">便利商店</span>
@@ -47,12 +47,12 @@
         </div>
 
         <div class="flex items-center space-x-6 text-xieBlue">
-          <router-link to="/profile" class="flex flex-col items-center hover:text-xieOrange">
+          <router-link to="/profile" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
             <i class="far fa-heart text-xl"></i>
             <span class="text-xs mt-1">收藏</span>
           </router-link>
 
-          <router-link to="/car" class="flex flex-col items-center hover:text-xieOrange">
+          <router-link to="/car" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
             <i class="fas fa-shopping-cart text-xl relative">
               <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">2</span>
             </i>
@@ -60,26 +60,27 @@
           </router-link>
 
           <template v-if="!isLoggedIn">
-             <router-link to="/profile" class="flex flex-col items-center hover:text-xieOrange">
+             <router-link to="/profile" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
               <i class="far fa-user text-xl"></i>
               <span class="text-xs mt-1">登入</span>
             </router-link>
           </template>
           <template v-else>
-             <router-link to="/profile" class="flex flex-col items-center hover:text-xieOrange">
+             <router-link to="/profile" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
               <i class="fas fa-user-check text-xl"></i>
               <span class="text-xs mt-1">會員中心</span>
             </router-link>
-             <button @click="logout" class="flex flex-col items-center hover:text-xieOrange">
+
+             <router-link v-if="isAdmin" to="/admin" class="flex flex-col items-center text-xieOrange font-bold border border-xieOrange rounded px-2 py-1 hover:bg-xieOrange hover:text-white transition no-underline">
+               <i class="fas fa-cogs text-lg"></i>
+               <span class="text-xs">後台管理</span>
+            </router-link>
+
+             <button @click="logout" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline bg-transparent border-none cursor-pointer">
               <i class="fas fa-sign-out-alt text-xl"></i>
               <span class="text-xs mt-1">登出</span>
             </button>
           </template>
-
-          <router-link v-if="isAdmin" to="/admin" class="flex flex-col items-center hover:text-xieOrange">
-             <i class="fas fa-cogs text-xl"></i>
-             <span class="text-xs mt-1">後台</span>
-          </router-link>
 
         </div>
       </div>
@@ -100,8 +101,9 @@ export default {
       return !!localStorage.getItem('token')
     },
     isAdmin () {
+      const token = localStorage.getItem('token')
       const role = localStorage.getItem('user_role')
-      return role === 'admin' || role === 'staff'
+      return token && (role === 'admin' || role === 'staff')
     }
   },
   methods: {

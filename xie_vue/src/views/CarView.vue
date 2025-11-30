@@ -135,181 +135,151 @@ async function checkout () {
 </script>
 
 <template>
-  <div class="cart-container">
-    <h1 class="cart-title">🛒 購物車</h1>
+  <div class="bg-gray-100 font-sans text-gray-700 min-h-screen">
+    <main class="container mx-auto px-4 py-8">
 
-    <div v-if="cartItems.length === 0" class="empty-cart">
-      購物車目前是空的～
-    </div>
-
-    <div v-else>
-        <table class="cart-table">
-        <thead>
-            <tr>
-            <th>商品名稱</th>
-            <th>單價</th>
-            <th>數量</th>
-            <th>小計</th>
-            <th>操作</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            <tr v-for="item in cartItems" :key="item.id">
-            <td>{{ item.name }}</td>
-            <td>$ {{ item.price }}</td>
-            <td class="quantity-cell">
-              <button class="qty-btn" @click="updateQuantity(item, -1)" :disabled="item.quantity <= 1">-</button>
-              <span class="qty-value">{{ item.quantity }}</span>
-              <button class="qty-btn" @click="updateQuantity(item, 1)">+</button>
-            </td>
-            <td>$ {{ item.price * item.quantity }}</td>
-            <td>
-                <button class="remove-btn" @click="removeItem(item.id)">刪除</button>
-            </td>
-            </tr>
-        </tbody>
-        </table>
-
-        <div class="coupon-section">
-            <label>選擇優惠卷：</label>
-            <select v-model="selectedCouponId" @change="applyCoupon" class="coupon-select">
-                <option value="">不使用優惠卷</option>
-                <option v-for="coupon in availableCoupons" :key="coupon.id" :value="coupon.id">
-                    {{ coupon.code }} - {{ coupon.type === 'fixed' ? '$' + coupon.discount_amount : coupon.discount_amount + '%' }} OFF
-                </option>
-            </select>
-        </div>
-
-        <div class="cart-total">
-            <div v-if="discountAmount > 0" class="discount-row">
-                折扣：<span class="discount-amount">- $ {{ discountAmount }}</span>
+        <div class="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded mb-6 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-truck-fast"></i>
+                <span>還差 <span class="font-bold">NT$ 800</span> 可享免運優惠！</span>
             </div>
-            總金額：<span class="total-amount">$ {{ finalTotal }}</span>
-            <button class="checkout-btn" @click="checkout">前往結帳</button>
+            <a href="#" class="text-sm underline hover:text-xieOrange">去湊單 &rarr;</a>
         </div>
-    </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            <div class="lg:col-span-8 space-y-4">
+
+                <div class="bg-white px-6 py-3 rounded-t-lg shadow-sm border-b border-gray-100 hidden md:grid grid-cols-12 text-sm text-gray-500 font-bold">
+                    <div class="col-span-6">商品資料</div>
+                    <div class="col-span-2 text-center">單價</div>
+                    <div class="col-span-2 text-center">數量</div>
+                    <div class="col-span-1 text-center">小計</div>
+                    <div class="col-span-1 text-right">操作</div>
+                </div>
+
+                <div v-if="cartItems.length === 0" class="bg-white p-8 text-center text-gray-500 rounded-lg shadow-sm">
+                    購物車目前是空的～
+                </div>
+
+                <div v-else v-for="item in cartItems" :key="item.id" class="bg-white p-4 md:px-6 md:py-4 rounded-lg shadow-sm grid grid-cols-1 md:grid-cols-12 gap-4 items-center relative group">
+                    <div class="col-span-6 flex gap-4 items-center">
+                        <input type="checkbox" checked class="w-4 h-4 text-xieOrange focus:ring-xieOrange border-gray-300 rounded">
+                        <div class="w-20 h-20 bg-gray-100 rounded border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                            <i class="fas fa-box-open text-3xl text-gray-300"></i>
+                             </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800 line-clamp-2">{{ item.name }}</h3>
+                            <div class="text-xs text-gray-500 mt-1">規格：預設</div>
+                            <div class="text-xs text-green-600 mt-1"><i class="fas fa-check-circle"></i> 24h 到貨</div>
+                        </div>
+                    </div>
+
+                    <div class="col-span-2 text-center text-sm text-gray-500">
+                        <span class="md:hidden mr-2">單價:</span>$ {{ item.price }}
+                    </div>
+
+                    <div class="col-span-2 flex justify-center">
+                        <div class="flex items-center border border-gray-300 rounded overflow-hidden h-8">
+                            <button class="px-2 bg-gray-50 hover:bg-gray-200 text-gray-600" @click="updateQuantity(item, -1)" :disabled="item.quantity <= 1">-</button>
+                            <input type="text" :value="item.quantity" class="w-10 text-center text-sm focus:outline-none border-x border-gray-300" readonly>
+                            <button class="px-2 bg-gray-50 hover:bg-gray-200 text-gray-600" @click="updateQuantity(item, 1)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="col-span-1 text-center font-bold text-xieOrange">
+                        $ {{ item.price * item.quantity }}
+                    </div>
+
+                    <div class="col-span-1 text-right">
+                        <button class="text-gray-400 hover:text-red-500 transition p-2" @click="removeItem(item.id)">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-orange-100">
+                    <h4 class="font-bold text-gray-700 mb-3 text-sm">
+                        <i class="fas fa-fire text-red-500 mr-1"></i> 超值加價購
+                    </h4>
+                    <div class="flex gap-4 overflow-x-auto pb-2">
+                        <div class="flex-shrink-0 w-32 border border-gray-200 rounded p-2 text-center group cursor-pointer hover:border-xieOrange transition bg-white">
+                            <div class="h-16 bg-gray-100 mb-2 flex items-center justify-center text-gray-300 rounded"><i class="fas fa-plug"></i></div>
+                            <div class="text-xs truncate mb-1">20W 快速充電頭</div>
+                            <div class="text-xieOrange font-bold text-sm">$290</div>
+                            <button class="mt-1 text-xs bg-gray-100 hover:bg-xieOrange hover:text-white w-full py-1 rounded transition">加入</button>
+                        </div>
+                        <div class="flex-shrink-0 w-32 border border-gray-200 rounded p-2 text-center group cursor-pointer hover:border-xieOrange transition bg-white">
+                            <div class="h-16 bg-gray-100 mb-2 flex items-center justify-center text-gray-300 rounded"><i class="fas fa-mobile"></i></div>
+                            <div class="text-xs truncate mb-1">螢幕保護貼</div>
+                            <div class="text-xieOrange font-bold text-sm">$199</div>
+                            <button class="mt-1 text-xs bg-gray-100 hover:bg-xieOrange hover:text-white w-full py-1 rounded transition">加入</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-4">
+                <div class="bg-white p-6 rounded-lg shadow-lg sticky top-24 border-t-4 border-xieOrange">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800">訂單摘要</h3>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">使用優惠券 / 折扣碼</label>
+                        <div class="flex gap-2 mb-2">
+                            <input type="text" placeholder="輸入代碼" class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-xieOrange">
+                            <button class="bg-gray-800 text-white px-3 py-2 rounded text-sm hover:bg-gray-700">套用</button>
+                        </div>
+                        <div>
+                            <select v-model="selectedCouponId" @change="applyCoupon" class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-xieOrange">
+                                <option value="">選擇可用的優惠券</option>
+                                <option v-for="coupon in availableCoupons" :key="coupon.id" :value="coupon.id">
+                                    {{ coupon.code }} - {{ coupon.type === 'fixed' ? '$' + coupon.discount_amount : coupon.discount_amount + '%' }} OFF
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 text-sm text-gray-600 border-b border-gray-100 pb-4 mb-4">
+                        <div class="flex justify-between">
+                            <span>商品總計 ({{ cartItems.length }}件)</span>
+                            <span>$ {{ cartTotal }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>運費 (宅配)</span>
+                            <span>$0</span>
+                        </div>
+                        <div class="flex justify-between text-xieOrange" v-if="discountAmount > 0">
+                            <span>活動折扣</span>
+                            <span>-$ {{ discountAmount }}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-end mb-6">
+                        <span class="font-bold text-gray-800">應付總金額</span>
+                        <div class="text-right">
+                            <span class="text-3xl font-bold text-xieOrange">$ {{ finalTotal }}</span>
+                        </div>
+                    </div>
+
+                    <button class="w-full bg-xieOrange text-white font-bold py-3 rounded-lg text-lg hover:bg-orange-600 transition shadow-md mb-3" @click="checkout">
+                        前往結帳
+                    </button>
+                    <router-link to="/items" class="block text-center text-gray-500 text-sm hover:text-xieOrange underline">繼續購物</router-link>
+
+                    <div class="mt-6 flex justify-center gap-3 opacity-50 grayscale">
+                        <i class="fab fa-cc-visa text-2xl"></i>
+                        <i class="fab fa-cc-mastercard text-2xl"></i>
+                        <i class="fab fa-cc-jcb text-2xl"></i>
+                        <i class="fas fa-lock text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
   </div>
 </template>
 
 <style scoped>
-.cart-container {
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 16px;
-}
-
-.cart-title {
-  font-size: 28px;
-  margin-bottom: 20px;
-  font-weight: bold;
-}
-
-.cart-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-}
-
-.cart-table th,
-.cart-table td {
-  padding: 12px;
-  border-bottom: 1px solid #ddd;
-  text-align: left;
-}
-
-.remove-btn {
-  background-color: #e74c3c;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  color: white;
-  cursor: pointer;
-}
-
-.remove-btn:hover {
-  background-color: #c0392b;
-}
-
-.cart-total {
-  font-size: 22px;
-  font-weight: bold;
-  text-align: right;
-  margin-top: 20px;
-}
-
-.total-amount {
-  color: #27ae60;
-}
-
-.checkout-btn {
-  margin-left: 20px;
-  padding: 10px 20px;
-  background-color: #3498db;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.checkout-btn:hover {
-  background-color: #2980b9;
-}
-
-.coupon-section {
-    margin-top: 20px;
-    text-align: right;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 10px;
-}
-
-.coupon-select {
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    min-width: 200px;
-}
-
-.discount-row {
-    font-size: 18px;
-    color: #e74c3c;
-    margin-bottom: 5px;
-}
-
-.quantity-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.qty-btn {
-  width: 24px;
-  height: 24px;
-  border: 1px solid #ccc;
-  background: #f8f9fa;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  color: #333;
-}
-
-.qty-btn:hover:not(:disabled) {
-  background: #e9ecef;
-}
-
-.qty-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.qty-value {
-  min-width: 20px;
-  text-align: center;
-  font-weight: bold;
-}
+/* No custom styles needed, using Tailwind classes */
 </style>

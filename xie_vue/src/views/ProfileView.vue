@@ -1,5 +1,5 @@
 <template>
-  <div class="profile">
+  <div class="py-8">
 
     <!-- 未登入：登入 / 註冊區 -->
     <div v-if="!isLoggedIn" class="auth-wrapper">
@@ -58,142 +58,378 @@
     </div>
 
     <!-- 已登入：會員中心 -->
-    <div v-else class="member-wrapper">
-      <!-- 頭像 + 基本資訊 -->
-      <div class="profile-header card">
-        <div class="avatar-wrap">
-          <img class="avatar" :src="avatarUrl" alt="avatar">
-          <button class="avatar-btn" @click="triggerFileInput">
-            更換頭像
-          </button>
-          <input
-            type="file"
-            accept="image/*"
-            @change="onFileChange"
-            id="avatarInput"
-            style="display:none"
-          >
-        </div>
+    <div v-else class="container mx-auto px-4 pb-12 grid grid-cols-1 md:grid-cols-4 gap-6">
 
-        <div class="profile-info">
-          <h2>{{ user.name }}</h2>
-          <p class="level">會員等級：一般會員</p>
-          <p class="spent">累積消費：<span class="money">$0</span></p>
+        <aside class="col-span-1 hidden md:block">
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div class="p-6 text-center border-b border-gray-100 bg-gradient-to-b from-blue-50 to-white">
+                    <div class="w-20 h-20 mx-auto bg-gray-200 rounded-full mb-3 border-4 border-white shadow-md overflow-hidden relative">
+                        <img :src="avatarUrl" alt="Avatar" class="w-full h-full object-cover">
+                        <button class="absolute bottom-0 right-0 bg-xieOrange text-white rounded-full p-1 text-xs w-6 h-6 flex items-center justify-center cursor-pointer" @click="triggerFileInput">
+                          <i class="fas fa-camera"></i>
+                        </button>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          @change="onFileChange"
+                          id="avatarInput"
+                          style="display:none"
+                        >
+                    </div>
+                    <h3 class="font-bold text-gray-800">{{ user.name }}</h3>
+                    <span class="inline-block bg-xieOrange text-white text-xs px-2 py-0.5 rounded-full mt-1">一般會員</span>
+                </div>
 
-          <div class="tag-row">
-            <span class="tag">本月下單 {{ orders.length }} 次</span>
-          </div>
-        </div>
+                <nav class="p-2">
+                    <ul class="space-y-1 text-sm">
+                        <li>
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition"
+                               :class="currentView === 'dashboard' ? 'bg-orange-50 text-xieOrange font-bold' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'"
+                               @click.prevent="currentView = 'dashboard'">
+                                <i class="fas fa-user w-5 text-center"></i> 會員首頁
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-xieOrange rounded-lg transition" @click.prevent>
+                                <i class="fas fa-file-invoice-dollar w-5 text-center"></i> 我的訂單
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition"
+                               :class="currentView === 'coupons' ? 'bg-orange-50 text-xieOrange font-bold' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'"
+                               @click.prevent="currentView = 'coupons'; fetchCoupons()">
+                                <i class="fas fa-ticket-alt w-5 text-center"></i> 我的折價券
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-xieOrange rounded-lg transition" @click.prevent>
+                                <i class="far fa-heart w-5 text-center"></i> 追蹤清單
+                            </a>
+                        </li>
+                         <li>
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-xieOrange rounded-lg transition" @click.prevent>
+                                <i class="fas fa-map-marker-alt w-5 text-center"></i> 收貨地址管理
+                            </a>
+                        </li>
+                        <li class="border-t border-gray-100 mt-2 pt-2">
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition"
+                               :class="currentView === 'editProfile' ? 'bg-orange-50 text-xieOrange font-bold' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'"
+                               @click.prevent="currentView = 'editProfile'">
+                                <i class="fas fa-user-cog w-5 text-center"></i> 修改個人資料
+                            </a>
+                        </li>
 
-        <div class="quick-actions">
-          <button class="outline-btn" @click="openCoupons">查看優惠券</button>
-          <button class="outline-btn" @click="openEditProfile">編輯個人資料</button>
-          <button class="danger-btn" @click="logout">登出</button>
-        </div>
-      </div>
-
-      <!-- 購物紀錄 + 狀態清單 -->
-      <div class="grid">
-        <div class="card">
-          <h3>最近購物紀錄</h3>
-          <ul class="orders" v-if="orders.length > 0">
-            <li v-for="order in orders" :key="order.id" @click="openOrderDetails(order.id)" style="cursor: pointer;">
-              <div class="order-top">
-                <span class="order-title">訂單編號：{{ order.id }}</span>
-                <span class="status" :class="order.status">{{ getStatusText(order.status) }}</span>
-              </div>
-              <div class="order-bottom">
-                <span>{{ new Date(order.created_at).toLocaleDateString() }}</span>
-                <span>數量：{{ order.items.length }} ｜ 金額：$ {{ order.total_amount }}</span>
-              </div>
-            </li>
-          </ul>
-          <div v-else class="no-orders">
-            尚無訂單紀錄
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>訂單狀態總覽</h3>
-          <ul class="status-list">
-            <li>
-              <span class="dot all"></span>
-              全部訂單
-              <span class="badge">{{ orders.length }}</span>
-            </li>
-            <li>
-              <span class="dot pay"></span>
-              待付款
-              <span class="badge">{{ countStatus('pending_payment') }}</span>
-            </li>
-            <li>
-              <span class="dot ship"></span>
-              待出貨
-              <span class="badge">{{ countStatus('processing') }}</span>
-            </li>
-            <li>
-              <span class="dot receive"></span>
-              待收貨
-              <span class="badge">{{ countStatus('shipped') }}</span>
-            </li>
-            <li>
-              <span class="dot done"></span>
-              已完成
-              <span class="badge">{{ countStatus('completed') }}</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- Edit Profile Modal -->
-    <div v-if="showEditProfile" class="modal-overlay" @click.self="showEditProfile = false">
-      <div class="modal-content">
-        <h3>編輯個人資料</h3>
-        <div class="form-group">
-          <label>姓名</label>
-          <input v-model="editForm.name" type="text">
-        </div>
-        <div class="form-group">
-          <label>電話</label>
-          <input v-model="editForm.phone" type="text">
-        </div>
-        <div class="form-group">
-          <label>地址</label>
-          <input v-model="editForm.address" type="text">
-        </div>
-        <div class="form-group">
-          <label>生日</label>
-          <input v-model="editForm.birthday" type="date">
-        </div>
-        <div class="modal-actions">
-          <button class="outline-btn" @click="showEditProfile = false">取消</button>
-          <button class="primary-btn" @click="updateProfile">儲存</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Coupons Modal -->
-    <div v-if="showCoupons" class="modal-overlay" @click.self="showCoupons = false">
-      <div class="modal-content">
-        <h3>我的優惠券</h3>
-        <ul class="coupon-list" v-if="coupons.length > 0">
-          <li v-for="coupon in coupons" :key="coupon.id" class="coupon-item">
-            <div class="coupon-info">
-              <span class="code">{{ coupon.code }}</span>
-              <span class="desc">
-                {{ coupon.type === 'fixed' ? '折抵 $' + coupon.discount_amount : '打 ' + (100 - coupon.discount_amount) + ' 折' }}
-              </span>
-              <span class="limit" v-if="coupon.limit_price">滿 ${{ coupon.limit_price }} 可用</span>
+                    </ul>
+                </nav>
             </div>
-            <button class="copy-btn" @click="copyCode(coupon.code)">複製</button>
-          </li>
-        </ul>
-        <div v-else class="no-data">暫無優惠券</div>
-        <div class="modal-actions">
-          <button class="primary-btn" @click="showCoupons = false">關閉</button>
-        </div>
-      </div>
+        </aside>
+
+        <main class="col-span-1 md:col-span-3 space-y-6">
+
+            <div v-if="currentView === 'dashboard'" class="space-y-6">
+                <div class="bg-white rounded-lg shadow-sm p-6 flex flex-col md:flex-row items-center justify-between gap-6 border-l-4 border-xieBlue">
+                    <div class="flex items-center gap-4">
+                        <div class="text-gray-700">
+                            <h2 class="text-xl font-bold">早安，{{ user.name }}！</h2>
+                            <p class="text-sm text-gray-500 mt-1">累積消費金額：<span class="text-xieOrange font-bold text-lg">NT$ 0</span></p>
+                        </div>
+                    </div>
+                    <div class="flex gap-8 text-center">
+                        <div>
+                            <div class="text-2xl font-bold text-xieBlue">0</div>
+                            <div class="text-xs text-gray-500">紅利點數</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-xieBlue">{{ coupons.length }}</div>
+                            <div class="text-xs text-gray-500">可用折價券</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-xieBlue">{{ orders.length }}</div>
+                            <div class="text-xs text-gray-500">本月下單</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">訂單狀態</h3>
+                    <div class="grid grid-cols-5 gap-2 text-center">
+                        <a href="#" class="group relative py-2" @click.prevent>
+                            <div class="text-3xl text-gray-400 group-hover:text-xieOrange mb-2 transition relative inline-block">
+                                <i class="fas fa-wallet"></i>
+                                <span v-if="countStatus('pending_payment') > 0" class="absolute -top-2 -right-3 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">{{ countStatus('pending_payment') }}</span>
+                            </div>
+                            <div class="text-sm text-gray-600 group-hover:text-xieOrange">待付款</div>
+                        </a>
+
+                        <a href="#" class="group relative py-2" @click.prevent>
+                            <div class="text-3xl text-gray-400 group-hover:text-xieOrange mb-2 transition relative inline-block">
+                                <i class="fas fa-box-open"></i>
+                                <span v-if="countStatus('processing') > 0" class="absolute -top-2 -right-3 bg-gray-400 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">{{ countStatus('processing') }}</span>
+                            </div>
+                            <div class="text-sm text-gray-600 group-hover:text-xieOrange">待出貨</div>
+                        </a>
+
+                        <a href="#" class="group relative py-2" @click.prevent>
+                            <div class="text-3xl text-gray-400 group-hover:text-xieOrange mb-2 transition relative inline-block">
+                                <i class="fas fa-truck"></i>
+                                <span v-if="countStatus('shipped') > 0" class="absolute -top-2 -right-3 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">{{ countStatus('shipped') }}</span>
+                            </div>
+                            <div class="text-sm text-gray-600 group-hover:text-xieOrange">待收貨</div>
+                        </a>
+
+                        <a href="#" class="group relative py-2" @click.prevent>
+                            <div class="text-3xl text-gray-400 group-hover:text-xieOrange mb-2 transition">
+                                <i class="fas fa-clipboard-check"></i>
+                                <span v-if="countStatus('completed') > 0" class="absolute -top-2 -right-3 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">{{ countStatus('completed') }}</span>
+                            </div>
+                            <div class="text-sm text-gray-600 group-hover:text-xieOrange">已完成</div>
+                        </a>
+
+                        <a href="#" class="group relative py-2" @click.prevent>
+                            <div class="text-3xl text-gray-400 group-hover:text-xieOrange mb-2 transition">
+                                <i class="fas fa-undo-alt"></i>
+                            </div>
+                            <div class="text-sm text-gray-600 group-hover:text-xieOrange">退貨/取消</div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-bold text-gray-800">最近購物紀錄</h3>
+                        <a href="#" class="text-sm text-xieOrange hover:underline" @click.prevent>查看所有訂單 &rarr;</a>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left" v-if="orders.length > 0">
+                            <thead class="bg-gray-50 text-gray-600">
+                                <tr>
+                                    <th class="px-6 py-3">訂單編號</th>
+                                    <th class="px-6 py-3">下單日期</th>
+                                    <th class="px-6 py-3">總金額</th>
+                                    <th class="px-6 py-3">狀態</th>
+                                    <th class="px-6 py-3 text-right">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <tr v-for="order in orders" :key="order.id" class="hover:bg-gray-50 transition">
+                                    <td class="px-6 py-4 font-bold text-xieBlue">#{{ order.id }}</td>
+                                    <td class="px-6 py-4 text-gray-500">{{ formatDate(order.created_at) }}</td>
+                                    <td class="px-6 py-4 font-bold">NT$ {{ order.total_amount }}</td>
+                                    <td class="px-6 py-4">
+                                        <span class="py-1 px-3 rounded-full text-xs font-bold"
+                                            :class="{
+                                                'bg-red-100 text-red-600': order.status === 'pending_payment',
+                                                'bg-blue-100 text-blue-600': order.status === 'shipped',
+                                                'bg-green-100 text-green-600': order.status === 'completed',
+                                                'bg-gray-100 text-gray-600': order.status === 'processing'
+                                            }">
+                                            {{ getStatusText(order.status) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <button v-if="order.status === 'pending_payment'" class="bg-xieOrange text-white px-3 py-1 rounded text-xs hover:bg-orange-600 transition mr-2" @click="openOrderDetails(order.id)">去付款</button>
+                                        <button class="text-gray-400 hover:text-gray-600 text-xs" @click="openOrderDetails(order.id)">詳情</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div v-else class="p-8 text-center text-gray-400">
+                            尚無訂單紀錄
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <h3 class="font-bold text-gray-800 mb-4">猜你喜歡</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-white rounded-lg shadow-sm p-3 hover:shadow-md transition cursor-pointer">
+                            <div class="bg-gray-100 h-24 rounded mb-2 flex items-center justify-center text-gray-300"><i class="fas fa-image"></i></div>
+                            <div class="text-xs text-gray-800 font-bold line-clamp-1">Apple Watch S9 GPS</div>
+                            <div class="text-xieOrange font-bold text-sm mt-1">NT$ 13,500</div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-sm p-3 hover:shadow-md transition cursor-pointer">
+                            <div class="bg-gray-100 h-24 rounded mb-2 flex items-center justify-center text-gray-300"><i class="fas fa-image"></i></div>
+                            <div class="text-xs text-gray-800 font-bold line-clamp-1">AirPods Pro 2 USB-C</div>
+                            <div class="text-xieOrange font-bold text-sm mt-1">NT$ 7,490</div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-sm p-3 hover:shadow-md transition cursor-pointer">
+                            <div class="bg-gray-100 h-24 rounded mb-2 flex items-center justify-center text-gray-300"><i class="fas fa-image"></i></div>
+                            <div class="text-xs text-gray-800 font-bold line-clamp-1">Switch OLED 主機</div>
+                            <div class="text-xieOrange font-bold text-sm mt-1">NT$ 9,980</div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-sm p-3 hover:shadow-md transition cursor-pointer">
+                            <div class="bg-gray-100 h-24 rounded mb-2 flex items-center justify-center text-gray-300"><i class="fas fa-image"></i></div>
+                            <div class="text-xs text-gray-800 font-bold line-clamp-1">Sony WH-1000XM5</div>
+                            <div class="text-xieOrange font-bold text-sm mt-1">NT$ 9,900</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="currentView === 'coupons'" class="space-y-6">
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">新增優惠券 / 儲值折扣碼</label>
+                    <div class="flex gap-3">
+                        <input type="text" placeholder="請輸入折扣代碼 (例如: XIE2025)" class="flex-1 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange focus:ring-1 focus:ring-xieOrange">
+                        <button class="bg-xieBlue text-white px-6 py-2 rounded font-bold hover:bg-gray-700 transition">領取</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm min-h-[500px] overflow-hidden">
+
+                    <div class="flex border-b border-gray-200">
+                        <button class="flex-1 py-4 text-center font-bold transition focus:outline-none border-0 border-b-2"
+                                :class="couponTab === 'available' ? 'text-xieOrange bg-orange-50 border-xieOrange' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border-transparent'"
+                                @click="couponTab = 'available'">
+                            可使用 ({{ coupons.length }})
+                        </button>
+                        <button class="flex-1 py-4 text-center font-bold transition focus:outline-none border-0 border-b-2"
+                                :class="couponTab === 'used' ? 'text-xieOrange bg-orange-50 border-xieOrange' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border-transparent'"
+                                @click="couponTab = 'used'">
+                            已使用 (0)
+                        </button>
+                        <button class="flex-1 py-4 text-center font-bold transition focus:outline-none border-0 border-b-2"
+                                :class="couponTab === 'expired' ? 'text-xieOrange bg-orange-50 border-xieOrange' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border-transparent'"
+                                @click="couponTab = 'expired'">
+                            已失效 (0)
+                        </button>
+                    </div>
+
+                    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4" v-if="couponTab === 'available'">
+
+                        <div v-for="coupon in coupons" :key="coupon.id" class="bg-white border border-gray-200 rounded-lg flex overflow-hidden hover:shadow-md transition group">
+                            <div class="w-32 bg-gradient-to-br from-orange-400 to-xieOrange text-white flex flex-col items-center justify-center p-2 relative border-r-2 border-dashed border-white">
+                                <span class="text-xs font-bold opacity-80" v-if="coupon.limit_price">滿${{ coupon.limit_price }}</span>
+                                <div class="font-bold text-2xl">
+                                    {{ coupon.type === 'fixed' ? '折$' + coupon.discount_amount : (100 - coupon.discount_amount) + '折' }}
+                                </div>
+                                <div class="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full"></div> <div class="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full"></div>
+                            </div>
+                            <div class="flex-1 p-4 flex flex-col justify-between">
+                                <div>
+                                    <h4 class="font-bold text-gray-800 group-hover:text-xieOrange">{{ coupon.code }}</h4>
+                                    <p class="text-xs text-gray-500 mt-1">全館商品適用</p>
+                                </div>
+                                <div class="flex justify-between items-end mt-3">
+                                    <span class="text-xs text-gray-400">有效期限: 2025/12/31</span>
+                                    <button class="text-xieOrange border border-xieOrange px-3 py-1 rounded text-xs hover:bg-xieOrange hover:text-white transition" @click="copyCode(coupon.code)">複製代碼</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="coupons.length === 0" class="col-span-2 text-center py-8 text-gray-400">
+                            暫無可用的優惠券
+                        </div>
+
+                    </div>
+
+                    <div class="p-6 text-center text-gray-400" v-else>
+                        暫無資料
+                    </div>
+
+                    <div class="px-6 pb-6 text-xs text-gray-400 mt-auto">
+                        * 優惠券使用規則請參閱 <a href="#" class="underline hover:text-xieOrange">服務條款</a>。
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="currentView === 'editProfile'">
+                <form class="bg-white rounded-lg shadow-sm overflow-hidden" @submit.prevent="updateProfile">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                        <h2 class="font-bold text-gray-800">基本資料設定</h2>
+                    </div>
+
+                    <div class="p-8">
+                        <div class="flex items-center gap-6 mb-8">
+                            <div class="relative w-24 h-24">
+                                <img :src="avatarUrl || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'" class="w-full h-full rounded-full object-cover border-4 border-gray-100 shadow">
+                                <button type="button" class="absolute bottom-0 right-0 bg-xieOrange text-white rounded-full p-2 border-2 border-white hover:bg-orange-600 transition shadow-sm" @click="triggerFileInput">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                                <input type="file" id="avatarInput" class="hidden" accept="image/*" @change="onFileChange">
+                            </div>
+                            <div>
+                                <div class="text-sm font-bold text-gray-700 mb-1">個人頭像</div>
+                                <div class="text-xs text-gray-500 mb-2">支援 JPG, PNG 格式，檔案大小不超過 2MB</div>
+                                <button type="button" class="text-sm border border-gray-300 px-3 py-1 rounded hover:bg-gray-50 transition" @click="triggerFileInput">選擇圖片</button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">會員帳號 / Email</label>
+                                <input type="text" :value="user.email" disabled class="w-full bg-gray-100 border border-gray-300 rounded px-4 py-2 text-gray-500 cursor-not-allowed">
+                                <p class="text-xs text-gray-400 mt-1">帳號設定後無法修改</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">手機號碼</label>
+                                <input type="tel" v-model="editForm.phone" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange focus:ring-1 focus:ring-xieOrange">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">顯示名稱</label>
+                                <input type="text" v-model="editForm.name" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange focus:ring-1 focus:ring-xieOrange">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">生日</label>
+                                <div class="relative">
+                                    <input type="date" v-model="editForm.birthday" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange focus:ring-1 focus:ring-xieOrange">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">性別</label>
+                                <div class="flex gap-4 mt-2">
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="radio" name="gender" value="male" v-model="editForm.gender" class="text-xieOrange focus:ring-xieOrange">
+                                        <span class="ml-2 text-sm">男</span>
+                                    </label>
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="radio" name="gender" value="female" v-model="editForm.gender" class="text-xieOrange focus:ring-xieOrange">
+                                        <span class="ml-2 text-sm">女</span>
+                                    </label>
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="radio" name="gender" value="other" v-model="editForm.gender" class="text-xieOrange focus:ring-xieOrange">
+                                        <span class="ml-2 text-sm">不透露</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="px-6 py-4 border-t border-b border-gray-100 bg-gray-50 mt-4">
+                        <h2 class="font-bold text-gray-800">變更密碼</h2>
+                    </div>
+
+                    <div class="p-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <div class="md:col-span-2">
+                                <label class="block text-sm font-bold text-gray-700 mb-2">目前密碼</label>
+                                <input type="password" v-model="passwordForm.currentPassword" placeholder="若不修改密碼請留空" class="w-full md:w-1/2 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange focus:ring-1 focus:ring-xieOrange">
+                            </div>
+                             <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">新密碼</label>
+                                <input type="password" v-model="passwordForm.newPassword" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange focus:ring-1 focus:ring-xieOrange">
+                            </div>
+                             <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">確認新密碼</label>
+                                <input type="password" v-model="passwordForm.confirmPassword" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange focus:ring-1 focus:ring-xieOrange">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 px-8 py-4 text-right border-t border-gray-200">
+                        <button type="button" class="text-gray-500 px-6 py-2 rounded hover:bg-gray-200 transition mr-2" @click="currentView = 'dashboard'">取消</button>
+                        <button type="submit" class="bg-xieOrange text-white px-8 py-2 rounded font-bold hover:bg-orange-600 transition shadow-md">儲存變更</button>
+                    </div>
+
+                </form>
+            </div>
+
+        </main>
     </div>
 
     <!-- Order Details Modal -->
@@ -245,8 +481,6 @@ export default {
       user: null,
       orders: [],
       // Modals
-      showEditProfile: false,
-      showCoupons: false,
       showOrderDetails: false,
       selectedOrder: null,
       // Edit Profile Form
@@ -254,15 +488,36 @@ export default {
         name: '',
         phone: '',
         address: '',
-        birthday: ''
+        birthday: '',
+        gender: ''
+      },
+      passwordForm: {
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
       },
       // Coupons
-      coupons: []
+      coupons: [],
+      currentView: 'dashboard',
+      couponTab: 'available'
     }
   },
   computed: {
     isLoggedIn () {
       return !!this.user
+    }
+  },
+  watch: {
+    currentView (newVal) {
+      if (newVal === 'editProfile' && this.user) {
+        this.editForm = {
+          name: this.user.name,
+          phone: this.user.phone || '',
+          address: this.user.address || '',
+          birthday: this.user.birthday ? this.user.birthday.split('T')[0] : '',
+          gender: this.user.gender || 'male'
+        }
+      }
     }
   },
   created () {
@@ -408,28 +663,34 @@ export default {
     countStatus (status) {
       return this.orders.filter(o => o.status === status).length
     },
-    openEditProfile () {
-      this.editForm = {
-        name: this.user.name,
-        phone: this.user.phone || '',
-        address: this.user.address || '',
-        birthday: this.user.birthday ? this.user.birthday.split('T')[0] : ''
-      }
-      this.showEditProfile = true
-    },
     async updateProfile () {
       try {
-        const response = await api.put('/profile', this.editForm)
+        const payload = { ...this.editForm }
+
+        if (this.passwordForm.newPassword) {
+          if (this.passwordForm.newPassword !== this.passwordForm.confirmPassword) {
+            alert('新密碼與確認密碼不符')
+            return
+          }
+          // Assuming backend accepts these fields for password change
+          payload.password = this.passwordForm.newPassword
+          payload.current_password = this.passwordForm.currentPassword
+        }
+
+        const response = await api.put('/profile', payload)
         this.user = response.data.user
-        this.showEditProfile = false
         alert('個人資料更新成功！')
+
+        // Clear password form
+        this.passwordForm.currentPassword = ''
+        this.passwordForm.newPassword = ''
+        this.passwordForm.confirmPassword = ''
       } catch (error) {
         console.error('Update profile error:', error)
         alert('更新失敗，請稍後再試。')
       }
     },
-    async openCoupons () {
-      this.showCoupons = true
+    async fetchCoupons () {
       try {
         const response = await api.get('/coupons')
         this.coupons = response.data
@@ -479,17 +740,39 @@ export default {
 </script>
 
 <style scoped>
-.profile {
-  margin: 2rem auto;
-  max-width: 900px;
-  padding: 1rem;
+/* ========== 全域修正 (解決 Tailwind Preflight 關閉後的排版問題) ========== */
+*, *::before, *::after {
+  box-sizing: border-box; /* 關鍵：確保 padding 不會撐開寬度 */
 }
 
-/* ========== 未登入 ========== */
+/* 強制統一所有輸入框的高度與邊框，避免 date 與 text 長得不一樣 */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="date"],
+select {
+  height: 42px; /* 固定高度，確保對齊 */
+  line-height: 1.5;
+  border-width: 1px; /* 確保邊框出現 */
+  border-style: solid;
+  appearance: none; /* 移除 iOS/瀏覽器預設圓角與陰影 */
+  -webkit-appearance: none;
+}
+
+/* 修正 Date Picker 在某些瀏覽器的 icon 位置 */
+input[type="date"] {
+  padding-right: 10px;
+  display: block;
+  width: 100%;
+}
+
+/* ========== 以下維持您原本的樣式 ========== */
 
 .auth-wrapper {
   display: flex;
   justify-content: center;
+  margin-top: 2rem;
 }
 
 .auth-card {
@@ -497,7 +780,7 @@ export default {
   max-width: 780px;
   padding: 2rem 2.5rem;
   border-radius: 16px;
-  background: var(--main-card);
+  background: #ffffff;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
   text-align: left;
 }
@@ -527,11 +810,6 @@ export default {
   border: 1px solid #eee;
 }
 
-.dark .auth-box {
-  background: rgba(32, 32, 32, 0.9);
-  border-color: #444;
-}
-
 .auth-box h3 {
   margin: 0 0 0.3rem;
 }
@@ -542,20 +820,14 @@ export default {
   color: #999;
 }
 
+/* 登入註冊頁面的輸入框樣式 */
 .auth-box input {
   width: 100%;
   padding: 0.45rem 0.6rem;
   margin-bottom: 0.6rem;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border-color: #ccc;
   font-size: 0.95rem;
-  box-sizing: border-box;
-}
-
-.dark .auth-box input {
-  background: #222;
-  border-color: #555;
-  color: #f5f5f5;
 }
 
 .primary-btn,
@@ -568,6 +840,11 @@ export default {
   font-size: 0.95rem;
   font-weight: 600;
   color: #fff;
+  transition: opacity 0.2s;
+}
+
+.primary-btn:hover, .secondary-btn:hover {
+  opacity: 0.9;
 }
 
 .primary-btn {
@@ -578,408 +855,11 @@ export default {
   background: #e67e22;
 }
 
-/* ========== 已登入 ========== */
-
-.member-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.card {
-  border-radius: 16px;
-  background: #2c3e50;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  padding: 1.6rem 2rem;
-  text-align: left;
-  color: white;
-}
-
-.profile-header {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 1.5rem;
-  align-items: center;
-}
-
-.avatar-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.avatar {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  border: 3px solid #e67e22;
-  object-fit: cover;
-}
-
-.avatar-btn {
-  font-size: 0.8rem;
-  padding: 0.2rem 0.8rem;
-  border-radius: 999px;
-  border: 1px solid #465c71;
-  background: transparent;
-  color: #ecf0f1;
-  cursor: pointer;
-}
-
-.profile-info h2 {
-  margin: 0 0 0.4rem;
-  color: white;
-}
-
-.level {
-  margin: 0.1rem 0;
-  color: #bdc3c7;
-}
-
-.spent {
-  margin: 0.2rem 0 0.8rem;
-  font-size: 0.95rem;
-  color: #ecf0f1;
-}
-
-.money {
-  color: #e67e22;
-  font-weight: 600;
-}
-
-.tag-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.tag {
-  font-size: 0.8rem;
-  padding: 0.15rem 0.6rem;
-  border-radius: 999px;
-  background: #ecf0f1;
-  color: #2c3e50;
-  font-weight: 600;
-}
-
-.tag-warning {
-  background: rgba(230, 126, 34, 0.1);
-  color: #e67e22;
-}
-
-.quick-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  align-items: flex-end;
-}
-
-.outline-btn,
-.danger-btn {
-  font-size: 0.85rem;
-  padding: 0.3rem 0.9rem;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.outline-btn {
-  background: transparent;
-  border: 1px solid #ecf0f1;
-  color: #ecf0f1;
-  transition: all 0.3s;
-}
-
-.outline-btn:hover {
-  background: #ecf0f1;
-  color: #2c3e50;
-}
-
-.danger-btn {
-  background: #e74c3c;
-  color: #fff;
-  border: none;
-}
-
-/* grid 區塊 */
-
-.grid {
-  display: grid;
-  grid-template-columns: 2fr 1.2fr;
-  gap: 1.5rem;
-}
-
-.orders {
-  list-style: none;
-  padding: 0;
-  margin: 0.6rem 0 0;
-}
-
-.orders li {
-  padding: 0.8rem 0.4rem;
-  border-bottom: 1px solid #465c71;
-}
-
-.order-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.8rem;
-}
-
-.order-bottom {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  color: #bdc3c7;
-  margin-top: 0.2rem;
-}
-
-.order-title {
-  font-weight: 600;
-  color: #ecf0f1;
-}
-
-.status {
-  padding: 0.1rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.8rem;
-}
-
-.status.received {
-  background: rgba(39, 174, 96, 0.2);
-  color: #2ecc71;
-}
-
-.status.waiting {
-  background: rgba(230, 126, 34, 0.2);
-  color: #e67e22;
-}
-
-.link-btn {
-  margin-top: 0.6rem;
-  border: none;
-  background: none;
-  color: #3498db;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.no-orders {
-  padding: 1rem;
-  color: #bdc3c7;
-  text-align: center;
-}
-
-/* 狀態總覽 */
-
-.status-list {
-  list-style: none;
-  padding: 0;
-  margin: 0.8rem 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.status-list li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.95rem;
-  color: #ecf0f1;
-}
-
-.status-list li > span:nth-child(2) {
-  flex: 1;
-  margin-left: 0.4rem;
-}
-
-.dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.dot.all { background: #e67e22; }
-.dot.pay { background: #f39c12; }
-.dot.ship { background: #3498db; }
-.dot.receive { background: #e67e22; }
-.dot.done { background: #27ae60; }
-
-.badge {
-  min-width: 20px;
-  padding: 0.1rem 0.4rem;
-  text-align: center;
-  border-radius: 999px;
-  background: #ecf0f1;
-  color: #2c3e50;
-  font-weight: bold;
-  font-size: 0.8rem;
-  background: #f3f3f3;
-}
-
-/* RWD */
-
+/* 解決 RWD 手機版 Table 破版問題 (選用) */
 @media (max-width: 768px) {
-  .auth-card {
-    padding: 1.5rem 1.2rem;
+  .overflow-x-auto {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
-
-  .profile-header {
-    grid-template-columns: 1fr;
-    text-align: left;
-  }
-
-  .quick-actions {
-    flex-direction: row;
-    justify-content: flex-start;
-    margin-top: 0.5rem;
-  }
-
-  .grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Modals */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: var(--main-card);
-  padding: 2rem;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-}
-
-.modal-content h3 {
-  margin-top: 0;
-}
-
-.form-group {
-  margin-bottom: 1rem;
-  text-align: left;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.3rem;
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  box-sizing: border-box;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.8rem;
-  margin-top: 1.5rem;
-}
-
-.coupon-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.coupon-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.8rem;
-  border: 1px dashed #e67e22;
-  border-radius: 8px;
-  margin-bottom: 0.8rem;
-  background: rgba(230, 126, 34, 0.05);
-}
-
-.coupon-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.coupon-info .code {
-  font-weight: bold;
-  color: #e67e22;
-  font-size: 1.1rem;
-}
-
-.coupon-info .desc {
-  font-size: 0.9rem;
-  color: #555;
-}
-
-.coupon-info .limit {
-  font-size: 0.8rem;
-  color: #888;
-}
-
-.copy-btn {
-  background: #e67e22;
-  color: #fff;
-  border: none;
-  padding: 0.3rem 0.8rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.no-data {
-  text-align: center;
-  color: #888;
-  padding: 1rem;
-}
-
-.order-meta p {
-  margin: 0.5rem 0;
-  color: #555;
-}
-
-.highlight {
-  color: #e67e22;
-  font-weight: bold;
-}
-
-.order-items-list {
-  list-style: none;
-  padding: 0;
-  margin: 1rem 0;
-  border-top: 1px solid #eee;
-  border-bottom: 1px solid #eee;
-}
-
-.order-item-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.8rem 0;
-  border-bottom: 1px solid #f9f9f9;
-}
-
-.order-item-row:last-child {
-  border-bottom: none;
 }
 </style>
