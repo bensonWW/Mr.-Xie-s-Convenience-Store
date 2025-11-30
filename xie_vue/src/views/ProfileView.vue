@@ -102,7 +102,9 @@
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-xieOrange rounded-lg transition" @click.prevent>
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition"
+                               :class="currentView === 'wishlist' ? 'bg-orange-50 text-xieOrange font-bold' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'"
+                               @click.prevent="currentView = 'wishlist'">
                                 <i class="far fa-heart w-5 text-center"></i> 追蹤清單
                             </a>
                         </li>
@@ -429,6 +431,63 @@
                 </form>
             </div>
 
+            <div v-if="currentView === 'wishlist'">
+                <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                            我的收藏 <span class="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded-full ml-2">{{ wishlist.length }}</span>
+                        </h2>
+                        <button class="text-sm text-red-500 hover:underline" @click="clearInvalidWishlistItems"><i class="fas fa-trash-alt mr-1"></i> 清空失效商品</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                        <div v-for="item in wishlist" :key="item.id"
+                             class="border border-gray-200 rounded-lg p-4 relative hover:shadow-lg transition group"
+                             :class="item.status === 'available' ? 'bg-white' : 'bg-gray-50 opacity-90'">
+
+                            <button class="absolute top-3 right-3 text-gray-300 hover:text-red-500 z-10 p-1" @click="removeFromWishlist(item.id)">
+                                <i class="fas" :class="item.status === 'available' ? 'fa-times text-lg' : 'fa-trash-alt'"></i>
+                            </button>
+
+                            <a href="#" class="block relative mb-3">
+                                <div class="w-full h-40 bg-gray-100 rounded flex items-center justify-center text-gray-300 overflow-hidden relative">
+                                    <i :class="[item.icon_class + ' text-5xl', {'opacity-50': item.status !== 'available'}]"></i>
+                                    <div v-if="item.status !== 'available'" class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                                        <span class="bg-gray-800 text-white px-3 py-1 text-sm rounded">補貨中</span>
+                                    </div>
+                                </div>
+                                <div v-if="item.tag" class="absolute bottom-0 left-0 bg-red-500 text-white text-xs px-2 py-1 rounded-tr">
+                                    <i class="fas fa-arrow-down mr-1"></i>{{ item.tag }}
+                                </div>
+                            </a>
+
+                            <h3 class="font-bold text-sm line-clamp-2 h-10 mb-2" :class="item.status === 'available' ? 'text-gray-800 group-hover:text-xieOrange' : 'text-gray-500'">
+                                <a href="#">{{ item.name }}</a>
+                            </h3>
+                            <div class="flex items-end gap-2 mb-4">
+                                <span class="text-xl font-bold" :class="item.status === 'available' ? 'text-xieOrange' : 'text-gray-500'">NT$ {{ item.price.toLocaleString() }}</span>
+                                <span v-if="item.original_price" class="text-xs text-gray-400 line-through mb-1">NT$ {{ item.original_price.toLocaleString() }}</span>
+                            </div>
+
+                            <button v-if="item.status === 'available'" class="w-full bg-xieOrange text-white py-2 rounded font-bold hover:bg-orange-600 transition flex items-center justify-center gap-2" @click="addToCartFromWishlist(item)">
+                                <i class="fas fa-cart-plus"></i> 加入購物車
+                            </button>
+                            <button v-else class="w-full border border-gray-400 text-gray-600 py-2 rounded font-bold hover:bg-gray-200 transition flex items-center justify-center gap-2">
+                                <i class="far fa-bell"></i> 到貨通知
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <div class="mt-8 flex justify-center space-x-2">
+                        <a href="#" class="px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded hover:bg-gray-100"><i class="fas fa-chevron-left"></i></a>
+                        <a href="#" class="px-3 py-2 bg-xieOrange border border-xieOrange text-white rounded font-bold">1</a>
+                        <a href="#" class="px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded hover:bg-gray-100"><i class="fas fa-chevron-right"></i></a>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -498,6 +557,46 @@ export default {
       },
       // Coupons
       coupons: [],
+      // Wishlist
+      wishlist: [
+        {
+          id: 1,
+          name: 'Apple iPhone 15 Pro Max (256G) - 原色鈦金屬',
+          price: 44900,
+          original_price: 48900,
+          image: 'https://cdn-icons-png.flaticon.com/512/644/644458.png', // Placeholder icon
+          icon_class: 'fas fa-mobile-alt',
+          status: 'available'
+        },
+        {
+          id: 2,
+          name: 'Sony WH-1000XM5 無線降噪耳機',
+          price: 9900,
+          original_price: 11900,
+          image: 'https://cdn-icons-png.flaticon.com/512/2304/2304226.png', // Placeholder icon
+          icon_class: 'fas fa-headphones',
+          status: 'available',
+          tag: '比加入時降 $500'
+        },
+        {
+          id: 3,
+          name: 'Switch OLED 主機 (白色) - 台灣公司貨',
+          price: 9980,
+          original_price: null,
+          image: 'https://cdn-icons-png.flaticon.com/512/686/686589.png', // Placeholder icon
+          icon_class: 'fas fa-gamepad',
+          status: 'out_of_stock'
+        },
+        {
+          id: 4,
+          name: 'Philips 飛利浦 高速破壁機',
+          price: 5680,
+          original_price: null,
+          image: 'https://cdn-icons-png.flaticon.com/512/911/911409.png', // Placeholder icon
+          icon_class: 'fas fa-blender',
+          status: 'available'
+        }
+      ],
       currentView: 'dashboard',
       couponTab: 'available'
     }
@@ -733,6 +832,22 @@ export default {
       } catch (error) {
         console.error('Payment error:', error)
         alert('付款失敗，請稍後再試。')
+      }
+    },
+    removeFromWishlist (id) {
+      if (confirm('確定要將此商品移出追蹤清單嗎？')) {
+        this.wishlist = this.wishlist.filter(item => item.id !== id)
+        alert('已移除商品')
+      }
+    },
+    addToCartFromWishlist (item) {
+      alert(`已將 ${item.name} 加入購物車！`)
+      // In a real app, you would call an API or store action here
+    },
+    clearInvalidWishlistItems () {
+      if (confirm('確定要清空所有失效商品嗎？')) {
+        this.wishlist = this.wishlist.filter(item => item.status !== 'out_of_stock')
+        alert('已清空失效商品')
       }
     }
   }
