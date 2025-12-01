@@ -9,6 +9,14 @@
     </aside>
     <main class="items-main">
       <h2>{{ selectedCategory }}商品</h2>
+      <div class="search-bar" style="margin: 1rem 0;">
+        <input
+          type="text"
+          v-model="searchText"
+          placeholder="搜尋商品名稱..."
+          style="padding: 0.5rem 1rem; border-radius: 6px; border: 1px solid #ccc; width: 100%; max-width: 320px;"
+        />
+      </div>
       <div class="item-grid">
         <router-link class="item-card" v-for="item in filteredItems" :key="item.id" :to="`/items/${item.id}`">
           <img class="item-img" :src="item.img" :alt="item.name" />
@@ -69,17 +77,24 @@ export default {
     return {
       categories: ['手機', '家電', '美妝', '食品', '日用品', '玩具', '服飾', '書籍'],
       items,
-      selectedCategory: '手機'
+      selectedCategory: '手機',
+      searchText: ''
     }
   },
   computed: {
     filteredItems () {
-      // 支援 category 為字串或陣列
+      // 搜尋時忽略分類，否則依分類
       return this.items.filter(item => {
-        if (Array.isArray(item.category)) {
-          return item.category.includes(this.selectedCategory)
+        const matchName = this.searchText
+          ? item.name && item.name.toLowerCase().includes(this.searchText.toLowerCase())
+          : true
+        if (this.searchText) {
+          return matchName
         } else {
-          return item.category === this.selectedCategory
+          const matchCategory = Array.isArray(item.category)
+            ? item.category.includes(this.selectedCategory)
+            : item.category === this.selectedCategory
+          return matchCategory && matchName
         }
       })
     }

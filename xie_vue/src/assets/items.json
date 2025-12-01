@@ -45,15 +45,6 @@
     "amount": 100
   },
   {
-    "id": "手機-3",
-    "name": "Xiaomi 14 Ultra",
-    "price": 35999,
-    "img": "123.png",
-    "category": "手機",
-    "description": "Dyson 技術的小型無線吸塵器，吸力強、方便收納。",
-    "amount": 100
-  },
-  {
     "id": "家電-1",
     "name": "Dyson V12 無線吸塵器",
     "price": 18900,
@@ -177,5 +168,96 @@
     "img": "123.png",
     "category": "書籍",
     "amount": 10
+  }
+  ,
+  {
+    "id": "手機-6",
+    "name": "Sony Xperia 1 V",
+    "price": 38900,
+    "img": "123.png",
+    "category": "手機",
+    "description": "Sony 旗艦機，擁有專業級攝影功能與優秀的螢幕顯示。",
+    "amount": 50
+  },
+  {
+    "id": "手機-7",
+    "name": "ASUS ROG Phone 8",
+    "price": 32900,
+    "img": "123.png",
+    "category": "手機",
+    "description": "專為遊戲玩家設計的手機，高效能與散熱優化。",
+    "amount": 30
+  },
+  {
+    "id": "家電-3",
+    "name": "象印微電腦電子鍋",
+    "price": 4990,
+    "img": "123.png",
+    "category": "家電",
+    "description": "內建多種炊煮模式，米飯口感出色且操作簡單。",
+    "amount": 40
+  },
+  {
+    "id": "家電-4",
+    "name": "Philips 空氣清淨機",
+    "price": 7990,
+    "img": "123.png",
+    "category": ["家電","日用品"],
+    "description": "適用中小坪數，濾網能高效過濾懸浮微粒與異味。",
+    "amount": 25
+  },
+  {
+    "id": "美妝-3",
+    "name": "L'Oreal 玻尿酸保濕精華",
+    "price": 1299,
+    "img": "123.png",
+    "category": "美妝",
+    "description": "高濃度玻尿酸，長效保濕並改善乾燥細紋。",
+    "amount": 80
+  },
+  {
+    "id": "食品-3",
+    "name": "旺旺仙貝 原味",
+    "price": 39,
+    "img": "123.png",
+    "category": "食品",
+    "description": "經典零食，口感酥脆，是茶點好選擇。",
+    "amount": 200
+  },
+  {
+    "id": "日用品-3",
+    "name": "電動牙刷組",
+    "price": 1299,
+    "img": "123.png",
+    "category": "日用品",
+    "description": "含充電座與多種刷頭，清潔力佳且攜帶方便。",
+    "amount": 60
+  },
+  {
+    "id": "玩具-3",
+    "name": "1000片拼圖 - 風景系列",
+    "price": 699,
+    "img": "123.png",
+    "category": "玩具",
+    "description": "提升耐心與專注力，適合親子共玩。",
+    "amount": 120
+  },
+  {
+    "id": "服飾-3",
+    "name": "Adidas 運動短褲",
+    "price": 890,
+    "img": "123.png",
+    "category": "服飾",
+    "description": "輕量透氣，運動與日常皆可穿著。",
+    "amount": 70
+  },
+  {
+    "id": "書籍-3",
+    "name": "深夜食堂",
+    "price": 320,
+    "img": "123.png",
+    "category": "書籍",
+    "description": "暖心漫畫，描寫日常與人情味的短篇故事。",
+    "amount": 50
   }
 ]

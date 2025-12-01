@@ -16,7 +16,7 @@
             <label for="qty-input">數量：</label>
             <div class="qty-selector">
               <button class="qty-btn" @click="decreaseQty" :disabled="qty <= 1">-</button>
-              <input id="qty-input" type="number" v-model.number="qty" :min="1" :max="maxQty" @input="onQtyInput" @keydown="preventInputArrows" />
+              <input id="qty-input" type="number" v-model="qty" :min="1" :max="maxQty" @input="onQtyInput" @blur="onQtyBlur" @keydown="preventInputArrows" />
               <button class="qty-btn" @click="increaseQty" :disabled="qty >= maxQty">+</button>
             </div>
             <div class="cart-actions">
@@ -60,6 +60,32 @@ export default {
     }
   },
   methods: {
+    onQtyInput (e) {
+      // 允許清空數量框
+      if (e.target.value === '' || e.target.value === null) {
+        this.qty = ''
+      } else {
+        const val = Number(e.target.value)
+        if (val > this.maxQty) {
+          this.qty = this.maxQty
+        } else {
+          this.qty = val
+        }
+      }
+      this.updateTotalPrice()
+    },
+
+    onQtyBlur (e) {
+      // 失焦時自動修正空值或不合法值
+      if (e.target.value === '' || e.target.value === null || Number(e.target.value) < 1) {
+        this.qty = 1
+        this.updateTotalPrice()
+      }
+      if (Number(e.target.value) > this.maxQty) {
+        this.qty = this.maxQty
+        this.updateTotalPrice()
+      }
+    },
     preventInputArrows (e) {
       // 禁用上下鍵
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
