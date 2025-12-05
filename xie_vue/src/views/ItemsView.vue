@@ -1,43 +1,88 @@
-/* eslint-disable */
 <template>
-  <div class="items-view">
-    <aside class="category-menu">
-      <h3>分類</h3>
-      <ul>
-        <li v-for="cat in categories" :key="cat" :class="{active: cat === selectedCategory}" @click="selectCategory(cat)">{{ cat }}</li>
-      </ul>
+  <div class="container mx-auto px-4 py-6 grid grid-cols-12 gap-6">
+
+    <!-- Sidebar -->
+    <aside class="col-span-12 md:col-span-3 lg:col-span-2">
+      <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="bg-xieBlue text-white px-4 py-3 font-bold">
+          <i class="fas fa-list mr-2"></i> 商品分類
+        </div>
+        <ul class="text-sm text-gray-700 divide-y divide-gray-100 font-medium">
+          <li
+            v-for="cat in categories"
+            :key="cat"
+            @click="selectCategory(cat)"
+            :class="['px-4 py-3 border-l-4 cursor-pointer transition', selectedCategory === cat ? 'bg-orange-50 text-xieOrange border-xieOrange' : 'hover:bg-gray-50 hover:text-xieOrange border-transparent']"
+          >
+            {{ cat }}
+          </li>
+        </ul>
+      </div>
     </aside>
-    <main class="items-main">
-      <h2>{{ selectedCategory }}商品</h2>
-      <div class="search-bar" style="margin: 1rem 0;">
-        <input
-          type="text"
-          v-model="searchText"
-          placeholder="搜尋商品名稱..."
-          style="padding: 0.5rem 1rem; border-radius: 6px; border: 1px solid #ccc; width: 100%; max-width: 320px;"
-        />
+
+    <!-- Main Content -->
+    <main class="col-span-12 md:col-span-9 lg:col-span-10">
+
+      <!-- Header / Breadcrumbs & Sort -->
+      <div class="bg-white p-4 rounded-lg shadow-sm mb-6 flex flex-col md:flex-row justify-between items-center text-sm">
+        <div class="mb-4 md:mb-0">
+          <router-link to="/" class="text-gray-500 hover:text-xieOrange">首頁</router-link>
+          <span class="mx-2 text-gray-400">/</span>
+          <span class="font-bold text-xieBlue">{{ displayTitle }}</span>
+          <span class="ml-4 text-gray-500">共 {{ filteredItems.length }} 筆商品</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <label class="font-bold text-gray-700">排序：</label>
+          <select class="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-xieOrange">
+            <option>綜合排名</option>
+            <option>熱銷排行</option>
+            <option>價格由低到高</option>
+            <option>價格由高到低</option>
+          </select>
+        </div>
       </div>
-      <div class="item-grid">
-        <router-link class="item-card" v-for="item in filteredItems" :key="item.id" :to="`/items/${item.id}`">
-          <img class="item-img" :src="item.img" :alt="item.name" />
-          <div class="item-name">{{ item.name }}</div>
-          <div class="item-price">${{ item.price.toLocaleString() }}</div>
-        </router-link>
+
+      <!-- Product Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div
+          v-for="item in filteredItems"
+          :key="item.id"
+          class="bg-white rounded-lg shadow hover:shadow-lg transition group border border-gray-200 hover:border-xieOrange overflow-hidden"
+        >
+          <router-link :to="`/items/${item.id}`" class="block relative bg-gray-100 p-4">
+            <div class="w-full h-48 flex items-center justify-center bg-white rounded-t-lg overflow-hidden">
+               <img v-if="item.img" :src="item.img" :alt="item.name" class="w-full h-full object-cover">
+               <i v-else class="fas fa-image text-4xl text-gray-300"></i>
+            </div>
+          </router-link>
+          <div class="p-3">
+            <h3 class="text-sm text-gray-800 line-clamp-2 h-10 mb-2 group-hover:text-xieOrange transition leading-tight">
+              <router-link :to="`/items/${item.id}`">{{ item.name }}</router-link>
+            </h3>
+            <div class="flex items-end justify-between">
+              <div class="text-xieOrange font-bold text-lg leading-none">NT$ {{ item.price.toLocaleString() }}</div>
+              <button class="bg-xieOrange text-white p-2 rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md hover:bg-orange-600">
+                <i class="fas fa-cart-plus"></i>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <!-- Pagination -->
+      <div class="mt-8 flex justify-center space-x-2">
+        <a href="#" class="px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded hover:bg-gray-100"><i class="fas fa-chevron-left"></i></a>
+        <a href="#" class="px-3 py-2 bg-xieOrange border border-xieOrange text-white rounded font-bold">1</a>
+        <a href="#" class="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-100 hover:text-xieOrange">2</a>
+        <a href="#" class="px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded hover:bg-gray-100"><i class="fas fa-chevron-right"></i></a>
+      </div>
+
     </main>
   </div>
 </template>
 
 <script>
-import items from '@/assets/items.json'
-
-// 根據主題動態引入 CSS
-import './css/light/ItemsView.css'
-import './css/dark/ItemsView.css'
-
-// 以下為從資料庫撈資料的範例框架（需後端 API 支援）
-/*
-import axios from 'axios'
+import api from '../services/api'
 
 export default {
   name: 'ItemsView',
@@ -45,66 +90,81 @@ export default {
     return {
       categories: [],
       items: [],
-      selectedCategory: ''
+      selectedCategory: 'Fruit'
     }
   },
-  created() {
-    // 取得分類
-    axios.get('/api/categories').then(res => {
-      this.categories = res.data
-      this.selectedCategory = this.categories[0] || ''
-    })
-    // 取得商品
-    axios.get('/api/items').then(res => {
-      this.items = res.data
-    })
+  created () {
+    this.fetchCategories()
+    this.fetchProducts()
   },
   computed: {
-    filteredItems() {
+    displayTitle () {
+      if (this.$route.query.search) {
+        return `搜尋: "${this.$route.query.search}"`
+      }
+      return `${this.selectedCategory}商品`
+    },
+    filteredItems () {
+      const search = this.$route.query.search
+      if (search) {
+        const q = search.toLowerCase()
+        return this.items.filter(item => item.name.toLowerCase().includes(q))
+      }
       return this.items.filter(item => item.category === this.selectedCategory)
     }
   },
   methods: {
-    selectCategory(cat) {
-      this.selectedCategory = cat
-    }
-  }
-}
-*/
-export default {
-  name: 'ItemsView',
-  data () {
-    return {
-      categories: ['手機', '家電', '美妝', '食品', '日用品', '玩具', '服飾', '書籍'],
-      items,
-      selectedCategory: '手機',
-      searchText: ''
-    }
-  },
-  computed: {
-    filteredItems () {
-      // 搜尋時忽略分類，否則依分類
-      return this.items.filter(item => {
-        const matchName = this.searchText
-          ? item.name && item.name.toLowerCase().includes(this.searchText.toLowerCase())
-          : true
-        if (this.searchText) {
-          return matchName
-        } else {
-          const matchCategory = Array.isArray(item.category)
-            ? item.category.includes(this.selectedCategory)
-            : item.category === this.selectedCategory
-          return matchCategory && matchName
+    async fetchCategories () {
+      try {
+        const response = await api.get('/categories')
+        this.categories = response.data
+        if (this.categories.length > 0 && !this.categories.includes(this.selectedCategory) && !this.$route.query.search) {
+          this.selectedCategory = this.categories[0]
         }
-      })
-    }
-  },
-  methods: {
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+      }
+    },
+    async fetchProducts () {
+      try {
+        const response = await api.get('/products')
+        this.items = response.data.map(item => {
+          let imgUrl = ''
+          if (item.image) {
+            if (item.image.startsWith('http')) {
+              imgUrl = item.image
+            } else {
+              const baseUrl = api.defaults.baseURL.replace('/api', '')
+              imgUrl = `${baseUrl}/images/${item.image}`
+            }
+          }
+          return {
+            ...item,
+            img: imgUrl
+          }
+        })
+      } catch (error) {
+        console.error('Error fetching products:', error)
+      } finally {
+        const queryCategory = this.$route.query.category
+        if (queryCategory) {
+          this.selectedCategory = queryCategory
+        }
+      }
+    },
     selectCategory (cat) {
       this.selectedCategory = cat
+      if (this.$route.query.search) {
+        this.$router.push({ path: '/items' })
+      }
+    }
+  },
+  watch: {
+    '$route.query.category' (newVal) {
+      if (newVal) {
+        this.selectedCategory = newVal
+      }
     }
   }
 }
 </script>
-
-<!-- 樣式已移至 ItemsView.css -->

@@ -1,96 +1,153 @@
 <template>
-  <div class="product-detail">
-    <div v-if="item" class="detail-card">
-      <div class="img-wrap">
-        <button class="back" @click="$router.back()">← 返回</button>
-        <img class="detail-img" :src="imgUrl" :alt="item.name || ''" />
-      </div>
-      <div class="detail-info">
-        <h1 class="detail-name">{{ item.name }}</h1>
-        <div class="detail-price">$ {{ item.price ? item.price.toLocaleString() : '' }}</div>
-        <div class="detail-category">分類：{{ formatCategory(item.category) }}</div>
-        <p class="detail-desc">{{ item.description || '此商品尚無描述，請在 items.json 中新增 description 欄位。' }}</p>
-        <div class="detail-stock">庫存：{{ item.amount }}</div>
-        <div class="detail-total">總價：{{ totalPrice }}</div>
-        <div class="detail-qty">
-            <label for="qty-input">數量：</label>
-            <div class="qty-selector">
-              <button class="qty-btn" @click="decreaseQty" :disabled="qty <= 1">-</button>
-              <input id="qty-input" type="number" v-model="qty" :min="1" :max="maxQty" @input="onQtyInput" @blur="onQtyBlur" @keydown="preventInputArrows" />
-              <button class="qty-btn" @click="increaseQty" :disabled="qty >= maxQty">+</button>
+  <div class="bg-gray-100 min-h-screen pb-12">
+    <!-- Breadcrumbs -->
+    <div class="bg-gray-100 py-4">
+        <div class="container mx-auto px-4 text-sm text-gray-500">
+            <router-link to="/" class="hover:text-xieOrange">首頁</router-link> <span class="mx-2">/</span>
+            <router-link to="/items" class="hover:text-xieOrange">{{ formatCategory(item?.category) || '商品' }}</router-link> <span class="mx-2">/</span>
+            <span class="text-gray-700">{{ item?.name }}</span>
+        </div>
+    </div>
+
+    <main class="container mx-auto px-4" v-if="item">
+        <div class="bg-white rounded-xl shadow-sm p-6 grid grid-cols-1 md:grid-cols-2 gap-10">
+
+            <!-- Image Section -->
+            <div class="space-y-4">
+                <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200 p-8 relative overflow-hidden group">
+                    <img v-if="imgUrl" :src="imgUrl" :alt="item.name" class="w-full h-full object-contain">
+                    <i v-else class="fas fa-image text-9xl text-gray-300"></i>
+                    <button class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition p-2 bg-white rounded-full shadow-sm">
+                        <i class="far fa-heart text-xl"></i>
+                    </button>
+                </div>
+                <!-- Mock Thumbnails -->
+                <div class="flex gap-2 overflow-x-auto">
+                    <div class="w-20 h-20 border-2 border-xieOrange rounded-md p-1 cursor-pointer">
+                        <div class="bg-gray-100 w-full h-full flex items-center justify-center text-gray-400 overflow-hidden">
+                             <img v-if="imgUrl" :src="imgUrl" class="w-full h-full object-cover">
+                             <i v-else class="fas fa-image"></i>
+                        </div>
+                    </div>
+                     <!-- Placeholders for gallery effect -->
+                    <div class="w-20 h-20 border-2 border-transparent hover:border-xieOrange rounded-md p-1 cursor-pointer transition">
+                        <div class="bg-gray-100 w-full h-full flex items-center justify-center text-gray-400"><i class="fas fa-image"></i></div>
+                    </div>
+                </div>
             </div>
-            <div class="cart-actions">
-              <button class="cart-btn" @click="addToCart">加入購物車</button>
-              <button class="buy-btn" @click="buyNow">直接購買</button>
+
+            <!-- Info Section -->
+            <div class="flex flex-col">
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">{{ item.name }}</h1>
+                <div class="text-sm text-gray-500 mb-4">商品編號：{{ item.id }} | 分類：{{ formatCategory(item.category) }}</div>
+
+                <div class="bg-orange-50 p-4 rounded-lg mb-6 flex items-baseline gap-3">
+                    <span class="text-xs text-gray-500">特價</span>
+                    <div class="text-4xl font-bold text-xieOrange">NT$ {{ item.price ? item.price.toLocaleString() : 0 }}</div>
+                </div>
+
+                <ul class="space-y-2 text-gray-600 mb-6 text-sm">
+                    <li><i class="fas fa-check text-xieOrange mr-2"></i>24h 快速出貨</li>
+                    <li><i class="fas fa-check text-xieOrange mr-2"></i>原廠正品保證</li>
+                    <li><i class="fas fa-check text-xieOrange mr-2"></i>7天鑑賞期</li>
+                </ul>
+
+                <hr class="border-gray-100 mb-6">
+
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center text-sm">
+                        <div class="text-gray-600">庫存狀況：<span class="text-green-600 font-bold">現貨充足 (剩餘 {{ item.amount || 0 }} 件)</span></div>
+                        <div class="font-bold text-gray-800">總計：<span class="text-xieOrange text-xl ml-2">NT$ {{ totalPrice.toLocaleString() }}</span></div>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <span class="font-bold text-gray-700">數量：</span>
+                        <div class="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden focus-within:border-xieOrange transition">
+                            <button class="bg-gray-100 px-3 py-2 text-gray-600 hover:bg-orange-100 hover:text-xieOrange transition" @click="decreaseQty" :disabled="qty <= 1">-</button>
+                            <input type="number" v-model.number="qty" class="w-16 text-center py-2 font-bold focus:outline-none" :min="1" :max="maxQty" @input="onQtyInput" @keydown="preventInputArrows">
+                            <button class="bg-gray-100 px-3 py-2 text-gray-600 hover:bg-orange-100 hover:text-xieOrange transition" @click="increaseQty" :disabled="qty >= maxQty">+</button>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <button @click="addToCart" class="flex-1 bg-xieOrange text-white text-lg font-bold py-3 px-6 rounded-lg hover:bg-orange-600 transition shadow-md flex items-center justify-center gap-2">
+                            <i class="fas fa-cart-plus"></i> 加入購物車
+                        </button>
+                        <button @click="buyNow" class="flex-1 border-2 border-xieOrange text-xieOrange text-lg font-bold py-3 px-6 rounded-lg hover:bg-orange-50 transition flex items-center justify-center gap-2">
+                            <i class="fas fa-bolt"></i> 直接購買
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-      </div>
-    </div>
-    <div v-else class="not-found">
-      找不到商品。
+
+        <!-- Tabs Section -->
+        <div class="mt-10 bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="flex border-b border-gray-200">
+                <button
+                    @click="activeTab = 'details'"
+                    :class="['px-6 py-4 font-bold transition', activeTab === 'details' ? 'text-xieOrange border-b-2 border-xieOrange bg-orange-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50']"
+                >
+                    商品詳情
+                </button>
+                <button
+                    @click="activeTab = 'reviews'"
+                    :class="['px-6 py-4 font-bold transition', activeTab === 'reviews' ? 'text-xieOrange border-b-2 border-xieOrange bg-orange-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50']"
+                >
+                    商品評價 (0)
+                </button>
+            </div>
+            <div class="p-8 text-gray-700 leading-relaxed min-h-[200px]">
+                <div v-show="activeTab === 'details'">
+                    <h3 class="text-lg font-bold mb-4">產品介紹</h3>
+                    <p class="mb-4">{{ item.information || '此商品尚無詳細描述。' }}</p>
+                </div>
+                <div v-show="activeTab === 'reviews'">
+                    <p class="text-gray-500">暫無評價。</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div v-else class="container mx-auto px-4 py-12 text-center">
+        <div class="text-2xl text-gray-400 mb-4">載入中...</div>
     </div>
   </div>
 </template>
 
 <script>
-import items from '@/assets/items.json'
-import './css/light/productDetail.css'
-import './css/dark/productDetail.css'
+import api from '../services/api'
 
 export default {
   name: 'ProductDetail',
   data () {
-    /* 讓返回按鈕在圖片左上角 */
     return {
       item: null,
       imgUrl: '',
       qty: 1,
       maxQty: 1,
-      totalPrice: 0
+      totalPrice: 0,
+      activeTab: 'details'
     }
   },
   created () {
-    // 初始載入 item
     this.loadItemFromRoute()
   },
   watch: {
-    // 當路由變更時重新載入
     '$route.params.id' (newId) {
       this.loadItemFromRoute(newId)
     }
   },
   methods: {
-    onQtyInput (e) {
-      // 允許清空數量框
-      if (e.target.value === '' || e.target.value === null) {
-        this.qty = ''
-      } else {
-        const val = Number(e.target.value)
-        if (val > this.maxQty) {
-          this.qty = this.maxQty
-        } else {
-          this.qty = val
-        }
-      }
-      this.updateTotalPrice()
-    },
-
-    onQtyBlur (e) {
-      // 失焦時自動修正空值或不合法值
-      if (e.target.value === '' || e.target.value === null || Number(e.target.value) < 1) {
-        this.qty = 1
-        this.updateTotalPrice()
-      }
-      if (Number(e.target.value) > this.maxQty) {
-        this.qty = this.maxQty
-        this.updateTotalPrice()
-      }
-    },
     preventInputArrows (e) {
-      // 禁用上下鍵
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         e.preventDefault()
       }
+    },
+    onQtyInput () {
+      if (this.qty < 1) this.qty = 1
+      if (this.qty > this.maxQty) this.qty = this.maxQty
+      this.updateTotalPrice()
     },
     updateTotalPrice () {
       this.totalPrice = (this.item && this.item.price) ? this.qty * this.item.price : 0
@@ -103,42 +160,65 @@ export default {
       if (this.qty < this.maxQty) this.qty++
       this.updateTotalPrice()
     },
-    addToCart () {
-      // TODO: 實作加入購物車邏輯
+    async addToCart () {
+      if (!localStorage.getItem('token')) {
+        alert('請先登入')
+        this.$router.push('/profile')
+        return
+      }
+
+      try {
+        await api.post('/cart/items', {
+          product_id: this.item.id,
+          quantity: this.qty
+        })
+        alert('已加入購物車')
+      } catch (error) {
+        console.error('Add to cart error:', error)
+        alert('加入購物車失敗')
+      }
     },
     buyNow () {
-      // TODO: 實作直接購買邏輯
+      if (!localStorage.getItem('token')) {
+        alert('請先登入')
+        this.$router.push('/profile')
+        return
+      }
+      // Logic: Add to cart then go to cart page
+      api.post('/cart/items', {
+        product_id: this.item.id,
+        quantity: this.qty
+      }).then(() => {
+        this.$router.push('/car')
+      }).catch(error => {
+        console.error('Buy now error:', error)
+        alert('購買失敗')
+      })
     },
-    loadItemFromRoute (idParam) {
+    async loadItemFromRoute (idParam) {
       const id = idParam || this.$route.params.id
-      // debug log to confirm created/route-update runs
-      // eslint-disable-next-line no-console
-      console.log('[ProductDetail] loading item id=', id)
-      this.item = items.find(i => i.id === id) || null
-      if (this.item) {
-        const imgName = String(this.item.img || '').replace(/^\.\/?/, '')
-        try {
-          this.imgUrl = new URL(`../assets/${imgName}`, import.meta.url)
-          console.log('[ProductDetail] loaded image URL:', this.imgUrl)
-        } catch (e) {
-          try {
-            this.imgUrl = new URL('../assets/logo.png', import.meta.url).href
-          } catch (err) {
-            this.imgUrl = this.item.img || ''
+      try {
+        const response = await api.get(`/products/${id}`)
+        this.item = response.data
+
+        if (this.item.image) {
+          if (this.item.image.startsWith('http')) {
+            this.imgUrl = this.item.image
+          } else {
+            const baseUrl = api.defaults.baseURL.replace('/api', '')
+            this.imgUrl = `${baseUrl}/images/${this.item.image}`
           }
+        } else {
+          this.imgUrl = ''
         }
-        // set default qty: 1, maxQty 為庫存amount
+
         const stock = Number(this.item.amount || 0)
         this.maxQty = stock > 0 ? stock : 1
         this.qty = 1
         this.updateTotalPrice()
-      } else {
-        console.log('[ProductDetail] item not found for id:', id)
-        try {
-          this.imgUrl = new URL('../assets/logo.png', import.meta.url).href
-        } catch (err) {
-          this.imgUrl = ''
-        }
+      } catch (error) {
+        console.error('Fetch product error:', error)
+        this.item = null
       }
     },
     formatCategory (cat) {

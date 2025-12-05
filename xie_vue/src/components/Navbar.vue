@@ -2,18 +2,21 @@
   <nav class="navbar">
     <div class="nav-inner">
       <ul class="nav-links">
-      <li><router-link to="/">首頁</router-link></li>
-      <li><router-link to="/items">物品頁面</router-link></li>
-      <li><router-link to="/car">購物車</router-link></li>
-      <li v-if="!isLoggedIn">
-        <router-link to="/profile">登入 / 註冊</router-link>
-      </li>
-      <!-- 已登入 -->
-      <li v-else class="member-area">
-        <router-link to="/profile">會員中心</router-link>
-        <button class="logout-btn" @click="logout">登出</button>
-      </li>
-    </ul>
+        <li><router-link to="/">首頁</router-link></li>
+        <li><router-link to="/items">物品頁面</router-link></li>
+        <li><router-link to="/car">購物車</router-link></li>
+        <li v-if="isLoggedIn && isAdmin">
+          <router-link to="/admin">後台管理</router-link>
+        </li>
+        <li v-if="!isLoggedIn">
+          <router-link to="/profile">登入 / 註冊</router-link>
+        </li>
+        <!-- 已登入 -->
+        <li v-else class="member-area">
+          <router-link to="/profile">會員中心</router-link>
+          <button class="logout-btn" @click="logout">登出</button>
+        </li>
+      </ul>
       <div class="theme-toggle">
         <button @click="setTheme('light')" :class="{ active: theme === 'light' }">☀️</button>
         <button @click="setTheme('dark')" :class="{ active: theme === 'dark' }">🌙</button>
@@ -25,21 +28,32 @@
 <script>
 export default {
   name: 'Navbar',
-  computed: {
-    isLoggedIn () {
-      return this.$store.state.isLoggedIn
-    }
-  },
   props: {
     theme: {
       type: String,
       default: 'light'
     }
   },
+  computed: {
+    isLoggedIn () {
+      return !!localStorage.getItem('token')
+    },
+    isAdmin () {
+      const role = localStorage.getItem('user_role')
+      return role === 'admin' || role === 'staff'
+    }
+  },
   methods: {
     logout () {
-      this.$store.commit('setLoggedIn', false)
-      this.$router.push('/profile')
+      localStorage.removeItem('token')
+      localStorage.removeItem('user_role')
+      // Redirect to profile or home, and force reload to update navbar state if needed
+      // But Vue reactivity might not pick up localStorage changes automatically unless we use a store or event bus.
+      // For simple implementation, we can reload or use a simple event.
+      // ProfileView handles logout logic too, but this is the navbar button.
+      this.$router.push('/profile').then(() => {
+        window.location.reload()
+      })
     },
     setTheme (t) {
       this.$emit('set-theme', t)
