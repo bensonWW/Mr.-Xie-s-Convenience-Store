@@ -2,8 +2,10 @@
 import { ref, computed, onMounted } from 'vue'
 import api from '../services/api'
 import { useRouter } from 'vue-router'
+import { useToast } from 'vue-toastification'
 
 const router = useRouter()
+const toast = useToast()
 const cartItems = ref([])
 const availableCoupons = ref([])
 const selectedCouponId = ref('')
@@ -27,7 +29,7 @@ async function fetchCoupons () {
 async function fetchCart () {
   const token = localStorage.getItem('token')
   if (!token) {
-    alert('請先登入')
+    toast.warning('請先登入')
     router.push('/profile')
     return
   }
@@ -71,10 +73,10 @@ async function applyCoupon () {
     })
     appliedCoupon.value = response.data
     discountAmount.value = Math.round(response.data.discount_amount)
-    alert(`優惠卷已套用：${response.data.message}`)
+    toast.success(`優惠卷已套用：${response.data.message}`)
   } catch (error) {
     console.error('Coupon error:', error)
-    alert(error.response?.data?.message || '優惠卷無效')
+    toast.error(error.response?.data?.message || '優惠卷無效')
     discountAmount.value = 0
     appliedCoupon.value = null
     selectedCouponId.value = ''
@@ -90,9 +92,10 @@ async function removeItem (id) {
     if (appliedCoupon.value) {
       applyCoupon()
     }
+    toast.info('已刪除商品')
   } catch (error) {
     console.error('Remove item error:', error)
-    alert('刪除失敗')
+    toast.error('刪除失敗')
   }
 }
 
@@ -109,7 +112,7 @@ async function updateQuantity (item, change) {
     }
   } catch (error) {
     console.error('Update quantity error:', error)
-    alert('更新數量失敗')
+    toast.error('更新數量失敗')
   }
 }
 
@@ -121,7 +124,7 @@ async function checkout () {
     await api.post('/orders', {
       coupon_code: appliedCoupon.value ? appliedCoupon.value.code : null
     })
-    alert('訂單已送出！')
+    toast.success('訂單已送出！')
     cartItems.value = []
     discountAmount.value = 0
     appliedCoupon.value = null
@@ -129,7 +132,7 @@ async function checkout () {
     router.push('/profile')
   } catch (error) {
     console.error('Checkout error:', error)
-    alert('結帳失敗')
+    toast.error('結帳失敗')
   }
 }
 </script>

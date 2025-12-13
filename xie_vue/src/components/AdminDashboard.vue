@@ -53,7 +53,7 @@
         <div class="bg-white rounded-lg shadow-sm p-6 lg:col-span-2">
             <h3 class="font-bold text-gray-800 mb-4">近 7 天營收趨勢</h3>
             <div class="h-64">
-                <canvas id="revenueChart"></canvas>
+                <canvas ref="revenueChart"></canvas>
             </div>
         </div>
 
@@ -86,13 +86,13 @@
 <script>
 import api from '../services/api'
 import Chart from 'chart.js/auto'
+import { markRaw } from 'vue'
 
 export default {
   name: 'AdminDashboard',
   data () {
     return {
-      stats: {},
-      chart: null
+      stats: {}
     }
   },
   computed: {
@@ -101,17 +101,29 @@ export default {
     }
   },
   created () {
+    this.chart = null
     this.fetchStats()
   },
+  mounted () {
+    this.isMounted = true
+  },
   beforeUnmount () {
+    this.isMounted = false
     if (this.chart) {
-      this.chart.destroy()
+      try {
+        this.chart.stop()
+        this.chart.destroy()
+      } catch (e) {
+        console.warn('Error destroying chart in beforeUnmount:', e)
+      }
+      this.chart = null
     }
   },
   methods: {
     async fetchStats () {
       try {
         const res = await api.get('/admin/stats')
+        if (!this.isMounted) return
         this.stats = res.data
         this.$nextTick(() => {
           this.initChart()
@@ -121,37 +133,52 @@ export default {
       }
     },
     initChart () {
-      const ctx = document.getElementById('revenueChart')
+      if (!this.isMounted) return
+      const ctx = this.$refs.revenueChart
       if (!ctx) return
 
       const existingChart = Chart.getChart(ctx)
       if (existingChart) {
-        existingChart.destroy()
-      }
-
-      if (this.chart) {
-        this.chart.destroy()
-      }
-
-      this.chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: ['11/24', '11/25', '11/26', '11/27', '11/28', '11/29', '11/30'],
-          datasets: [{
-            label: '營收',
-            data: [12000, 19000, 3000, 5000, 2000, 96000, 68000],
-            borderColor: '#ed8936',
-            backgroundColor: 'rgba(237, 137, 54, 0.1)',
-            fill: true,
-            tension: 0.4
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } }
+        try {
+          existingChart.destroy()
+        } catch (e) {
+          console.warn('Error destroying existing chart:', e)
         }
-      })
+      }
+
+      if (this.chart && this.chart !== existingChart) {
+        try {
+          this.chart.destroy()
+        } catch (e) {
+          console.warn('Error destroying chart:', e)
+        }
+      }
+
+      try {
+        this.chart = markRaw(new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: ['11/24', '11/25', '11/26', '11/27', '11/28', '11/29', '11/30'],
+            datasets: [{
+              label: '營收',
+              data: [12000, 19000, 3000, 5000, 2000, 96000, 68000],
+              borderColor: '#ed8936',
+              backgroundColor: 'rgba(237, 137, 54, 0.1)',
+              fill: true,
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            resizeDelay: 200,
+            plugins: { legend: { display: false } }
+          }
+        }))
+      } catch (e) {
+        console.error('Error creating chart:', e)
+      }
     },
     getStatusClass (status) {
       const map = {

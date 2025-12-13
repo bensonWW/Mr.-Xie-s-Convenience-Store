@@ -1,7 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '../services/api'
+import { useToast } from 'vue-toastification'
 
+const toast = useToast()
 const coupons = ref([])
 const showModal = ref(false)
 const isEditing = ref(false)
@@ -25,7 +27,7 @@ async function fetchCoupons () {
     coupons.value = response.data
   } catch (error) {
     console.error('Fetch coupons error:', error)
-    alert('無法載入優惠卷列表')
+    toast.error('無法載入優惠卷列表')
   }
 }
 
@@ -66,16 +68,16 @@ async function saveCoupon () {
   try {
     if (isEditing.value) {
       await api.put(`/admin/coupons/${form.value.id}`, form.value)
-      alert('更新成功')
+      toast.success('更新成功')
     } else {
       await api.post('/admin/coupons', form.value)
-      alert('新增成功')
+      toast.success('新增成功')
     }
     showModal.value = false
     fetchCoupons()
   } catch (error) {
     console.error('Save coupon error:', error)
-    alert(error.response?.data?.message || '儲存失敗')
+    toast.error(error.response?.data?.message || '儲存失敗')
   }
 }
 
@@ -83,11 +85,11 @@ async function deleteCoupon (id) {
   if (!confirm('確定要刪除此優惠卷嗎？')) return
   try {
     await api.delete(`/admin/coupons/${id}`)
-    alert('刪除成功')
+    toast.success('刪除成功')
     fetchCoupons()
   } catch (error) {
     console.error('Delete coupon error:', error)
-    alert('刪除失敗')
+    toast.error('刪除失敗')
   }
 }
 </script>

@@ -12,19 +12,16 @@
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-white p-6 rounded-lg shadow-sm text-center">
+            <div class="text-gray-500 text-sm mb-1">總銷售額</div>
+            <div class="text-3xl font-bold text-xieBlue">${{ stats.total_sales }}</div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-sm text-center">
+            <div class="text-gray-500 text-sm mb-1">總訂單數</div>
+            <div class="text-3xl font-bold text-xieBlue">{{ stats.order_count }}</div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-sm text-center">
             <div class="text-gray-500 text-sm mb-1">平均客單價 (AOV)</div>
-            <div class="text-3xl font-bold text-xieBlue">$42,124</div>
-            <div class="text-green-500 text-xs mt-2">+5%</div>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow-sm text-center">
-            <div class="text-gray-500 text-sm mb-1">訂單轉換率</div>
-            <div class="text-3xl font-bold text-xieBlue">2.8%</div>
-            <div class="text-red-500 text-xs mt-2">-0.5%</div>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow-sm text-center">
-            <div class="text-gray-500 text-sm mb-1">總退貨金額</div>
-            <div class="text-3xl font-bold text-xieBlue">$0</div>
-            <div class="text-gray-400 text-xs mt-2">表現優異</div>
+            <div class="text-3xl font-bold text-xieBlue">${{ stats.aov }}</div>
         </div>
     </div>
 
@@ -32,7 +29,7 @@
         <div class="bg-white p-6 rounded-lg shadow-sm">
             <h3 class="font-bold text-gray-800 mb-4">銷售類別佔比</h3>
             <div class="h-64 flex justify-center">
-                <canvas id="categoryChart"></canvas>
+                <canvas ref="categoryChart"></canvas>
             </div>
         </div>
 
@@ -43,33 +40,19 @@
                     <tr class="text-gray-500 border-b">
                         <th class="pb-2">商品名稱</th>
                         <th class="pb-2 text-right">銷量</th>
-                        <th class="pb-2 text-right">金額</th>
+                        <th class="pb-2 text-right">總金額</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y">
-                    <tr>
+                    <tr v-for="prod in stats.top_products" :key="prod.id">
                         <td class="py-3 flex items-center gap-2">
-                            <div class="w-8 h-8 bg-gray-100 rounded"></div>
-                            iPhone 15 Pro Max
+                             <div class="w-8 h-8 bg-gray-100 rounded overflow-hidden">
+                                <img v-if="prod.image" :src="prod.image" class="w-full h-full object-cover">
+                            </div>
+                            {{ prod.name }}
                         </td>
-                        <td class="text-right">3</td>
-                        <td class="text-right font-bold text-xieOrange">$146,700</td>
-                    </tr>
-                    <tr>
-                        <td class="py-3 flex items-center gap-2">
-                            <div class="w-8 h-8 bg-gray-100 rounded"></div>
-                            Galaxy S24 Ultra
-                        </td>
-                        <td class="text-right">1</td>
-                        <td class="text-right font-bold text-xieOrange">$42,900</td>
-                    </tr>
-                    <tr>
-                        <td class="py-3 flex items-center gap-2">
-                            <div class="w-8 h-8 bg-gray-100 rounded"></div>
-                            Dyson V12
-                        </td>
-                        <td class="text-right">1</td>
-                        <td class="text-right font-bold text-xieOrange">$18,900</td>
+                        <td class="text-right">{{ prod.total_qty }}</td>
+                        <td class="text-right font-bold text-xieOrange">${{ prod.total_amount }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -80,27 +63,67 @@
 
 <script>
 import Chart from 'chart.js/auto'
+import { markRaw } from 'vue'
+import api from '../services/api'
 
 export default {
   name: 'AdminAnalytics',
-  mounted () {
-    const ctx = document.getElementById('categoryChart')
-    if (ctx) {
-      // eslint-disable-next-line no-new
-      new Chart(ctx, {
+  data () {
+    return {
+      stats: {
+        total_sales: 0,
+        order_count: 0,
+        aov: 0,
+        sales_by_category: [],
+        top_products: []
+      }
+    }
+  },
+  created () {
+    this.chart = null
+    this.fetchStats()
+  },
+  methods: {
+    async fetchStats () {
+      try {
+        const res = await api.get('/admin/stats')
+        this.stats = res.data
+        this.renderChart()
+      } catch (e) {
+        console.error('Fetch stats error:', e)
+      }
+    },
+    renderChart () {
+      if (!this.$refs.categoryChart) return
+
+      const ctx = this.$refs.categoryChart
+      const existingChart = Chart.getChart(ctx)
+      if (existingChart) existingChart.destroy()
+
+      const labels = this.stats.sales_by_category.map(item => item.category)
+      const data = this.stats.sales_by_category.map(item => item.total)
+      // Generate colors dynamically or use a predefined palette
+      const colors = ['#ed8936', '#2b6cb0', '#ed64a6', '#48bb78', '#667eea', '#f56565']
+
+      this.chart = markRaw(new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: ['手機', '家電', '美妝', '食品'],
+          labels: labels,
           datasets: [{
-            data: [70, 20, 5, 5],
-            backgroundColor: ['#ed8936', '#2b6cb0', '#ed64a6', '#48bb78']
+            data: data,
+            backgroundColor: colors.slice(0, labels.length)
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false
         }
-      })
+      }))
+    }
+  },
+  beforeUnmount () {
+    if (this.chart) {
+      this.chart.destroy()
     }
   }
 }

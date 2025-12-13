@@ -22,11 +22,20 @@ class CartController extends Controller
         ]);
 
         $cart = Cart::firstOrCreate(['user_id' => $request->user()->id]);
+        $product = \App\Models\Product::findOrFail($request->product_id);
 
         $item = $cart->items()->where('product_id', $request->product_id)->first();
+        $currentQty = $item ? $item->quantity : 0;
+        $newQty = $currentQty + $request->quantity;
+
+        if ($product->stock < $newQty) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'quantity' => ["Insufficient stock. Only {$product->stock} remaining."],
+            ]);
+        }
 
         if ($item) {
-            $item->quantity += $request->quantity;
+            $item->quantity = $newQty;
             $item->save();
         } else {
             $item = $cart->items()->create([
@@ -45,7 +54,13 @@ class CartController extends Controller
         ]);
 
         $cart = Cart::where('user_id', $request->user()->id)->firstOrFail();
-        $item = $cart->items()->where('id', $itemId)->firstOrFail();
+        $item = $cart->items()->with('product')->where('id', $itemId)->firstOrFail();
+
+        if ($item->product->stock < $request->quantity) {
+             throw \Illuminate\Validation\ValidationException::withMessages([
+                'quantity' => ["Insufficient stock. Only {$item->product->stock} remaining."],
+            ]);
+        }
 
         $item->quantity = $request->quantity;
         $item->save();

@@ -51,8 +51,32 @@
           </tbody>
         </table>
       </div>
+      </div>
+
+       <!-- Pagination Controls -->
+      <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between" v-if="totalPages > 1">
+        <span class="text-sm text-gray-500">
+          顯示第 {{ (currentPage - 1) * 20 + 1 }} 到 {{ Math.min(currentPage * 20, totalItems) }} 筆，共 {{ totalItems }} 筆
+        </span>
+        <div class="flex gap-2">
+          <button
+            @click="fetchProducts(currentPage - 1)"
+            :disabled="currentPage === 1"
+            class="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            上一頁
+          </button>
+          <span class="px-3 py-1 bg-xieOrange text-white rounded">{{ currentPage }}</span>
+          <button
+            @click="fetchProducts(currentPage + 1)"
+            :disabled="currentPage === totalPages"
+            class="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            下一頁
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
 </template>
 
 <script>
@@ -62,17 +86,23 @@ export default {
   name: 'AdminProducts',
   data () {
     return {
-      products: []
+      products: [],
+      currentPage: 1,
+      totalPages: 1,
+      totalItems: 0
     }
   },
   created () {
     this.fetchProducts()
   },
   methods: {
-    async fetchProducts () {
+    async fetchProducts (page = 1) {
       try {
-        const res = await api.get('/products')
-        this.products = res.data
+        const res = await api.get(`/admin/products?page=${page}`)
+        this.products = res.data.data
+        this.currentPage = res.data.current_page
+        this.totalPages = res.data.last_page
+        this.totalItems = res.data.total
       } catch (e) {
         console.error(e)
       }
@@ -82,9 +112,9 @@ export default {
       try {
         await api.delete(`/admin/products/${id}`)
         this.fetchProducts()
-        alert('商品已刪除')
+        this.$toast.success('商品已刪除')
       } catch (e) {
-        alert('刪除失敗')
+        this.$toast.error('刪除失敗')
       }
     },
     getImageUrl (image) {

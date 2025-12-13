@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://mr-xie-s-convenience-store-main-d3awzd.laravel.cloud/api',
+  baseURL: process.env.VUE_APP_API_URL || 'https://mr-xie-s-convenience-store-main-d3awzd.laravel.cloud/api',
   headers: {
     Accept: 'application/json'
   }

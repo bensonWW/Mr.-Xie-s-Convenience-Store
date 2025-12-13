@@ -154,31 +154,20 @@ export default {
   methods: {
     async fetchOrder (id) {
       try {
-        // Assuming we have an endpoint to get single order details.
-        // If not, we might need to fetch all orders and find one, or update backend.
-        // For now, let's try to fetch from the list endpoint and filter, or assume a new endpoint exists.
-        // Since backend is not my task, I'll assume standard RESTful: GET /admin/orders/:id
-        // If that fails, I'll fallback to filtering from list.
-        try {
-          const res = await api.get(`/admin/orders/${id}`)
-          this.order = res.data
-        } catch (e) {
-          // Fallback: fetch all and find
-          const res = await api.get('/admin/orders')
-          this.order = res.data.find(o => o.id === parseInt(id))
-        }
+        const res = await api.get(`/admin/orders/${id}`)
+        this.order = res.data
       } catch (e) {
         console.error('Fetch order error:', e)
-        alert('無法載入訂單資料')
+        this.$toast.error('無法載入訂單資料')
       }
     },
     async updateStatus () {
       try {
         await api.put(`/admin/orders/${this.order.id}/status`, { status: this.order.status })
-        alert('狀態更新成功')
+        this.$toast.success('狀態更新成功')
       } catch (e) {
         console.error(e)
-        alert('更新失敗')
+        this.$toast.error('更新失敗')
       }
     },
     getStatusClass (status) {

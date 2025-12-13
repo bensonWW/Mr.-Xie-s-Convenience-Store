@@ -25,45 +25,55 @@ class OrderController extends Controller
         }
 
         return DB::transaction(function () use ($user, $cart, $request) {
-            $totalAmount = $cart->items->sum(function ($item) {
-                return $item->product->price * $item->quantity;
-            });
+            $totalAmount = 0;
+            $orderItems = [];
 
-            // Handle Coupon
+            // 1. Process items, validate stock, and decrement with lock
+            foreach ($cart->items as $item) {
+                // Lock the product row for update to prevent race conditions
+                $product = \App\Models\Product::where('id', $item->product_id)->lockForUpdate()->first();
+
+                if (!$product) {
+                    throw new \Exception("Product {$item->product_id} not found.");
+                }
+
+                if ($product->stock < $item->quantity) {
+                    throw new \Exception("Insufficient stock for {$product->name}.");
+                }
+
+                $product->decrement('stock', $item->quantity);
+
+                $totalAmount += $product->price * $item->quantity;
+                $orderItems[] = [
+                    'product_id' => $product->id,
+                    'quantity' => $item->quantity,
+                    'price' => (int) round($product->price), // Snapshot price as integer
+                ];
+            }
+
+            // 2. Handle Coupon
             if ($request->has('coupon_code')) {
                 $coupon = \App\Models\Coupon::where('code', $request->coupon_code)->first();
-                if ($coupon) {
-                    // Basic validation (should ideally reuse CouponController logic or a service)
-                    $now = now();
-                    $isValid = true;
-                    if ($coupon->starts_at && $now->lt($coupon->starts_at)) $isValid = false;
-                    if ($coupon->ends_at && $now->gt($coupon->ends_at)) $isValid = false;
-                    if ($coupon->limit_price && $totalAmount < $coupon->limit_price) $isValid = false;
-
-                    if ($isValid) {
-                        $discount = 0;
-                        if ($coupon->type === 'fixed') {
-                            $discount = $coupon->discount_amount;
-                        } elseif ($coupon->type === 'percentage') {
-                            $discount = $totalAmount * ($coupon->discount_amount / 100);
-                        }
-                        $totalAmount -= min($discount, $totalAmount);
-                    }
+                if ($coupon && $coupon->isValidFor($totalAmount)) {
+                    $discount = $coupon->calculateDiscount($totalAmount);
+                    $totalAmount -= $discount;
                 }
             }
 
+            // 3. Create Order
             $order = Order::create([
                 'user_id' => $user->id,
                 'status' => 'pending_payment',
-                'total_amount' => max(0, round($totalAmount)), // Ensure not negative and integer
+                'total_amount' => (int) round(max(0, $totalAmount)), // Integer currency
             ]);
 
-            foreach ($cart->items as $item) {
+            // 4. Create Order Items
+            foreach ($orderItems as $itemData) {
                 OrderItem::create([
                     'order_id' => $order->id,
-                    'product_id' => $item->product_id,
-                    'quantity' => $item->quantity,
-                    'price' => $item->product->price,
+                    'product_id' => $itemData['product_id'],
+                    'quantity' => $itemData['quantity'],
+                    'price' => $itemData['price'],
                 ]);
             }
 

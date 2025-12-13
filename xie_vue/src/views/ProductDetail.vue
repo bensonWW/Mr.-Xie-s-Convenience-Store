@@ -56,7 +56,7 @@
 
                 <div class="space-y-6">
                     <div class="flex justify-between items-center text-sm">
-                        <div class="text-gray-600">庫存狀況：<span class="text-green-600 font-bold">現貨充足 (剩餘 {{ item.amount || 0 }} 件)</span></div>
+                        <div class="text-gray-600">庫存狀況：<span class="text-green-600 font-bold">現貨充足 (剩餘 {{ item.stock || 0 }} 件)</span></div>
                         <div class="font-bold text-gray-800">總計：<span class="text-xieOrange text-xl ml-2">NT$ {{ totalPrice.toLocaleString() }}</span></div>
                     </div>
 
@@ -162,7 +162,7 @@ export default {
     },
     async addToCart () {
       if (!localStorage.getItem('token')) {
-        alert('請先登入')
+        this.$toast.warning('請先登入')
         this.$router.push('/profile')
         return
       }
@@ -172,15 +172,15 @@ export default {
           product_id: this.item.id,
           quantity: this.qty
         })
-        alert('已加入購物車')
+        this.$toast.success('已加入購物車')
       } catch (error) {
         console.error('Add to cart error:', error)
-        alert('加入購物車失敗')
+        this.$toast.error('加入購物車失敗')
       }
     },
     buyNow () {
       if (!localStorage.getItem('token')) {
-        alert('請先登入')
+        this.$toast.warning('請先登入')
         this.$router.push('/profile')
         return
       }
@@ -192,7 +192,7 @@ export default {
         this.$router.push('/car')
       }).catch(error => {
         console.error('Buy now error:', error)
-        alert('購買失敗')
+        this.$toast.error('購買失敗')
       })
     },
     async loadItemFromRoute (idParam) {
@@ -212,7 +212,7 @@ export default {
           this.imgUrl = ''
         }
 
-        const stock = Number(this.item.amount || 0)
+        const stock = Number(this.item.stock || 0)
         this.maxQty = stock > 0 ? stock : 1
         this.qty = 1
         this.updateTotalPrice()

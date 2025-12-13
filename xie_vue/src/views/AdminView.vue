@@ -41,10 +41,11 @@
 
                 <li class="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider mt-4">顧客與數據</li>
                 <li>
-                    <a href="#" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-xieOrange transition cursor-not-allowed opacity-50">
+                    <router-link to="/admin/users" class="flex items-center px-6 py-3 transition"
+                       :class="$route.name === 'admin-users' ? 'text-xieOrange bg-orange-50 border-r-4 border-xieOrange' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'">
                         <i class="fas fa-users w-6"></i>
                         <span>會員管理</span>
-                    </a>
+                    </router-link>
                 </li>
                 <li>
                     <router-link to="/admin/analytics" class="flex items-center px-6 py-3 transition"
@@ -102,6 +103,7 @@ export default {
         'admin-orders': '訂單管理',
         'admin-order-detail': '訂單詳情',
         'admin-coupons': '優惠券管理',
+        'admin-users': '會員管理',
         'admin-analytics': '銷售分析'
       }
       return map[this.$route.name] || '後台管理'

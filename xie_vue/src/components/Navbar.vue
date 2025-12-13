@@ -14,7 +14,7 @@
         <!-- 已登入 -->
         <li v-else class="member-area">
           <router-link to="/profile">會員中心</router-link>
-          <button class="logout-btn" @click="logout">登出</button>
+          <button class="logout-btn" @click="handleLogout">登出</button>
         </li>
       </ul>
       <div class="theme-toggle">
@@ -26,6 +26,8 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex'
+
 export default {
   name: 'Navbar',
   props: {
@@ -35,29 +37,20 @@ export default {
     }
   },
   computed: {
-    isLoggedIn () {
-      return !!localStorage.getItem('token')
-    },
-    isAdmin () {
-      const role = localStorage.getItem('user_role')
-      return role === 'admin' || role === 'staff'
-    }
+    ...mapGetters(['isLoggedIn', 'isAdmin'])
   },
   methods: {
-    logout () {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user_role')
-      // Redirect to profile or home, and force reload to update navbar state if needed
-      // But Vue reactivity might not pick up localStorage changes automatically unless we use a store or event bus.
-      // For simple implementation, we can reload or use a simple event.
-      // ProfileView handles logout logic too, but this is the navbar button.
-      this.$router.push('/profile').then(() => {
-        window.location.reload()
-      })
+    ...mapActions(['logout', 'checkAuth']),
+    async handleLogout () {
+      await this.logout()
+      this.$router.push('/profile')
     },
     setTheme (t) {
       this.$emit('set-theme', t)
     }
+  },
+  created () {
+    this.checkAuth()
   }
 }
 </script>

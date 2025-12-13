@@ -47,8 +47,26 @@
           </tbody>
         </table>
       </div>
+      </div>
     </div>
-  </div>
+    <!-- Pagination -->
+    <div class="mt-4 flex justify-between items-center" v-if="totalPages > 1">
+      <button
+        class="px-4 py-2 border rounded bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+        :disabled="currentPage <= 1"
+        @click="fetchOrders(currentPage - 1)"
+      >
+        上一頁
+      </button>
+      <span class="text-gray-600">第 {{ currentPage }} 頁 / 共 {{ totalPages }} 頁</span>
+      <button
+        class="px-4 py-2 border rounded bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+        :disabled="currentPage >= totalPages"
+        @click="fetchOrders(currentPage + 1)"
+      >
+        下一頁
+      </button>
+    </div>
 </template>
 
 <script>
@@ -58,17 +76,22 @@ export default {
   name: 'AdminOrders',
   data () {
     return {
-      orders: []
+      orders: [],
+      currentPage: 1,
+      totalPages: 1
     }
   },
   created () {
     this.fetchOrders()
   },
   methods: {
-    async fetchOrders () {
+    async fetchOrders (page = 1) {
       try {
-        const res = await api.get('/admin/orders')
-        this.orders = res.data
+        const res = await api.get(`/admin/orders?page=${page}`)
+        // Laravel paginate(): { data: [...], current_page: 1, last_page: 5, ... }
+        this.orders = res.data.data || []
+        this.currentPage = res.data.current_page
+        this.totalPages = res.data.last_page
       } catch (e) {
         console.error(e)
       }
@@ -76,10 +99,10 @@ export default {
     async updateOrderStatus (id, status) {
       try {
         await api.put(`/admin/orders/${id}/status`, { status })
-        alert('狀態更新成功')
-        this.fetchOrders() // Refresh list
+        this.$toast.success('狀態更新成功')
+        this.fetchOrders(this.currentPage) // Refresh current list
       } catch (e) {
-        alert('更新失敗')
+        this.$toast.error('更新失敗')
       }
     },
     getStatusClass (status) {

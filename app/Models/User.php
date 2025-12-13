@@ -28,6 +28,7 @@ class User extends Authenticatable
         'address',
         'birthday',
         'store_id',
+        'status',
     ];
 
     /**

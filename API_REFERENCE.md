@@ -39,6 +39,21 @@ Base URL: `https://mr-xie-s-convenience-store-ch-back-icvbux.laravel.cloud/api`
 | `POST` | `/orders` | Create a new order |
 | `GET` | `/orders/{order}` | Get order details |
 | `POST` | `/coupons/check` | Check coupon validity |
+| `POST` | `/orders/{id}/pay` | Pay for an order |
+
+## Admin (Requires Auth & Admin Role)
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/admin/stats` | Get dashboard statistics |
+| `GET` | `/admin/users` | List all users |
+| `GET` | `/admin/orders` | List all orders (paginated) |
+| `GET` | `/admin/orders/{id}` | Get items for a single order |
+| `PUT` | `/admin/orders/{id}/status` | Update order status |
+| `GET` | `/admin/products` | List all products (paginated) |
+| `POST` | `/admin/products` | Create product |
+| `PUT` | `/admin/products/{id}` | Update product |
+| `DELETE` | `/admin/products/{id}` | Delete product |
 
 ## How to Test
 

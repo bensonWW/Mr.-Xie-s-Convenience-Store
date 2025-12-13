@@ -46,7 +46,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('coupons', CouponController::class);
         Route::get('/stats', [App\Http\Controllers\AdminController::class, 'stats']);
         Route::get('/users', [App\Http\Controllers\AdminController::class, 'users']);
+        Route::post('/users', [App\Http\Controllers\AdminController::class, 'storeUser']);
+        Route::get('/users/{id}', [App\Http\Controllers\AdminController::class, 'showUser']);
+        Route::put('/users/{id}', [App\Http\Controllers\AdminController::class, 'updateUser']);
         Route::get('/orders', [App\Http\Controllers\AdminController::class, 'orders']);
+        Route::get('/orders/{id}', [App\Http\Controllers\AdminController::class, 'show']);
+        Route::get('/products', [ProductController::class, 'adminIndex']);
         Route::post('/products', [ProductController::class, 'store']);
         Route::put('/products/{id}', [ProductController::class, 'update']);
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);

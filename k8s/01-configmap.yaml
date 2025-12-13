@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: laravel-env
+data:
+  APP_NAME: "MrXieStore"
+  APP_ENV: "production"
+  APP_DEBUG: "false"
+  APP_URL: "http://localhost"
+  DB_CONNECTION: "mysql"
+  DB_HOST: "mysql"
+  DB_PORT: "3306"
+  DB_DATABASE: "laravel"
+  DB_USERNAME: "laravel"
+  SANCTUM_STATEFUL_DOMAINS: "localhost"
+  SESSION_DOMAIN: "localhost"

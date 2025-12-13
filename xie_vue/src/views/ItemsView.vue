@@ -70,11 +70,32 @@
       </div>
 
       <!-- Pagination -->
-      <div class="mt-8 flex justify-center space-x-2">
-        <a href="#" class="px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded hover:bg-gray-100"><i class="fas fa-chevron-left"></i></a>
-        <a href="#" class="px-3 py-2 bg-xieOrange border border-xieOrange text-white rounded font-bold">1</a>
-        <a href="#" class="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-100 hover:text-xieOrange">2</a>
-        <a href="#" class="px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded hover:bg-gray-100"><i class="fas fa-chevron-right"></i></a>
+      <!-- Pagination -->
+      <div class="mt-8 flex justify-center space-x-2" v-if="pagination.last_page > 1">
+        <button
+          @click="changePage(pagination.current_page - 1)"
+          :disabled="pagination.current_page <= 1"
+          class="px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded hover:bg-gray-100 disabled:opacity-50"
+        >
+          <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <button
+          v-for="page in pagination.last_page"
+          :key="page"
+          @click="changePage(page)"
+          :class="['px-3 py-2 border rounded font-bold', page === pagination.current_page ? 'bg-xieOrange border-xieOrange text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-xieOrange']"
+        >
+          {{ page }}
+        </button>
+
+        <button
+          @click="changePage(pagination.current_page + 1)"
+          :disabled="pagination.current_page >= pagination.last_page"
+          class="px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded hover:bg-gray-100 disabled:opacity-50"
+        >
+          <i class="fas fa-chevron-right"></i>
+        </button>
       </div>
 
     </main>
@@ -90,7 +111,12 @@ export default {
     return {
       categories: [],
       items: [],
-      selectedCategory: 'Fruit'
+      selectedCategory: '',
+      pagination: {
+        current_page: 1,
+        last_page: 1,
+        total: 0
+      }
     }
   },
   created () {
@@ -104,13 +130,10 @@ export default {
       }
       return `${this.selectedCategory}商品`
     },
+    // We no longer filter client side because we have pagination.
+    // The items in `this.items` are already filtered by the server.
     filteredItems () {
-      const search = this.$route.query.search
-      if (search) {
-        const q = search.toLowerCase()
-        return this.items.filter(item => item.name.toLowerCase().includes(q))
-      }
-      return this.items.filter(item => item.category === this.selectedCategory)
+      return this.items
     }
   },
   methods: {
@@ -118,17 +141,46 @@ export default {
       try {
         const response = await api.get('/categories')
         this.categories = response.data
-        if (this.categories.length > 0 && !this.categories.includes(this.selectedCategory) && !this.$route.query.search) {
+        if (this.categories.length > 0 && !this.selectedCategory && !this.$route.query.search) {
+          // If no category selected and no search, select first
           this.selectedCategory = this.categories[0]
+          // Force fetch products with this new category
+          this.fetchProducts(1)
         }
       } catch (error) {
         console.error('Error fetching categories:', error)
       }
     },
-    async fetchProducts () {
+    async fetchProducts (page = 1) {
       try {
-        const response = await api.get('/products')
-        this.items = response.data.map(item => {
+        const params = {
+          page: page,
+          category: this.selectedCategory !== 'All' ? this.selectedCategory : undefined, // Assuming 'All' or similar handling if needed, though current logic seems to filter client side for search.
+          // Wait, the current logic filters by category in computed property `filteredItems` BUT fetches ALL products.
+          // With pagination, we MUST fetch by category from the server.
+          // Let's check ProductController: it supports `category` and `search` query params.
+          // So we should pass these params to the API.
+          search: this.$route.query.search
+        }
+
+        // If we want to use server-side filtering (efficient), we pass params.
+        // However, the original code fetched ALL and filtered client-side.
+        // I should switch to server-side filtering now that we rely on pagination.
+
+        if (this.selectedCategory && !this.$route.query.search) {
+          params.category = this.selectedCategory
+        }
+
+        const response = await api.get('/products', { params })
+
+        const productsData = response.data.data // Laravel pagination 'data' key
+        this.pagination = {
+          current_page: response.data.current_page,
+          last_page: response.data.last_page,
+          total: response.data.total
+        }
+
+        this.items = productsData.map(item => {
           let imgUrl = ''
           if (item.image) {
             if (item.image.startsWith('http')) {
@@ -145,18 +197,23 @@ export default {
         })
       } catch (error) {
         console.error('Error fetching products:', error)
-      } finally {
-        const queryCategory = this.$route.query.category
-        if (queryCategory) {
-          this.selectedCategory = queryCategory
-        }
       }
     },
     selectCategory (cat) {
       this.selectedCategory = cat
       if (this.$route.query.search) {
-        this.$router.push({ path: '/items' })
+        // If searching, clear search to show category
+        this.$router.push({ path: '/items', query: { category: cat } })
+      } else {
+        // Update URL to keep state
+        this.$router.push({ path: '/items', query: { category: cat } })
       }
+      this.fetchProducts(1) // Reset to page 1
+    },
+    changePage (page) {
+      if (page < 1 || page > this.pagination.last_page) return
+      this.fetchProducts(page)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   },
   watch: {
