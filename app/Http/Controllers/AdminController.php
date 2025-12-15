@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
@@ -59,16 +60,16 @@ class AdminController extends Controller
     public function users(Request $request)
     {
         $query = User::withCount('orders')
-            ->withSum(['orders' => function($query) {
+            ->withSum(['orders' => function ($query) {
                 $query->where('status', '!=', 'cancelled');
             }], 'total_amount');
 
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -79,7 +80,7 @@ class AdminController extends Controller
         // Logic for 'level' filtering involves aggregate sums which is complex in Eloquent without raw SQL.
         // For MVP Optimization, we might handle sorting by total_amount if requested, 
         // but exact level filtering on server side is defered to keep query simple efficient.
-        
+
         return $query->latest()->paginate(15);
     }
 
@@ -109,7 +110,7 @@ class AdminController extends Controller
         $user = new User();
         $user->email = $request->email;
         $user->name = $request->name;
-        $user->password = bcrypt($request->password);
+        $user->password = Hash::make($request->password);
         $user->phone = $request->phone;
         $user->role = 'customer'; // Default role, can be enhanced
         // $user->birthday = $request->birthday; // If migration exists
@@ -131,11 +132,11 @@ class AdminController extends Controller
         $user->email = $request->email;
         $user->name = $request->name;
         if ($request->has('password') && $request->password) {
-            $user->password = bcrypt($request->password);
+            $user->password = Hash::make($request->password);
         }
         if ($request->has('phone')) $user->phone = $request->phone;
         // if ($request->has('status')) $user->status = $request->status;
-        
+
         $user->save();
 
         return $user;
