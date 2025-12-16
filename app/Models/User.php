@@ -70,6 +70,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'birthday' => 'date',
+            'balance' => 'decimal:2',
         ];
     }
 
@@ -86,5 +87,10 @@ class User extends Authenticatable
     public function store()
     {
         return $this->belongsTo(Store::class);
+    }
+
+    public function walletTransactions()
+    {
+        return $this->hasMany(WalletTransaction::class);
     }
 }

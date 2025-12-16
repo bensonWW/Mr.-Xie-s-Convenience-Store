@@ -4,6 +4,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
+ARG VUE_APP_BYPASS_AUTH_DEV
+ENV VUE_APP_BYPASS_AUTH_DEV=$VUE_APP_BYPASS_AUTH_DEV
 RUN npm run build
 
 # Production Stage

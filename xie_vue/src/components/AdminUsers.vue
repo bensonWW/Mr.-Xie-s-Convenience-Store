@@ -57,6 +57,7 @@
           <tr class="bg-gray-50 text-gray-500 text-xs uppercase border-b border-gray-100">
             <th class="px-6 py-4 font-bold">會員資料</th>
             <th class="px-6 py-4 font-bold">聯絡電話</th>
+            <th class="px-6 py-4 font-bold text-center">錢包餘額</th>
             <th class="px-6 py-4 font-bold text-center">等級</th>
             <th class="px-6 py-4 font-bold">消費數據 (LTV)</th>
             <th class="px-6 py-4 font-bold text-center">狀態</th>
@@ -78,6 +79,9 @@
               </div>
             </td>
             <td class="px-6 py-4 text-gray-600">{{ user.phone || '未填寫' }}</td>
+            <td class="px-6 py-4 text-center">
+              <span class="font-bold text-gray-700">${{ formatPrice(user.balance || 0) }}</span>
+            </td>
             <td class="px-6 py-4 text-center">
               <span :class="getLevelBadgeClass(getUserLevel(user.orders_sum_total_amount))">
                 {{ getUserLevel(user.orders_sum_total_amount) }}

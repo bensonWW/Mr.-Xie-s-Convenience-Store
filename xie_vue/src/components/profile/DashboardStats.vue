@@ -9,8 +9,8 @@
       </div>
       <div class="flex gap-8 text-center">
         <div>
-          <div class="text-2xl font-bold text-xieBlue">0</div>
-          <div class="text-xs text-gray-500">紅利點數</div>
+          <div class="text-2xl font-bold text-xieBlue">NT$ {{ user.balance || 0 }}</div>
+          <div class="text-xs text-gray-500">錢包餘額</div>
         </div>
         <div>
           <div class="text-2xl font-bold text-xieBlue">{{ coupons.length }}</div>

@@ -89,7 +89,7 @@ class OrderController extends Controller
         return $request->user()->orders()->with('items.product')->findOrFail($id);
     }
 
-    public function pay(Request $request, $id)
+    public function pay(Request $request, $id, \App\Services\WalletService $walletService)
     {
         $order = $request->user()->orders()->findOrFail($id);
 
@@ -97,9 +97,21 @@ class OrderController extends Controller
             return response()->json(['message' => 'Order is not pending payment'], 400);
         }
 
-        $order->update(['status' => 'processing']);
+        try {
+            // Deduct from wallet
+            $walletService->withdraw(
+                $request->user(),
+                $order->total_amount,
+                "Payment for Order #{$order->id}",
+                "ORDER_{$order->id}"
+            );
 
-        return response()->json(['message' => 'Payment successful', 'order' => $order]);
+            $order->update(['status' => 'processing']);
+
+            return response()->json(['message' => 'Payment successful', 'order' => $order]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
     }
     public function updateStatus(Request $request, $id)
     {

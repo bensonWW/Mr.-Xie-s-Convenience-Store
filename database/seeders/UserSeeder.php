@@ -85,7 +85,7 @@ class UserSeeder extends Seeder
             'total_amount' => 1500,
             'status' => 'cancelled', // Cancelled orders shouldn't count towards LTV
         ]);
-        
+
         // Add a valid order for Wang to show some history if needed, but design says $1500 total.
         // If the design shows $1500 and status is banned, maybe they had a valid order before.
         Order::create([
@@ -93,5 +93,46 @@ class UserSeeder extends Seeder
             'total_amount' => 1500,
             'status' => 'completed',
         ]);
+
+        // 5. Seed Wallet Transactions for UI Testing (Feng)
+        // Initial Deposit
+        \App\Models\WalletTransaction::create([
+            'user_id' => $user1->id,
+            'type' => 'deposit',
+            'amount' => 5000,
+            'description' => 'Opening Campaign Bonus',
+            'created_at' => now()->subDays(10),
+        ]);
+        $user1->increment('balance', 5000);
+
+        // Purchase
+        \App\Models\WalletTransaction::create([
+            'user_id' => $user1->id,
+            'type' => 'payment',
+            'amount' => -1200,
+            'description' => 'Order #1001 Payment',
+            'created_at' => now()->subDays(8),
+        ]);
+        $user1->decrement('balance', 1200);
+
+        // Refund
+        \App\Models\WalletTransaction::create([
+            'user_id' => $user1->id,
+            'type' => 'refund',
+            'amount' => 1200,
+            'description' => 'Order #1001 Refund',
+            'created_at' => now()->subDays(5),
+        ]);
+        $user1->increment('balance', 1200);
+
+        // Admin Adjustment (Withdraw)
+        \App\Models\WalletTransaction::create([
+            'user_id' => $user1->id,
+            'type' => 'withdraw',
+            'amount' => -200,
+            'description' => 'System Correction',
+            'created_at' => now()->subDays(2),
+        ]);
+        $user1->decrement('balance', 200);
     }
 }

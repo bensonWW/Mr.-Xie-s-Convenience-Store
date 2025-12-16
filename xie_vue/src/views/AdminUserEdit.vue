@@ -10,24 +10,24 @@
       <nav class="flex-1 overflow-y-auto py-4">
         <ul class="space-y-1">
           <li>
-            <router-link to="/admin/dashboard" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-xieOrange transition">
+            <router-link to="/admin/dashboard" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover-text-xieOrange transition">
               <i class="fas fa-chart-pie w-6"></i><span class="font-bold">總覽儀表板</span>
             </router-link>
           </li>
 
           <li class="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider mt-4">商店管理</li>
           <li>
-            <router-link to="/admin/products" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-xieOrange transition">
+            <router-link to="/admin/products" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover-text-xieOrange transition">
               <i class="fas fa-box w-6"></i><span>商品管理</span>
             </router-link>
           </li>
           <li>
-            <router-link to="/admin/orders" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-xieOrange transition">
+            <router-link to="/admin/orders" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover-text-xieOrange transition">
               <i class="fas fa-file-invoice-dollar w-6"></i><span>訂單管理</span>
             </router-link>
           </li>
           <li>
-            <router-link to="/admin/coupons" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-xieOrange transition">
+            <router-link to="/admin/coupons" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover-text-xieOrange transition">
               <i class="fas fa-ticket-alt w-6"></i><span>優惠券管理</span>
             </router-link>
           </li>
@@ -86,6 +86,13 @@
                             </span>
                         </div>
 
+                        <!-- Component: Wallet Balance Card -->
+                        <WalletBalanceCard
+                          v-if="isEdit"
+                          :balance="balance"
+                          @open-modal="openWalletModal"
+                        />
+
                         <!-- Stats only for Edit Mode -->
                         <div v-if="isEdit" class="grid grid-cols-2 gap-2 border-t border-b border-gray-100 py-4 mb-4">
                             <div>
@@ -100,7 +107,7 @@
 
                         <div class="text-left">
                             <label class="text-xs font-bold text-gray-500 mb-1 block">管理員備註</label>
-                            <textarea v-model="form.memo" class="w-full text-sm border border-gray-200 rounded p-2 focus:outline-none focus:border-xieOrange" rows="4" placeholder="例如：大戶、喜歡殺價..."></textarea>
+                            <textarea v-model="form.memo" class="w-full text-sm border border-gray-200 rounded p-2 focus:outline-none focus-border-xieOrange" rows="4" placeholder="例如：大戶、喜歡殺價..."></textarea>
                         </div>
                     </div>
 
@@ -117,6 +124,7 @@
 
                         <div class="flex border-b border-gray-200">
                             <button @click="activeTab = 'basic'" :class="activeTab === 'basic' ? 'text-xieOrange border-b-2 border-xieOrange bg-orange-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'" class="px-6 py-4 font-bold transition focus:outline-none">基本資料</button>
+                            <button @click="activeTab = 'wallet'" :class="activeTab === 'wallet' ? 'text-xieOrange border-b-2 border-xieOrange bg-orange-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'" class="px-6 py-4 font-bold transition focus:outline-none">錢包紀錄</button>
                             <button @click="activeTab = 'orders'" :class="activeTab === 'orders' ? 'text-xieOrange border-b-2 border-xieOrange bg-orange-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'" class="px-6 py-4 font-bold transition focus:outline-none">消費紀錄</button>
                             <button @click="activeTab = 'address'" :class="activeTab === 'address' ? 'text-xieOrange border-b-2 border-xieOrange bg-orange-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'" class="px-6 py-4 font-bold transition focus:outline-none">收貨地址</button>
                         </div>
@@ -130,15 +138,15 @@
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div class="md:col-span-2">
                                             <label class="block text-sm font-bold text-gray-700 mb-2">電子信箱 {{ isEdit ? '(不可修改)' : '' }} <span v-if="!isEdit" class="text-red-500">*</span></label>
-                                            <input v-model="form.email" type="email" :disabled="isEdit" :class="isEdit ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''" placeholder="將作為會員登入帳號" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange focus:ring-1 focus:ring-xieOrange">
+                                            <input v-model="form.email" type="email" :disabled="isEdit" :class="isEdit ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''" placeholder="將作為會員登入帳號" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange focus:ring-1 focus-ring-xieOrange">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-bold text-gray-700 mb-2">{{ isEdit ? '重設密碼' : '預設密碼' }} <span v-if="!isEdit" class="text-red-500">*</span></label>
-                                            <input v-model="form.password" type="password" :placeholder="isEdit ? '若不修改請留空' : '請設定初始密碼'" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange">
+                                            <input v-model="form.password" type="password" :placeholder="isEdit ? '若不修改請留空' : '請設定初始密碼'" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-bold text-gray-700 mb-2">確認{{ isEdit ? '新' : '' }}密碼 <span v-if="!isEdit" class="text-red-500">*</span></label>
-                                            <input v-model="form.password_confirmation" type="password" :placeholder="isEdit ? '再次輸入新密碼' : '再次輸入密碼'" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange">
+                                            <input v-model="form.password_confirmation" type="password" :placeholder="isEdit ? '再次輸入新密碼' : '再次輸入密碼'" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                                         </div>
                                     </div>
                                 </div>
@@ -150,29 +158,29 @@
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label class="block text-sm font-bold text-gray-700 mb-2">真實姓名 <span class="text-red-500">*</span></label>
-                                            <input v-model="form.name" type="text" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange focus:ring-1 focus:ring-xieOrange">
+                                            <input v-model="form.name" type="text" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange focus:ring-1 focus-ring-xieOrange">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-bold text-gray-700 mb-2">手機號碼</label>
-                                            <input v-model="form.phone" type="tel" placeholder="09xx-xxx-xxx" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange focus:ring-1 focus:ring-xieOrange">
+                                            <input v-model="form.phone" type="tel" placeholder="09xx-xxx-xxx" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange focus:ring-1 focus-ring-xieOrange">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-bold text-gray-700 mb-2">生日</label>
-                                            <input v-model="form.birthday" type="date" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange">
+                                            <input v-model="form.birthday" type="date" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-bold text-gray-700 mb-2">性別</label>
                                             <div class="flex gap-4 mt-2">
                                                 <label class="flex items-center cursor-pointer">
-                                                    <input type="radio" value="male" v-model="form.gender" class="text-xieOrange focus:ring-xieOrange">
+                                                    <input type="radio" value="male" v-model="form.gender" class="text-xieOrange focus-ring-xieOrange">
                                                     <span class="ml-2 text-sm">男</span>
                                                 </label>
                                                 <label class="flex items-center cursor-pointer">
-                                                    <input type="radio" value="female" v-model="form.gender" class="text-xieOrange focus:ring-xieOrange">
+                                                    <input type="radio" value="female" v-model="form.gender" class="text-xieOrange focus-ring-xieOrange">
                                                     <span class="ml-2 text-sm">女</span>
                                                 </label>
                                                 <label class="flex items-center cursor-pointer">
-                                                    <input type="radio" value="other" v-model="form.gender" class="text-xieOrange focus:ring-xieOrange">
+                                                    <input type="radio" value="other" v-model="form.gender" class="text-xieOrange focus-ring-xieOrange">
                                                     <span class="ml-2 text-sm">不透露</span>
                                                 </label>
                                             </div>
@@ -180,7 +188,7 @@
 
                                         <div>
                                             <label class="block text-sm font-bold text-gray-700 mb-2">會員等級</label>
-                                            <select class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange" disabled>
+                                            <select class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange" disabled>
                                                 <option value="normal" selected>一般會員</option>
                                                 <option value="vip">VIP 會員</option>
                                                 <option value="vvip">VVIP 大戶</option>
@@ -191,7 +199,7 @@
                                             <label class="block text-sm font-bold text-gray-700 mb-2">訂閱電子報</label>
                                             <div class="mt-2">
                                                 <label class="inline-flex items-center cursor-pointer">
-                                                    <input type="checkbox" v-model="form.newsletter" class="w-4 h-4 text-xieOrange rounded border-gray-300 focus:ring-xieOrange">
+                                                    <input type="checkbox" v-model="form.newsletter" class="w-4 h-4 text-xieOrange rounded border-gray-300 focus-ring-xieOrange">
                                                     <span class="ml-2 text-sm text-gray-600">願意接收行銷資訊</span>
                                                 </label>
                                             </div>
@@ -201,13 +209,21 @@
                                 </div>
                             </div>
 
+                             <!-- Wallet Transactions Tab (Refactored) -->
+                            <div v-if="activeTab === 'wallet'">
+                              <WalletTransactionTable
+                                :transactions="transactions"
+                                @open-modal="openWalletModal"
+                              />
+                            </div>
+
                             <!-- Address Tab -->
                             <div v-if="activeTab === 'address'">
                                 <h3 class="font-bold text-gray-800 mb-4 border-l-4 border-xieOrange pl-3">收貨地址</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                     <div>
                                         <label class="block text-xs font-bold text-gray-500 mb-1">縣市</label>
-                                        <select class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-xieOrange">
+                                        <select class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus-border-xieOrange">
                                             <option>選擇縣市</option>
                                             <option>台北市</option>
                                             <option>新北市</option>
@@ -215,18 +231,18 @@
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-gray-500 mb-1">區域</label>
-                                        <select class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-xieOrange">
+                                        <select class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus-border-xieOrange">
                                             <option>選擇區域</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-gray-500 mb-1">郵遞區號</label>
-                                        <input type="text" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-xieOrange">
+                                        <input type="text" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus-border-xieOrange">
                                     </div>
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-500 mb-1">詳細地址</label>
-                                    <input v-model="form.address" type="text" placeholder="街道、巷弄、門牌號碼、樓層" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange">
+                                    <input v-model="form.address" type="text" placeholder="街道、巷弄、門牌號碼、樓層" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                                 </div>
                             </div>
 
@@ -243,6 +259,14 @@
                 </div>
             </div>
 
+            <!-- Wallet Transaction Modal (Refactored) -->
+            <WalletActionModal
+              :visible="showWalletModal"
+              :loading="walletLoading"
+              @close="closeWalletModal"
+              @submit="saveWalletTransaction"
+            />
+
         </main>
     </div>
 
@@ -253,8 +277,18 @@
 import api from '../services/api'
 import { useToast } from 'vue-toastification'
 
+// Import new components
+import WalletBalanceCard from '../components/admin/WalletBalanceCard.vue'
+import WalletTransactionTable from '../components/admin/WalletTransactionTable.vue'
+import WalletActionModal from '../components/admin/WalletActionModal.vue'
+
 export default {
   name: 'AdminUserEdit',
+  components: {
+    WalletBalanceCard,
+    WalletTransactionTable,
+    WalletActionModal
+  },
   setup () {
     const toast = useToast()
     return { toast }
@@ -263,6 +297,10 @@ export default {
     return {
       loading: false,
       activeTab: 'basic',
+      balance: 0,
+      transactions: [],
+      showWalletModal: false,
+      walletLoading: false,
       form: {
         email: '',
         name: '',
@@ -306,6 +344,9 @@ export default {
           password: '',
           password_confirmation: ''
         }
+        // Set Wallet Data
+        this.balance = user.wallet_balance || 0
+        this.transactions = user.wallet_transactions || []
       } catch (e) {
         console.error(e)
         this.toast.error('無法載入會員資料')
@@ -351,13 +392,50 @@ export default {
         }
 
         this.toast.success('儲存成功')
-        this.$router.push('/admin/users')
+        if (!this.isEdit) {
+          this.$router.push('/admin/users')
+        }
       } catch (e) {
         console.error(e)
         const msg = e.response?.data?.message || '儲存失敗'
         this.toast.error('錯誤: ' + msg)
       } finally {
         this.loading = false
+      }
+    },
+    // Wallet Methods
+    openWalletModal () {
+      this.showWalletModal = true
+    },
+    closeWalletModal () {
+      this.showWalletModal = false
+    },
+    async saveWalletTransaction (data) {
+      if (!data.amount || data.amount <= 0) {
+        this.toast.warning('請輸入有效金額')
+        return
+      }
+      if (!data.description) {
+        this.toast.warning('請輸入備註說明')
+        return
+      }
+
+      this.walletLoading = true
+      try {
+        const userId = this.$route.params.id
+        await api.post(`/admin/users/${userId}/wallet/transaction`, data)
+
+        this.toast.success('交易成功')
+        this.closeWalletModal()
+
+        // Refresh User Data (Balance & Transactions)
+        this.fetchUser(userId)
+      } catch (e) {
+        console.error(e)
+        const msg = e.response?.data?.message || '交易失敗'
+        this.toast.error('錯誤: ' + msg)
+      } finally {
+        this.walletLoading = false
       }
     }
   }
@@ -371,11 +449,11 @@ export default {
 .bg-xieOrange { background-color: #ed8936; }
 .text-xieOrange { color: #ed8936; }
 .border-xieOrange { border-color: #ed8936; }
-.focus\:border-xieOrange:focus { border-color: #ed8936; }
-.focus\:ring-xieOrange:focus { --tw-ring-color: #ed8936; }
+.focus-border-xieOrange:focus { border-color: #ed8936; }
+.focus-ring-xieOrange:focus { --tw-ring-color: #ed8936; }
 .bg-orange-50 { background-color: #fffaf0; }
-.hover\:bg-orange-50:hover { background-color: #fffaf0; }
-.hover\:text-xieOrange:hover { color: #ed8936; }
+.hover-bg-orange-50:hover { background-color: #fffaf0; }
+.hover-text-xieOrange:hover { color: #ed8936; }
 
 nav::-webkit-scrollbar {
   width: 4px;

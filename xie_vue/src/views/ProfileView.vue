@@ -1,5 +1,9 @@
 <template>
   <div class="py-8">
+    <!-- TEMP DEBUG BANNER -->
+    <div class="bg-red-500 text-white p-2 text-center text-xs font-mono">
+      DEBUG: BYPASS={{ bypassEnvValue }} (Process: {{ processEnvValue }})
+    </div>
 
     <!-- 未登入：登入 / 註冊區 -->
     <AuthOverlay v-if="!isLoggedIn" />
@@ -64,6 +68,8 @@
               @avatar-change="onAvatarChange"
             />
 
+            <WalletView v-if="currentView === 'wallet'" />
+
         </main>
     </div>
 
@@ -80,6 +86,7 @@ import OrderHistory from '../components/profile/OrderHistory.vue'
 import CouponWallet from '../components/profile/CouponWallet.vue'
 import WishlistGrid from '../components/profile/WishlistGrid.vue'
 import ProfileEdit from '../components/profile/ProfileEdit.vue'
+import WalletView from '../components/profile/WalletView.vue'
 
 export default {
   name: 'ProfileView',
@@ -90,7 +97,8 @@ export default {
     OrderHistory,
     CouponWallet,
     WishlistGrid,
-    ProfileEdit
+    ProfileEdit,
+    WalletView
   },
   data () {
     return {
@@ -104,7 +112,9 @@ export default {
         { id: 2, name: 'PlayStation 5 光碟版主機', price: 17580, original_price: 17580, icon_class: 'fab fa-playstation', status: 'out_of_stock' },
         { id: 3, name: 'Dyson V12 Detect Slim', price: 19900, original_price: 23900, icon_class: 'fas fa-wind', status: 'available' }
       ],
-      currentView: 'dashboard'
+      currentView: 'dashboard',
+      bypassEnvValue: process.env.VUE_APP_BYPASS_AUTH_DEV || 'undefined',
+      processEnvValue: process.env.VUE_APP_BYPASS_AUTH_DEV || 'undefined'
     }
   },
   computed: {

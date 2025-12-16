@@ -96,7 +96,41 @@ class AdminController extends Controller
 
     public function showUser($id)
     {
-        return User::findOrFail($id);
+        return User::with(['walletTransactions' => function ($query) {
+            $query->latest();
+        }])->findOrFail($id);
+    }
+
+    public function walletTransaction(Request $request, $id, \App\Services\WalletService $walletService)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'type' => 'required|in:deposit,withdraw',
+            'description' => 'required|string|max:255',
+        ]);
+
+        $user = User::findOrFail($id);
+
+        try {
+            if ($request->type === 'deposit') {
+                $walletService->deposit(
+                    $user,
+                    $request->amount,
+                    $request->description,
+                    'ADMIN_DEPOSIT_' . now()->timestamp
+                );
+            } else {
+                $walletService->withdraw(
+                    $user,
+                    $request->amount,
+                    $request->description,
+                    'ADMIN_WITHDRAW_' . now()->timestamp
+                );
+            }
+            return response()->json(['message' => 'Wallet updated successfully', 'balance' => $user->balance]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
     }
 
     public function storeUser(Request $request)
@@ -136,6 +170,8 @@ class AdminController extends Controller
         }
         if ($request->has('phone')) $user->phone = $request->phone;
         // if ($request->has('status')) $user->status = $request->status;
+
+        // Allow updating balance directly? No, use transaction method.
 
         $user->save();
 

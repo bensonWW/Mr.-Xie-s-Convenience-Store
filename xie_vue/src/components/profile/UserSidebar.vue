@@ -35,6 +35,13 @@
           </li>
           <li>
             <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition"
+               :class="currentView === 'wallet' ? 'bg-orange-50 text-xieOrange font-bold' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'"
+               @click.prevent="$emit('update:currentView', 'wallet')">
+              <i class="fas fa-wallet w-5 text-center"></i> 我的錢包
+            </a>
+          </li>
+          <li>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition"
                :class="currentView === 'coupons' ? 'bg-orange-50 text-xieOrange font-bold' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'"
                @click.prevent="$emit('update:currentView', 'coupons')">
               <i class="fas fa-ticket-alt w-5 text-center"></i> 我的折價券

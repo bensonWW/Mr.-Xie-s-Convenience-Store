@@ -110,6 +110,15 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
+  // Check for Dev Bypass
+  // Vue CLI (Webpack) uses process.env.VUE_APP_*
+  const bypassEnv = process.env.VUE_APP_BYPASS_AUTH_DEV
+
+  if (bypassEnv === 'true') {
+    console.warn('⚠️ AUTH BYPASS ACTIVE. DEV MODE ONLY. ⚠️')
+    return next()
+  }
+
   if (to.meta.requiresAuth) {
     const token = localStorage.getItem('token')
     const role = localStorage.getItem('user_role')

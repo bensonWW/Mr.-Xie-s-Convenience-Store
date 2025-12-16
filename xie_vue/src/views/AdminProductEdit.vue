@@ -10,31 +10,31 @@
       <nav class="flex-1 overflow-y-auto py-4">
         <ul class="space-y-1">
           <li>
-            <router-link to="/admin/dashboard" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-xieOrange transition">
+            <router-link to="/admin/dashboard" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover-text-xieOrange transition">
               <i class="fas fa-chart-pie w-6"></i><span class="font-bold">總覽儀表板</span>
             </router-link>
           </li>
 
           <li class="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider mt-4">商店管理</li>
           <li>
-            <router-link to="/admin/products" class="flex items-center px-6 py-3" :class="$route.path.includes('/products') ? 'text-xieOrange bg-orange-50 border-r-4 border-xieOrange' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'">
+            <router-link to="/admin/products" class="flex items-center px-6 py-3" :class="$route.path.includes('/products') ? 'text-xieOrange bg-orange-50 border-r-4 border-xieOrange' : 'text-gray-600 hover:bg-gray-50 hover-text-xieOrange'">
               <i class="fas fa-box w-6"></i><span>商品管理</span>
             </router-link>
           </li>
           <li>
-            <router-link to="/admin/orders" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-xieOrange transition">
+            <router-link to="/admin/orders" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover-text-xieOrange transition">
               <i class="fas fa-file-invoice-dollar w-6"></i><span>訂單管理</span>
             </router-link>
           </li>
           <li>
-            <router-link to="/admin/coupons" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-xieOrange transition">
+            <router-link to="/admin/coupons" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover-text-xieOrange transition">
               <i class="fas fa-ticket-alt w-6"></i><span>優惠券管理</span>
             </router-link>
           </li>
 
           <li class="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider mt-4">顧客與數據</li>
           <li>
-            <router-link to="/admin/users" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-xieOrange transition">
+            <router-link to="/admin/users" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover-text-xieOrange transition">
               <i class="fas fa-users w-6"></i><span>會員管理</span>
             </router-link>
           </li>
@@ -76,7 +76,7 @@
 
                 <div class="mb-4">
                   <label class="block text-sm font-bold text-gray-700 mb-2">商品名稱</label>
-                  <input v-model="form.name" type="text" placeholder="例如：Dyson V12 無線吸塵器" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange focus:ring-1 focus:ring-xieOrange transition">
+                  <input v-model="form.name" type="text" placeholder="例如：Dyson V12 無線吸塵器" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange focus:ring-1 focus-ring-xieOrange transition">
                 </div>
 
                 <div>
@@ -91,7 +91,7 @@
                     <span class="border-r border-gray-300 mx-1"></span>
                     <button type="button" class="hover:text-black"><i class="far fa-image"></i></button>
                   </div>
-                  <textarea v-model="form.information" rows="6" class="w-full border border-gray-300 border-t-0 rounded-b px-4 py-2 focus:outline-none focus:border-xieOrange focus:ring-1 focus:ring-xieOrange transition" placeholder="請輸入詳細的商品介紹..."></textarea>
+                  <textarea v-model="form.information" rows="6" class="w-full border border-gray-300 border-t-0 rounded-b px-4 py-2 focus:outline-none focus-border-xieOrange focus:ring-1 focus-ring-xieOrange transition" placeholder="請輸入詳細的商品介紹..."></textarea>
                 </div>
               </div>
 
@@ -99,8 +99,8 @@
               <div class="bg-white rounded-lg shadow-sm p-6">
                 <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">商品圖片</h3>
 
-                <div @click="$refs.fileInput.click()" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-xieOrange hover:bg-orange-50 transition cursor-pointer group">
-                  <div class="text-gray-400 group-hover:text-xieOrange text-4xl mb-3">
+                <div @click="$refs.fileInput.click()" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-xieOrange hover-bg-orange-50 transition cursor-pointer group">
+                  <div class="text-gray-400 group-hover-text-xieOrange text-4xl mb-3">
                     <i class="fas fa-cloud-upload-alt"></i>
                   </div>
                   <p class="text-sm text-gray-600 font-bold">點擊上傳 或 拖曳圖片至此</p>
@@ -126,14 +126,14 @@
                     <label class="block text-sm font-bold text-gray-700 mb-2">銷售價格 (Price)</label>
                     <div class="relative">
                       <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
-                      <input v-model="form.price" type="number" placeholder="0.00" class="w-full pl-7 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange">
+                      <input v-model="form.price" type="number" placeholder="0.00" class="w-full pl-7 border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                     </div>
                   </div>
                   <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">原價 (Compare at price)</label>
                     <div class="relative">
                       <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
-                      <input v-model="form.original_price" type="number" placeholder="0.00" class="w-full pl-7 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange">
+                      <input v-model="form.original_price" type="number" placeholder="0.00" class="w-full pl-7 border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                     </div>
                     <p class="text-xs text-gray-400 mt-1">若填寫此欄位，前台將顯示刪除線價格</p>
                   </div>
@@ -142,15 +142,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">庫存數量</label>
-                    <input v-model="form.stock" type="number" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange">
+                    <input v-model="form.stock" type="number" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                   </div>
                   <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">商品貨號 (SKU)</label>
-                    <input v-model="form.sku" type="text" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange">
+                    <input v-model="form.sku" type="text" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                   </div>
                   <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">條碼 (Barcode)</label>
-                    <input v-model="form.barcode" type="text" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange">
+                    <input v-model="form.barcode" type="text" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                   </div>
                 </div>
               </div>
@@ -162,7 +162,7 @@
 
               <div class="bg-white rounded-lg shadow-sm p-6">
                 <h3 class="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wide">商品狀態</h3>
-                <select v-model="form.status" class="w-full border border-gray-300 rounded px-4 py-2 mb-4 focus:outline-none focus:border-xieOrange">
+                <select v-model="form.status" class="w-full border border-gray-300 rounded px-4 py-2 mb-4 focus:outline-none focus-border-xieOrange">
                   <option value="active">上架中 (Active)</option>
                   <option value="draft">草稿 (Draft)</option>
                   <option value="archived">已封存 (Archived)</option>
@@ -170,7 +170,7 @@
 
                 <div>
                   <label class="block text-xs font-bold text-gray-500 mb-1">預計上架時間</label>
-                  <input type="date" class="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:border-xieOrange">
+                  <input type="date" class="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus-border-xieOrange">
                 </div>
               </div>
 
@@ -179,7 +179,7 @@
 
                 <div class="mb-4">
                   <label class="block text-sm font-bold text-gray-700 mb-2">商品分類</label>
-                  <select v-model="form.category" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange">
+                  <select v-model="form.category" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                     <option value="">選擇分類...</option>
                     <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
                     <!-- Fallback hardcoded if empty -->
@@ -195,12 +195,12 @@
 
                 <div class="mb-4">
                   <label class="block text-sm font-bold text-gray-700 mb-2">品牌 / 供應商</label>
-                  <input v-model="form.brand" type="text" placeholder="例如：Apple, Dyson" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange">
+                  <input v-model="form.brand" type="text" placeholder="例如：Apple, Dyson" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                 </div>
 
                 <div>
                   <label class="block text-sm font-bold text-gray-700 mb-2">標籤 (Tags)</label>
-                  <input v-model="tagInput" @keydown.enter.prevent="addTag" type="text" placeholder="輸入後按 Enter" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-xieOrange">
+                  <input v-model="tagInput" @keydown.enter.prevent="addTag" type="text" placeholder="輸入後按 Enter" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                   <div class="flex flex-wrap gap-2 mt-2">
                     <span v-for="(tag, index) in form.tags" :key="index" class="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded flex items-center">
                       {{ tag }} <button type="button" class="ml-1 hover:text-red-500" @click="removeTag(index)">&times;</button>
@@ -406,11 +406,11 @@ export default {
 .bg-xieOrange { background-color: #ed8936; }
 .text-xieOrange { color: #ed8936; }
 .border-xieOrange { border-color: #ed8936; }
-.focus\:border-xieOrange:focus { border-color: #ed8936; }
-.focus\:ring-xieOrange:focus { --tw-ring-color: #ed8936; }
+.focus-border-xieOrange:focus { border-color: #ed8936; }
+.focus-ring-xieOrange:focus { --tw-ring-color: #ed8936; }
 .bg-orange-50 { background-color: #fffaf0; }
-.hover\:bg-orange-50:hover { background-color: #fffaf0; }
-.hover\:text-xieOrange:hover { color: #ed8936; }
+.hover-bg-orange-50:hover { background-color: #fffaf0; }
+.hover-text-xieOrange:hover { color: #ed8936; }
 
 /* Custom scrollbar for sidebar */
 nav::-webkit-scrollbar {

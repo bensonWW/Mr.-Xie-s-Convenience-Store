@@ -7,6 +7,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WalletController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -25,6 +26,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
     Route::put('/user/profile', [AuthController::class, 'updateProfile']);
+
+    // Wallet
+    Route::get('/user/wallet', [WalletController::class, 'show']);
+    Route::post('/user/wallet/deposit', [WalletController::class, 'deposit']);
 
     // Cart
     Route::get('/cart', [CartController::class, 'index']);
@@ -49,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/users', [App\Http\Controllers\AdminController::class, 'storeUser']);
         Route::get('/users/{id}', [App\Http\Controllers\AdminController::class, 'showUser']);
         Route::put('/users/{id}', [App\Http\Controllers\AdminController::class, 'updateUser']);
+        Route::post('/users/{id}/wallet/transaction', [App\Http\Controllers\AdminController::class, 'walletTransaction']);
         Route::get('/orders', [App\Http\Controllers\AdminController::class, 'orders']);
         Route::get('/orders/{id}', [App\Http\Controllers\AdminController::class, 'show']);
         Route::get('/products', [ProductController::class, 'adminIndex']);

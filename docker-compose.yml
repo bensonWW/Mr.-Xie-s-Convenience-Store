@@ -11,6 +11,9 @@ services:
       - .:/var/www
     networks:
       - app-network
+    depends_on:
+      - db
+      - redis
 
   web:
     image: nginx:alpine
@@ -68,6 +71,8 @@ services:
     build:
       context: ./xie_vue
       dockerfile: Dockerfile
+      args:
+        VUE_APP_BYPASS_AUTH_DEV: "true"
     image: mr-xies-vue
     container_name: mr-xies-vue
     restart: unless-stopped
