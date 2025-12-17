@@ -84,9 +84,9 @@ const cartTotal = computed(() =>
 
 const memberDiscountAmount = computed(() => {
   const rates = {
-    'normal': 0,
-    'vip': 0.05,
-    'platinum': 0.10
+    normal: 0,
+    vip: 0.05,
+    platinum: 0.10
   }
   const rate = rates[userLevel.value] || 0
   return Math.round(cartTotal.value * rate)

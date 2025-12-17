@@ -58,7 +58,7 @@ export default {
       if (!this.address.trim()) return
       this.loading = true
       try {
-        const res = await api.put('/profile', { address: this.address })
+        await api.put('/profile', { address: this.address })
         this.$emit('success', this.address)
         this.$emit('close')
       } catch (error) {
