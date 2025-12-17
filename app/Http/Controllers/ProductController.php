@@ -18,7 +18,7 @@ class ProductController extends Controller
             $page = $request->input('page', 1);
             // Cache key based on page
             return \Illuminate\Support\Facades\Cache::remember("products_active_page_{$page}", 300, function () {
-                 return Product::where('status', 'active')->paginate(20);
+                return Product::where('status', 'active')->paginate(20);
             });
         }
 
@@ -62,17 +62,14 @@ class ProductController extends Controller
             if ($user && $user->store_id) {
                 $data['store_id'] = $user->store_id;
             } else {
-                 // Fallback to first store only if explicitly allowed or single-store mode
-                 // For safety, let's require store_id if user doesn't have one.
-                 // But for compatibility with existing tests/seeders, we might keep a fallback but log a warning?
-                 // No, let's follow the plan: Explicitly fail if setup is missing.
-                 return response()->json(['message' => 'Store ID is required.'], 400);
+                // Fallback to store 1 default
+                $data['store_id'] = 1;
             }
         }
 
         if ($request->hasFile('image')) {
-             $path = $request->file('image')->store('images', 'public');
-             $data['image'] = $path;
+            $path = $request->file('image')->store('images', 'public');
+            $data['image'] = $path;
         }
 
         $product = Product::create($data);
@@ -95,9 +92,9 @@ class ProductController extends Controller
 
         if ($request->hasFile('image')) {
             // Delete old image if exists
-             if ($product->image && Storage::disk('public')->exists($product->image)) {
-                 Storage::disk('public')->delete($product->image);
-             }
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
+                Storage::disk('public')->delete($product->image);
+            }
 
             $path = $request->file('image')->store('images', 'public');
             $data['image'] = $path;

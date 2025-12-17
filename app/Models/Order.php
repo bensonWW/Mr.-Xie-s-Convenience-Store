@@ -20,7 +20,17 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'status', 'total_amount'];
+    protected $fillable = [
+        'user_id',
+        'status',
+        'total_amount',
+        'discount_amount',
+        'snapshot_data',
+    ];
+
+    protected $casts = [
+        'snapshot_data' => 'array',
+    ];
 
     public function user()
     {

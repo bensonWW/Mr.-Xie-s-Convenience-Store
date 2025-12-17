@@ -47,6 +47,8 @@ class User extends Authenticatable
         'birthday',
         'store_id',
         'status',
+        'balance',
+        'member_level',
     ];
 
     /**
@@ -92,5 +94,10 @@ class User extends Authenticatable
     public function walletTransactions()
     {
         return $this->hasMany(WalletTransaction::class);
+    }
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
     }
 }

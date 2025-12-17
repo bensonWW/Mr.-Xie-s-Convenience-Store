@@ -55,7 +55,9 @@
             </a>
           </li>
           <li>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-xieOrange rounded-lg transition" @click.prevent>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition"
+               :class="currentView === 'address' ? 'bg-orange-50 text-xieOrange font-bold' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'"
+               @click.prevent="$emit('update:currentView', 'address')">
               <i class="fas fa-map-marker-alt w-5 text-center"></i> 收貨地址管理
             </a>
           </li>

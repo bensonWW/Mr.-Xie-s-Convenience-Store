@@ -17,8 +17,8 @@
                 <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200 p-8 relative overflow-hidden group">
                     <img v-if="imgUrl" :src="imgUrl" :alt="item.name" class="w-full h-full object-contain">
                     <i v-else class="fas fa-image text-9xl text-gray-300"></i>
-                    <button class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition p-2 bg-white rounded-full shadow-sm">
-                        <i class="far fa-heart text-xl"></i>
+                    <button class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition p-2 bg-white rounded-full shadow-sm" @click="toggleWishlist">
+                        <i :class="isFavorited ? 'fas fa-heart text-red-500' : 'far fa-heart'" class="text-xl"></i>
                     </button>
                 </div>
                 <!-- Mock Thumbnails -->
@@ -127,18 +127,60 @@ export default {
       qty: 1,
       maxQty: 1,
       totalPrice: 0,
-      activeTab: 'details'
+      activeTab: 'details',
+      isFavorited: false
     }
   },
   created () {
     this.loadItemFromRoute()
+    if (localStorage.getItem('token')) {
+      this.checkWishlistStatus()
+    }
   },
   watch: {
     '$route.params.id' (newId) {
       this.loadItemFromRoute(newId)
+      if (localStorage.getItem('token')) {
+        this.checkWishlistStatus()
+      }
     }
   },
   methods: {
+    toggleWishlist () {
+      if (!localStorage.getItem('token')) {
+        this.$toast.warning('請先登入')
+        return
+      }
+
+      if (this.isFavorited) {
+        // Remove
+        api.delete(`/favorites/${this.item.id}`)
+          .then(() => {
+            this.isFavorited = false
+            this.$toast.info('已取消收藏')
+          })
+      } else {
+        // Add
+        api.post('/favorites', { product_id: this.item.id })
+          .then(() => {
+            this.isFavorited = true
+            this.$toast.success('已加入收藏')
+          })
+      }
+    },
+    async checkWishlistStatus () {
+      try {
+        // Optimally we would check just this ID, but our API is list-based.
+        // For now fetching list is okay unless user has thousands.
+        // If performance issue, adds GET /favorites/check/{id} endpoint later.
+        const res = await api.get('/favorites')
+        const favorites = res.data
+        // Assuming favorites returns list of products
+        this.isFavorited = favorites.some(f => f.id === this.item.id)
+      } catch (e) {
+        console.error('Check wishlist error', e)
+      }
+    },
     preventInputArrows (e) {
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         e.preventDefault()
@@ -173,6 +215,7 @@ export default {
           quantity: this.qty
         })
         this.$toast.success('已加入購物車')
+        this.$store.dispatch('cart/fetchCount')
       } catch (error) {
         console.error('Add to cart error:', error)
         this.$toast.error('加入購物車失敗')
@@ -216,6 +259,10 @@ export default {
         this.maxQty = stock > 0 ? stock : 1
         this.qty = 1
         this.updateTotalPrice()
+
+        // Check wish status again now that item is loaded?
+        // No, checkWishlistStatus uses this.item.id, so check it only after item is loaded OR use route param.
+        if (localStorage.getItem('token')) this.checkWishlistStatus()
       } catch (error) {
         console.error('Fetch product error:', error)
         this.item = null

@@ -144,6 +144,7 @@
                     <label class="block text-sm font-bold text-gray-700 mb-2">庫存數量</label>
                     <input v-model="form.stock" type="number" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                   </div>
+                  <!--
                   <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">商品貨號 (SKU)</label>
                     <input v-model="form.sku" type="text" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
@@ -152,6 +153,7 @@
                     <label class="block text-sm font-bold text-gray-700 mb-2">條碼 (Barcode)</label>
                     <input v-model="form.barcode" type="text" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                   </div>
+                  -->
                 </div>
               </div>
 
@@ -193,6 +195,10 @@
                   </select>
                 </div>
 
+                <!-- Optional Fields Section (Toggleable or collapsed by default?) -->
+                <!-- For simplicity as requested, we hide non-essential fields. -->
+
+                <!--
                 <div class="mb-4">
                   <label class="block text-sm font-bold text-gray-700 mb-2">品牌 / 供應商</label>
                   <input v-model="form.brand" type="text" placeholder="例如：Apple, Dyson" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
@@ -207,6 +213,7 @@
                     </span>
                   </div>
                 </div>
+                -->
               </div>
 
             </div>

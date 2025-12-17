@@ -1,15 +1,23 @@
 <template>
-  <div class="bg-gray-50 rounded p-4 mb-4 border border-gray-100 transition hover:shadow-sm">
-    <div class="text-xs text-gray-400 mb-1">錢包餘額</div>
-    <div class="font-bold text-2xl text-xieOrange mb-3">
-      ${{ formatNumber(balance) }}
+  <div class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 rounded-xl p-6 mb-6 shadow-xl text-white transform hover:scale-[1.01] transition-transform duration-300">
+    <!-- Decorative Background Icon -->
+    <i class="fas fa-wallet absolute -bottom-4 -right-4 text-9xl text-white opacity-10 pointer-events-none"></i>
+    <div class="relative z-10">
+      <div class="flex items-center gap-2 mb-2 opacity-80">
+        <i class="fas fa-coins text-yellow-300"></i>
+        <div class="text-sm font-medium tracking-wide">目前錢包餘額</div>
+      </div>
+      <div class="font-bold text-4xl mb-6 tracking-tight drop-shadow-md">
+        ${{ formatNumber(balance) }}
+      </div>
+      <button
+        @click="$emit('open-modal')"
+        class="w-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-sm font-bold py-3 rounded-lg hover:bg-white/30 hover:border-white/50 transition-all duration-200 flex items-center justify-center gap-2 group shadow-lg"
+      >
+        <i class="fas fa-cog group-hover:rotate-90 transition-transform duration-500"></i>
+        管理錢包 (加值/扣款)
+      </button>
     </div>
-    <button
-      @click="$emit('open-modal')"
-      class="w-full bg-white border border-gray-300 text-gray-700 text-xs font-bold py-2 rounded hover:bg-gray-100 transition flex items-center justify-center gap-2"
-    >
-      <i class="fas fa-coins"></i> 管理錢包
-    </button>
   </div>
 </template>
 
@@ -33,5 +41,5 @@ export default {
 </script>
 
 <style scoped>
-.text-xieOrange { color: #ed8936; }
+/* No extra css needed, Tailwind handles it */
 </style>

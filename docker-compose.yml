@@ -73,6 +73,7 @@ services:
       dockerfile: Dockerfile
       args:
         VUE_APP_BYPASS_AUTH_DEV: "true"
+        VUE_APP_API_URL: "http://localhost:8000/api"
     image: mr-xies-vue
     container_name: mr-xies-vue
     restart: unless-stopped

@@ -69,6 +69,92 @@
 - [x] **Step 3: Customer UI (WalletView) Consistency**
     - [x] Apply same design tokens (`xieOrange`, `xieBlue`) to Member Center Wallet View.
 
+### Phase 7: Final Polish & Fixes
+- [x] **Step 1: Debug Admin Auth Redirection (P0)**
+    - [x] Investigate `router/index.js` guard loop or failure.
+    - [x] Create a browser verification test.
+    - [x] Fix logic to allow Admin Login to correctly redirect.
+- [x] **Step 2: Wallet UI Polish (P1)**
+    - [x] Visual verification of new Admin Wallet components.
+    - [x] Enhance "Wow" factor (Animations/Gradients).
+
+### Phase 8: Bug Fixes & Refinements (Current Focus)
+> [!NOTE]
+> **General Rule**: All new logic in this phase requires **Strict PHPUnit Feature Tests**.
+
+- [x] **Step 1: Fix Wishlist Refresh Issue (P1)**
+    - [x] **Issue**: Items removed/added to wishlist reappear or persist after page refresh.
+    - [x] **Task**: Verify `WishlistGrid.vue` reactivity and API state management (Local vs Server sync).
+- [x] **Step 2: Simplify Admin Product Creation (P2)**
+    - [x] **Issue**: Product creation validation is too strict (`Store ID required`) and UI has unnecessary fields.
+    - [x] **Task**:
+        - Remove SKU, Barcode, etc. from "Required" list in Backend Validation.
+        - Set default `store_id` (e.g., to 1) if not provided by Admin UI.
+- [x] **Step 3: Fix Add to Cart Notification (P2)**
+    - [x] **Issue**: Clicking "Add to Cart" directly (e.g. from Product Card/Detail) provides no visual feedback/toast.
+    - [x] **Task**: Implement Global Toast Notification (using `vue-toastification` or similar existing lib).
+- [x] **Step 4: Fix Cart Count Reactivity (P2)**
+    - [x] **Issue**: The cart badge number (Navbar) does not update immediately when items are added/removed.
+    - [x] **Task**: Implement a global Event Bus or use Vuex/Pinia state to sync cart count across components (`Navbar` vs `Cart`).
+- [x] **Step 5: Implement Missing Profile Sections (P2)**
+    - [x] **Issue**: "Order History" and "Address Management" UI sections are incomplete or placeholders.
+    - [x] **Task**:
+        - Implement `OrderHistory.vue`: List user orders with status and detail view.
+        - Implement `AddressManager.vue` (or `ProfileEdit.vue` expansion): CRUD for user addresses.
+
+- [x] **Step 6: Order Status Workflow & Refunds (P1)**
+    - [x] **Logic**:
+        - **Status Flow**: `Processing` (Paid immediately on order) -> `Shipped` -> `Delivered` -> `Completed`.
+        - **Refunds**: support **Full Refund Only** (Cancelled).
+        - **Automation**: Triggering Refund MUST automatically credit `wallet_balance` and log `REFUND` transaction.
+    - [x] **Task**:
+        - Update `Order` model states.
+        - Create `OrderService::refund(Order $order)` logic.
+        - Update `OrderHistory.vue` with tabs for statuses.
+        - Add "Refund/Cancel" button (only for allowed states).
+    - [x] **Test**: `OrderRefundTest.php` (Verify balance restoration).
+
+- [x] **Step 7: Enforce Wallet-Only Payment & Discount Prep (P1)**
+    - [x] **Logic**:
+        - **Payment**: Hardcode to "Internal Wallet". Hide other options.
+        - **Validation**: If `Balance < Total`, show **"Top-up Needed" Modal** (Guide user, don't just disable).
+        - **Calculation**: Prepare `OrderService` to handle `Subtotal - Discount + Shipping = Total` (Prep for Step 11).
+    - [x] **Task**:
+        - Refactor Checkout UI.
+        - Implement "Insufficient Balance" Modal with redirection/inline top-up link.
+        - Ensure Atomic Transaction (Deduct Balance + Create Order).
+
+- [x] **Step 8: Order Snapshots (Data Integrity) (P2)**
+    - [x] **Logic**: User address/phone might change. Order must preserve data at time of purchase.
+    - [x] **Task**:
+        - **Migration**: Add `snapshot_data` (JSON) column to `orders` table.
+        - **Backend**: Store Address/Phone/MemberLevel snapshot when creating order.
+        - **Admin UI**: Read from snapshot in `AdminOrderDetails`.
+    - [x] **Test**: Verify snapshot data persists after User profile update.
+
+- [x] **Step 9: Smart Check-out Address UX (P2)**
+    - [x] **Logic**: Uninterrupted flow.
+    - [x] **Task**:
+        - If no address exists during checkout, show **Inline Modal** to add one (keep user on page).
+        - Auto-select the new address.
+
+- [x] **Step 10: Admin User Edit Improvements (P3)**
+    - [x] **Task**: Allow Name edit, Optional Password update.
+
+- [x] **Step 11: Member Levels & Discounts (P2 - Logic integrated with Order)**
+    - [x] **Logic**:
+        - **Config-based**: Define Levels (e.g., Normal, VIP, Platinum) and Discounts in `config/shop.php` (Mock DB for now).
+        - **Automation**: Listener on `OrderCompleted` -> Check `total_spent` -> Upgrade Level automatically.
+        - **Display**: Discount shown as separate **Line Item** in Cart/Order.
+    - [x] **Task**:
+        - Implement `MemberLevelService`.
+        - Integrate discount calculation into `Cart` and `OrderService`.
+        - Update Admin UI to allow manual level override.
+    - [x] **Test**: `MemberUpgradeTest.php`, `DiscountCalculationTest.php`.
+
+- [x] **Step 12: Fix Wishlist Navigation (P3)**
+    - [x] **Task**: Navbar Heart icon -> Redirect to `/profile?tab=wishlist`.
+
 ## Verification Plan
 
 ### Automated Tests

@@ -3,6 +3,8 @@ import { ref, computed, onMounted } from 'vue'
 import api from '../services/api'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
+import UserTopUpModal from '../components/profile/UserTopUpModal.vue'
+import InlineAddressModal from '../components/profile/InlineAddressModal.vue'
 
 const router = useRouter()
 const toast = useToast()
@@ -12,10 +14,38 @@ const selectedCouponId = ref('')
 const discountAmount = ref(0)
 const appliedCoupon = ref(null)
 
+const userBalance = ref(0)
+const userLevel = ref('normal')
+const userAddress = ref('')
+const showTopUpModal = ref(false)
+const showAddressModal = ref(false)
+const isProcessing = ref(false)
+
 onMounted(() => {
   fetchCart()
   fetchCoupons()
+  fetchUserProfile()
+  fetchUserWallet()
 })
+
+async function fetchUserProfile () {
+  try {
+    const res = await api.get('/user')
+    userAddress.value = res.data.address || ''
+    userLevel.value = res.data.member_level || 'normal'
+  } catch (error) {
+    console.error('Fetch user profile error:', error)
+  }
+}
+
+async function fetchUserWallet () {
+  try {
+    const res = await api.get('/user/wallet')
+    userBalance.value = res.data.balance || 0
+  } catch (error) {
+    console.error('Fetch wallet error:', error)
+  }
+}
 
 async function fetchCoupons () {
   try {
@@ -52,8 +82,25 @@ const cartTotal = computed(() =>
   cartItems.value.reduce((sum, item) => sum + item.price * item.quantity, 0)
 )
 
+const memberDiscountAmount = computed(() => {
+  const rates = {
+    'normal': 0,
+    'vip': 0.05,
+    'platinum': 0.10
+  }
+  const rate = rates[userLevel.value] || 0
+  return Math.round(cartTotal.value * rate)
+})
+
 const finalTotal = computed(() => {
-  return Math.max(0, Math.round(cartTotal.value - discountAmount.value))
+  let total = cartTotal.value - memberDiscountAmount.value
+  total -= discountAmount.value
+  return Math.max(0, Math.round(total))
+})
+
+// Check if balance is sufficient
+const isBalanceInsufficient = computed(() => {
+  return userBalance.value < finalTotal.value
 })
 
 async function applyCoupon () {
@@ -118,22 +165,59 @@ async function updateQuantity (item, change) {
 
 async function checkout () {
   if (cartItems.value.length === 0) return
-  if (!confirm('確定要結帳嗎？')) return
 
+  // 1. Check Address
+  if (!userAddress.value) {
+    // toast.warning('請先設定收貨地址') // Optional
+    showAddressModal.value = true
+    return
+  }
+
+  // 2. Check Balance
+  if (isBalanceInsufficient.value) {
+    toast.error('餘額不足，請先儲值')
+    showTopUpModal.value = true
+    return
+  }
+
+  if (!confirm('確定要使用錢包餘額結帳嗎？')) return
+
+  isProcessing.value = true
   try {
     await api.post('/orders', {
       coupon_code: appliedCoupon.value ? appliedCoupon.value.code : null
     })
-    toast.success('訂單已送出！')
+    toast.success('訂單支付成功！')
     cartItems.value = []
     discountAmount.value = 0
     appliedCoupon.value = null
     selectedCouponId.value = ''
+    // Refresh balance just in case user stays here? Usually redirect.
     router.push('/profile')
   } catch (error) {
     console.error('Checkout error:', error)
-    toast.error('結帳失敗')
+    if (error.response?.status === 402) {
+      toast.error('餘額不足，請先儲值')
+      showTopUpModal.value = true
+    } else {
+      toast.error(error.response?.data?.message || '結帳失敗')
+    }
+  } finally {
+    isProcessing.value = false
   }
+}
+
+function handleTopUpSuccess (data) {
+  userBalance.value = data.balance
+  // Auto-close handled by component emit usually, but here we just update data
+  toast.success('儲值成功，您可以繼續結帳了')
+}
+
+function handleAddressSuccess (newAddress) {
+  userAddress.value = newAddress
+  toast.success('地址已設定，請再次點擊結帳')
+  // We could auto-trigger checkout here, but let's let user confirm.
+  // checkout() // Potentially risky if user wants to review.
 }
 </script>
 
@@ -251,7 +335,11 @@ async function checkout () {
                             <span>運費 (宅配)</span>
                             <span>$0</span>
                         </div>
-                        <div class="flex justify-between text-xieOrange" v-if="discountAmount > 0">
+                        <div class="flex justify-between text-xieOrange" v-if="memberDiscountAmount > 0">
+                            <span>會員折扣 ({{ userLevel.toUpperCase() }})</span>
+                            <span>-$ {{ memberDiscountAmount }}</span>
+                        </div>
+                        <div class="flex justify-between text-green-600" v-if="discountAmount > 0">
                             <span>活動折扣</span>
                             <span>-$ {{ discountAmount }}</span>
                         </div>
@@ -264,9 +352,26 @@ async function checkout () {
                         </div>
                     </div>
 
-                    <button class="w-full bg-xieOrange text-white font-bold py-3 rounded-lg text-lg hover:bg-orange-600 transition shadow-md mb-3" @click="checkout">
-                        前往結帳
+                    <!-- Insufficient Balance Warning -->
+                    <div v-if="isBalanceInsufficient" class="mb-4 bg-red-50 border border-red-200 rounded p-3 text-red-700 text-sm flex items-start gap-2">
+                         <i class="fas fa-exclamation-circle mt-0.5"></i>
+                         <div>
+                             <p class="font-bold">餘額不足 (現有 NT$ {{ userBalance }})</p>
+                             <p class="text-xs">請先儲值後再進行結帳付款。</p>
+                         </div>
+                    </div>
+
+                    <div v-if="isBalanceInsufficient" class="flex gap-2 mb-3">
+                         <button @click="showTopUpModal = true" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg text-lg hover:bg-blue-700 transition shadow-md">
+                             <i class="fas fa-wallet mr-1"></i> 立即儲值
+                         </button>
+                    </div>
+
+                    <button v-else class="w-full bg-xieOrange text-white font-bold py-3 rounded-lg text-lg hover:bg-orange-600 transition shadow-md mb-3 disabled:opacity-50 disabled:cursor-not-allowed" @click="checkout" :disabled="isProcessing">
+                        <i v-if="isProcessing" class="fas fa-spinner fa-spin mr-2"></i>
+                        {{ isProcessing ? '處理中...' : '確認付款' }}
                     </button>
+
                     <router-link to="/items" class="block text-center text-gray-500 text-sm hover:text-xieOrange underline">繼續購物</router-link>
 
                     <div class="mt-6 flex justify-center gap-3 opacity-50 grayscale">
@@ -280,6 +385,8 @@ async function checkout () {
 
         </div>
     </main>
+    <UserTopUpModal :visible="showTopUpModal" @close="showTopUpModal = false" @success="handleTopUpSuccess" />
+    <InlineAddressModal :visible="showAddressModal" @close="showAddressModal = false" @success="handleAddressSuccess" />
   </div>
 </template>
 

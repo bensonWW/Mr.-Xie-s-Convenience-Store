@@ -17,7 +17,7 @@ The **Online Shopping System (OSS)** is a web-based e-commerce platform designed
     -   Browse Products, Add to Cart, Place Orders (use Wallet or potentially others).
     -   View Order History.
 -   **Staff**: Manage store products (CRUD) and inventory.
--   **Admin**: System configuration, user management, special events.
+-   **Admin**: System configuration, user management, special events, **Order Refunds**.
 
 ## Key Features
 
@@ -26,8 +26,11 @@ The **Online Shopping System (OSS)** is a web-based e-commerce platform designed
 -   **Wallet System**:
     -   Users have a `wallet_balance`.
     -   Users can "Top-up" (Mock: Enter amount -> Admin approves or Auto-approve for dev).
-    -   Users can view transaction history (Deposit/Spend).
-    -   **Payment**: During checkout, user can select "Wallet Balance" as payment method.
+    -   Users can view transaction history (Deposit/Spend/Refund).
+    -   **Payment**: Mandatory "Wallet Balance" payment. (No other methods initially).
+    -   **Member Levels**:
+        -   Automatic upgrade based on Total Spent.
+        -   Levels (Normal, VIP, Platinum) provide percentage discounts.
 
 ### 2. Product Management
 -   Standard CRUD (Name, Price, Image, Stock, Category).
@@ -37,9 +40,12 @@ The **Online Shopping System (OSS)** is a web-based e-commerce platform designed
 -   Cart management.
 -   Order Placement:
     -   Validate Stock.
-    -   Validate Balance (if using Wallet).
+    -   Validate Balance versus (Subtotal - Discount + Shipping).
+    -   **Low Balance Flow**: Prompt user to Top-up via Inline Modal.
     -   Deduct Stock & Balance (Atomic Transaction).
-    -   Create Order Record (Status: Pending -> Paid -> Shipped...).
+    -   Snapshot Address/Phone.
+    -   Create Order Record (Status: Processing -> Shipped -> Delivered -> Completed).
+    -   Support "Full Refund" -> Auto-credit Wallet.
 
 ### 4. Technical Constraints
 -   **Backend**: Laravel 12.x (Latest).

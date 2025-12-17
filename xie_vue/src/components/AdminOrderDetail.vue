@@ -106,17 +106,20 @@
                         <i class="fas fa-user"></i>
                     </div>
                     <div>
-                        <div class="font-bold text-sm">{{ order.user ? order.user.name : 'Unknown' }}</div>
-                        <div class="text-xs text-gray-500">{{ order.user ? order.user.email : '' }}</div>
+                        <div class="font-bold text-sm flex items-center gap-2">
+                            {{ customerName }}
+                            <span v-if="isSnapshot" class="text-[10px] bg-gray-200 px-1 rounded text-gray-600" title="資料來自訂單快照">快照</span>
+                        </div>
+                        <div class="text-xs text-gray-500">{{ customerEmail }}</div>
                     </div>
                 </div>
                 <div class="text-sm border-t pt-4">
                     <div class="mb-2">
-                        <span class="text-gray-500">聯絡電話:</span> {{ order.user ? order.user.phone : 'N/A' }}
+                        <span class="text-gray-500">聯絡電話:</span> {{ customerPhone }}
                     </div>
                     <div class="mb-2">
                         <span class="text-gray-500">配送地址:</span><br>
-                        {{ order.address || 'N/A' }}
+                        {{ shippingAddress }}
                     </div>
                 </div>
             </div>
@@ -179,6 +182,23 @@ export default {
         cancelled: 'bg-red-100 text-red-600'
       }
       return map[status] || 'bg-gray-100 text-gray-600'
+    }
+  },
+  computed: {
+    customerName () {
+      return this.order?.snapshot_data?.customer_name || this.order?.user?.name || 'Unknown'
+    },
+    customerEmail () {
+      return this.order?.snapshot_data?.email || this.order?.user?.email || ''
+    },
+    customerPhone () {
+      return this.order?.snapshot_data?.phone || this.order?.user?.phone || 'N/A'
+    },
+    shippingAddress () {
+      return this.order?.snapshot_data?.shipping_address || this.order?.address || 'N/A'
+    },
+    isSnapshot () {
+      return !!this.order?.snapshot_data
     }
   }
 }

@@ -128,7 +128,7 @@ router.beforeEach((to, from, next) => {
       // Use simple redirect, Toast is hard to invoke outside component context without setup,
       // but we can try importing it if installed as a plugin usually exposes it.
       // For now, let's just redirect. The user will see login screen.
-      return next('/profile')
+      return next({ path: '/profile', query: { redirect: to.fullPath } })
     }
 
     if (to.meta.roles && !to.meta.roles.includes(role)) {

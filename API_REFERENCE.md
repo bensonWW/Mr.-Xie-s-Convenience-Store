@@ -1,6 +1,10 @@
 # API Reference
 
-Base URL: `https://mr-xie-s-convenience-store-ch-back-icvbux.laravel.cloud/api`
+Base URL: 
+- **Production / Cloud**: `https://mr-xie-s-convenience-store-ch-back-icvbux.laravel.cloud/api`
+- **Local Development**: `http://localhost:8000/api`
+
+> **Note**: For local Docker development, the frontend is configured to use `http://localhost:8000/api` via the `VUE_APP_API_URL` build argument in `docker-compose.yml`.
 
 ## Authentication
 
@@ -41,12 +45,23 @@ Base URL: `https://mr-xie-s-convenience-store-ch-back-icvbux.laravel.cloud/api`
 | `POST` | `/coupons/check` | Check coupon validity |
 | `POST` | `/orders/{id}/pay` | Pay for an order |
 
+## Wallet (Requires Auth)
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/user/wallet` | Get wallet balance and transactions |
+| `POST` | `/user/wallet/deposit` | Deposit funds (Mock/Request) |
+
 ## Admin (Requires Auth & Admin Role)
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `GET` | `/admin/stats` | Get dashboard statistics |
 | `GET` | `/admin/users` | List all users |
+| `POST` | `/admin/users` | Create a new user |
+| `GET` | `/admin/users/{id}` | Get user details |
+| `PUT` | `/admin/users/{id}` | Update user details |
+| `POST` | `/admin/users/{id}/wallet/transaction` | Admin Modifies Wallet (Deposit/Withdraw) |
 | `GET` | `/admin/orders` | List all orders (paginated) |
 | `GET` | `/admin/orders/{id}` | Get items for a single order |
 | `PUT` | `/admin/orders/{id}/status` | Update order status |
@@ -54,6 +69,7 @@ Base URL: `https://mr-xie-s-convenience-store-ch-back-icvbux.laravel.cloud/api`
 | `POST` | `/admin/products` | Create product |
 | `PUT` | `/admin/products/{id}` | Update product |
 | `DELETE` | `/admin/products/{id}` | Delete product |
+| `PUT` | `/admin/stores/{id}` | Update store settings |
 
 ## How to Test
 

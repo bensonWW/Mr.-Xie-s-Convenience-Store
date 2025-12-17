@@ -56,7 +56,14 @@
             <WishlistGrid
               v-if="currentView === 'wishlist'"
               :wishlist="wishlist"
-              @update:wishlist="wishlist = $event"
+              @remove="handleWishlistRemove"
+              @add-to-cart="handleAddToCart"
+            />
+
+            <AddressManager
+              v-if="currentView === 'address'"
+              :user="user"
+              @profile-updated="handleProfileUpdated"
             />
 
             <ProfileEdit
@@ -87,6 +94,7 @@ import CouponWallet from '../components/profile/CouponWallet.vue'
 import WishlistGrid from '../components/profile/WishlistGrid.vue'
 import ProfileEdit from '../components/profile/ProfileEdit.vue'
 import WalletView from '../components/profile/WalletView.vue'
+import AddressManager from '../components/profile/AddressManager.vue'
 
 export default {
   name: 'ProfileView',
@@ -98,7 +106,8 @@ export default {
     CouponWallet,
     WishlistGrid,
     ProfileEdit,
-    WalletView
+    WalletView,
+    AddressManager
   },
   data () {
     return {
@@ -106,12 +115,7 @@ export default {
       user: null,
       orders: [],
       coupons: [],
-      // Wishlist mock data (preserved from original)
-      wishlist: [
-        { id: 1, name: 'Apple iPhone 15 Pro Max 256GB', price: 44900, original_price: 48900, icon_class: 'fab fa-apple', status: 'available', tag: '降價' },
-        { id: 2, name: 'PlayStation 5 光碟版主機', price: 17580, original_price: 17580, icon_class: 'fab fa-playstation', status: 'out_of_stock' },
-        { id: 3, name: 'Dyson V12 Detect Slim', price: 19900, original_price: 23900, icon_class: 'fas fa-wind', status: 'available' }
-      ],
+      wishlist: [],
       currentView: 'dashboard',
       bypassEnvValue: process.env.VUE_APP_BYPASS_AUTH_DEV || 'undefined',
       processEnvValue: process.env.VUE_APP_BYPASS_AUTH_DEV || 'undefined'
@@ -120,6 +124,16 @@ export default {
   computed: {
     isLoggedIn () {
       return !!this.user
+    }
+  },
+  watch: {
+    '$route.query.tab': {
+      immediate: true,
+      handler (val) {
+        if (val === 'wishlist') {
+          this.currentView = 'wishlist'
+        }
+      }
     }
   },
   created () {
@@ -135,6 +149,7 @@ export default {
           this.user = response.data
           this.fetchOrders()
           this.fetchCoupons()
+          this.fetchWishlist()
         } catch (error) {
           console.error('Error fetching user:', error)
           // Do NOT remove token here immediately, let user re-login via UI or interceptor handle 401
@@ -161,6 +176,23 @@ export default {
         console.error('Fetch coupons error:', error)
       }
     },
+    async fetchWishlist () {
+      try {
+        const response = await api.get('/favorites')
+        // Map backend product data to partial frontend shape if needed,
+        // but let's try to align WishlistGrid to real data.
+        // For now, map fields to match the Mock expectations slightly to avoid breaking UI immediately?
+        // No, let's just pass real data and fix the grid.
+        this.wishlist = response.data.map(product => ({
+          ...product,
+          status: product.stock > 0 ? 'available' : 'out_of_stock',
+          // Use image or fallback icon
+          icon_class: product.category === 'Electronics' ? 'fas fa-mobile-alt' : 'fas fa-box'
+        }))
+      } catch (error) {
+        console.error('Fetch wishlist error:', error)
+      }
+    },
     handleLogout () {
       this.logout().then(() => {
         this.$toast.info('已登出')
@@ -179,6 +211,22 @@ export default {
         }
         reader.readAsDataURL(file)
         // Todo: Upload logic
+      }
+    },
+    handleWishlistRemove (id) {
+      this.wishlist = this.wishlist.filter(item => item.id !== id)
+    },
+    async handleAddToCart (item) {
+      try {
+        await api.post('/cart/items', {
+          product_id: item.id,
+          quantity: 1
+        })
+        this.$toast.success(`已將 ${item.name} 加入購物車`)
+        this.$store.dispatch('cart/fetchCount')
+      } catch (error) {
+        console.error('Add to cart error:', error)
+        this.$toast.error('加入購物車失敗')
       }
     }
   }

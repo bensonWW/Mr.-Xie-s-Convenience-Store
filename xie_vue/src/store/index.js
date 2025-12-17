@@ -14,7 +14,7 @@ export default createStore({
     token: state => state.token
   },
   mutations: {
-    SET_TOKEN (state, token) {
+    SET_TOKEN(state, token) {
       state.token = token
       state.isLoggedIn = !!token
       if (token) {
@@ -23,7 +23,7 @@ export default createStore({
         localStorage.removeItem('token')
       }
     },
-    SET_USER (state, user) {
+    SET_USER(state, user) {
       state.user = user
       if (user && user.role) {
         localStorage.setItem('user_role', user.role)
@@ -31,7 +31,7 @@ export default createStore({
         localStorage.removeItem('user_role')
       }
     },
-    CLEAR_AUTH (state) {
+    CLEAR_AUTH(state) {
       state.token = null
       state.user = null
       state.isLoggedIn = false
@@ -40,14 +40,14 @@ export default createStore({
     }
   },
   actions: {
-    async login ({ commit }, credentials) {
+    async login({ commit }, credentials) {
       const response = await api.post('/login', credentials)
       const { access_token: accessToken, user } = response.data
       commit('SET_TOKEN', accessToken)
       commit('SET_USER', user)
       return response
     },
-    async logout ({ commit }) {
+    async logout({ commit }) {
       try {
         await api.post('/logout')
       } catch (error) {
@@ -56,7 +56,7 @@ export default createStore({
         commit('CLEAR_AUTH')
       }
     },
-    async checkAuth ({ commit, state }) {
+    async checkAuth({ commit, state }) {
       if (!state.token) {
         commit('CLEAR_AUTH')
         return
@@ -71,5 +71,40 @@ export default createStore({
     }
   },
   modules: {
+    cart: {
+      namespaced: true,
+      state: {
+        count: 0
+      },
+      mutations: {
+        SET_COUNT(state, count) {
+          state.count = count
+        }
+      },
+      actions: {
+        async fetchCount({ commit, rootState }) {
+          if (!rootState.token) {
+            commit('SET_COUNT', 0)
+            return
+          }
+          try {
+            const response = await api.get('/cart')
+            // Assuming cart returns { items: [...] } or is list of items
+            // Adjust based on actual API response structure for /cart
+            const items = response.data.items || []
+            const totalQty = items.reduce((acc, item) => acc + item.quantity, 0)
+            commit('SET_COUNT', totalQty)
+          } catch (error) {
+            console.error('Fetch cart count error:', error)
+          }
+        },
+        updateCount({ commit }, count) {
+          commit('SET_COUNT', count)
+        }
+      },
+      getters: {
+        count: state => state.count
+      }
+    }
   }
 })

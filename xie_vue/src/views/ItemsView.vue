@@ -61,7 +61,7 @@
             </h3>
             <div class="flex items-end justify-between">
               <div class="text-xieOrange font-bold text-lg leading-none">NT$ {{ item.price.toLocaleString() }}</div>
-              <button class="bg-xieOrange text-white p-2 rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md hover:bg-orange-600">
+              <button @click.prevent="addToCart(item)" class="bg-xieOrange text-white p-2 rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md hover:bg-orange-600">
                 <i class="fas fa-cart-plus"></i>
               </button>
             </div>
@@ -104,9 +104,14 @@
 
 <script>
 import api from '../services/api'
+import { useToast } from 'vue-toastification'
 
 export default {
   name: 'ItemsView',
+  setup () {
+    const toast = useToast()
+    return { toast }
+  },
   data () {
     return {
       categories: [],
@@ -137,6 +142,25 @@ export default {
     }
   },
   methods: {
+    async addToCart (item) {
+      if (!localStorage.getItem('token')) {
+        this.toast.warning('請先登入')
+        this.$router.push('/profile')
+        return
+      }
+
+      try {
+        await api.post('/cart/items', {
+          product_id: item.id,
+          quantity: 1
+        })
+        this.toast.success(`已將 ${item.name} 加入購物車`)
+        this.$store.dispatch('cart/fetchCount')
+      } catch (error) {
+        console.error('Add to cart error:', error)
+        this.toast.error('加入購物車失敗')
+      }
+    },
     async fetchCategories () {
       try {
         const response = await api.get('/categories')

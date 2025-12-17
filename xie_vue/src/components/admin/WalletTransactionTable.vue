@@ -1,39 +1,49 @@
 <template>
-  <div>
-    <div class="flex justify-between items-center mb-6">
-      <h3 class="font-bold text-gray-800 border-l-4 border-xieOrange pl-3">錢包交易紀錄</h3>
-      <button @click="$emit('open-modal')" class="bg-xieOrange text-white text-xs px-4 py-2 rounded font-bold hover:bg-orange-600 transition">
-        <i class="fas fa-coins mr-1"></i> 新增交易
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+      <h3 class="font-bold text-gray-800 flex items-center gap-2">
+        <i class="fas fa-history text-gray-400"></i>
+        錢包交易紀錄
+      </h3>
+      <button @click="$emit('open-modal')" class="text-xieOrange text-sm font-bold hover:text-orange-600 transition flex items-center gap-1">
+        <i class="fas fa-plus-circle"></i> 新增
       </button>
     </div>
-    <div v-if="!transactions || transactions.length === 0" class="text-center py-12 text-gray-500 bg-gray-50 rounded">
-      <i class="fas fa-receipt text-4xl mb-4 text-gray-300"></i>
-      <p>暫無交易紀錄</p>
+    <div v-if="!transactions || transactions.length === 0" class="flex flex-col items-center justify-center py-12 text-gray-400">
+      <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+         <i class="fas fa-receipt text-2xl text-gray-300"></i>
+      </div>
+      <p class="text-sm font-medium">暫無交易紀錄</p>
     </div>
     <div v-else class="overflow-x-auto">
-      <table class="w-full text-sm text-center">
-        <thead class="bg-gray-100 text-gray-600 font-bold">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50/80 text-gray-500 font-bold uppercase tracking-wider text-xs">
           <tr>
-            <th class="p-3">ID</th>
-            <th class="p-3">類型</th>
-            <th class="p-3">金額</th>
-            <th class="p-3 text-left">備註</th>
-            <th class="p-3">時間</th>
+            <th class="p-4 text-left">ID</th>
+            <th class="p-4 text-center">類型</th>
+            <th class="p-4 text-right">金額</th>
+            <th class="p-4 text-left">說明</th>
+            <th class="p-4 text-right">時間</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100">
-          <tr v-for="tx in transactions" :key="tx.id" class="hover:bg-gray-50">
-            <td class="p-3 text-gray-500">#{{ tx.id }}</td>
-            <td class="p-3">
-              <span :class="getTypeClass(tx.type)" class="px-2 py-1 rounded text-xs font-bold uppercase">
-                {{ tx.type }}
+        <tbody class="divide-y divide-gray-50">
+          <tr v-for="tx in transactions" :key="tx.id" class="hover:bg-blue-50/30 transition-colors duration-150">
+            <td class="p-4 text-gray-400 font-mono text-xs">#{{ tx.id }}</td>
+            <td class="p-4 text-center">
+              <span :class="getTypeClass(tx.type)" class="px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1">
+                 <i class="fas" :class="getTypeIcon(tx.type)"></i>
+                {{ getTypeLabel(tx.type) }}
               </span>
             </td>
-            <td class="p-3 font-bold" :class="isPositive(tx.type) ? 'text-green-600' : 'text-red-600'">
+            <td class="p-4 text-right font-bold text-base" :class="isPositive(tx.type) ? 'text-green-500' : 'text-red-500'">
               {{ isPositive(tx.type) ? '+' : '-' }}${{ formatNumber(Math.abs(tx.amount)) }}
             </td>
-            <td class="p-3 text-left text-gray-600">{{ tx.description || '-' }}</td>
-            <td class="p-3 text-gray-500">{{ formatDate(tx.created_at) }}</td>
+            <td class="p-4 text-left text-gray-600 max-w-[200px] truncate" :title="tx.description">
+              {{ tx.description || '-' }}
+            </td>
+            <td class="p-4 text-right text-gray-400 text-xs whitespace-nowrap">
+              {{ formatDate(tx.created_at) }}
+            </td>
           </tr>
         </tbody>
       </table>
@@ -54,7 +64,7 @@ export default {
   methods: {
     formatDate (dateString) {
       if (!dateString) return ''
-      return new Date(dateString).toLocaleString()
+      return new Date(dateString).toLocaleString('zh-TW', { hour12: false })
     },
     formatNumber (val) {
       return Number(val).toLocaleString()
@@ -62,20 +72,37 @@ export default {
     isPositive (type) {
       return ['deposit', 'refund'].includes(type)
     },
+    getTypeLabel (type) {
+      const map = {
+        deposit: '儲值',
+        withdraw: '扣款',
+        payment: '消費',
+        refund: '退款'
+      }
+      return map[type] || type
+    },
+    getTypeIcon (type) {
+      const map = {
+        deposit: 'fa-arrow-down',
+        withdraw: 'fa-arrow-up',
+        payment: 'fa-shopping-bag',
+        refund: 'fa-undo'
+      }
+      return map[type]
+    },
     getTypeClass (type) {
       const map = {
-        deposit: 'bg-green-100 text-green-700',
-        withdraw: 'bg-red-100 text-red-700',
-        payment: 'bg-blue-100 text-blue-700',
-        refund: 'bg-purple-100 text-purple-700'
+        deposit: 'bg-green-100 text-green-600 border border-green-200',
+        withdraw: 'bg-red-50 text-red-500 border border-red-100',
+        payment: 'bg-blue-50 text-blue-500 border border-blue-100',
+        refund: 'bg-purple-50 text-purple-500 border border-purple-100'
       }
-      return map[type] || 'bg-gray-100 text-gray-600'
+      return map[type] || 'bg-gray-100 text-gray-500'
     }
   }
 }
 </script>
 
 <style scoped>
-.bg-xieOrange { background-color: #ed8936; }
-.border-xieOrange { border-color: #ed8936; }
+.text-xieOrange { color: #ed8936; }
 </style>

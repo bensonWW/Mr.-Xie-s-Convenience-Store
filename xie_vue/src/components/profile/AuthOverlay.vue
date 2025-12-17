@@ -88,7 +88,14 @@ export default {
 
         // Notify parent or reload
         this.toast.success('登入成功！')
-        setTimeout(() => window.location.reload(), 1000)
+        setTimeout(() => {
+          const redirect = this.$route.query.redirect
+          if (redirect) {
+            window.location.href = redirect
+          } else {
+            window.location.reload()
+          }
+        }, 1000)
       } catch (error) {
         console.error('Login error:', error)
         this.toast.error('登入失敗，請檢查帳號密碼。')

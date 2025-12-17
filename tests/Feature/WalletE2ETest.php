@@ -86,30 +86,26 @@ class WalletE2ETest extends TestCase
             $response->assertStatus(200);
         }
 
-        // 5. Create Order (Checkout)
+        // 5. Create Order (Checkout & Pay Atomic)
         $response = $this->withHeader('Authorization', "Bearer $token")
             ->postJson('/api/orders');
 
-        if ($response->status() === 201) {
-            $response->assertStatus(201);
-        } else {
-            $response->assertStatus(200);
-        }
-        $order = $response->json();
+        $response->assertStatus(201);
+
+        $order = $response->json(); // Returns the order object directly or wrapped?
+        // Controller returns: return response()->json($order->load('items.product'), 201);
+
         $orderId = $order['id'];
         $totalAmount = $order['total_amount']; // Should be 400
 
         $this->assertEquals(400, $totalAmount);
 
-        // 6. Pay with Wallet
-        $response = $this->withHeader('Authorization', "Bearer $token")
-            ->postJson("/api/orders/{$orderId}/pay");
+        // Assert Status is Processing immediately
+        $this->assertEquals('processing', $order['status']);
 
-        $response->assertStatus(200)
-            ->assertJsonPath('order.status', 'processing');
-
-        // 7. Verify Final Balance
-        $expectedBalance = $depositAmount - $totalAmount; // 1000 - 400 = 600
+        // 6. Verify Final Balance
+        // 1000 - 400 = 600
+        $expectedBalance = $depositAmount - $totalAmount;
         $response = $this->withHeader('Authorization', "Bearer $token")
             ->getJson('/api/user/wallet');
 
@@ -159,19 +155,12 @@ class WalletE2ETest extends TestCase
             'quantity' => 1,
         ]);
 
-        try {
-            // 4. Order
-            $response = $this->actingAs($user)->postJson('/api/orders');
-        } catch (\Throwable $e) {
-            dump($e->getMessage());
-            throw $e;
-        }
-        $orderId = $response->json('id');
+        // 4. Order (Should Fail due to Atomic Payment check)
+        $response = $this->actingAs($user)->postJson('/api/orders');
 
-        // 5. Pay (Should Fail)
-        $response = $this->actingAs($user)->postJson("/api/orders/{$orderId}/pay");
-
-        $response->assertStatus(400)
-            ->assertJson(['message' => 'Insufficient balance.']);
+        // Expect 402 Payment Required or 400 with specific message
+        // Controller returns 402 if INSUFFICIENT_BALANCE
+        $response->assertStatus(402)
+            ->assertJson(['error_code' => 'INSUFFICIENT_BALANCE']);
     }
 }

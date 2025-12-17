@@ -47,14 +47,14 @@
         </div>
 
         <div class="flex items-center space-x-6 text-xieBlue">
-          <router-link to="/profile" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
+          <router-link to="/profile?tab=wishlist" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
             <i class="far fa-heart text-xl"></i>
             <span class="text-xs mt-1">收藏</span>
           </router-link>
 
           <router-link to="/car" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
             <i class="fas fa-shopping-cart text-xl relative">
-              <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">2</span>
+              <span v-if="cartCount > 0" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">{{ cartCount }}</span>
             </i>
             <span class="text-xs mt-1">購物車</span>
           </router-link>
@@ -89,6 +89,8 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
+
 export default {
   name: 'AppHeader',
   data () {
@@ -98,26 +100,32 @@ export default {
   },
   computed: {
     isLoggedIn () {
-      return !!localStorage.getItem('token')
+      return !!this.$store.getters.isLoggedIn
     },
     isAdmin () {
-      const token = localStorage.getItem('token')
-      const role = localStorage.getItem('user_role')
-      return token && (role === 'admin' || role === 'staff')
+      return this.$store.getters.isAdmin
+    },
+    cartCount () {
+      return this.$store.getters['cart/count']
     }
   },
   methods: {
+    ...mapActions('cart', ['fetchCount']),
+    ...mapActions(['logout']),
     doSearch () {
       if (this.search.trim()) {
         this.$router.push({ path: '/items', query: { search: this.search.trim() } })
       }
     },
-    logout () {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user_role')
-      this.$router.push('/profile').then(() => {
+    handleLogout () {
+      this.logout().then(() => {
         window.location.reload()
       })
+    }
+  },
+  created () {
+    if (this.isLoggedIn) {
+      this.fetchCount()
     }
   }
 }

@@ -41,10 +41,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/coupons/check', [CouponController::class, 'check']);
     Route::get('/coupons', [CouponController::class, 'index']);
     Route::post('/orders/{id}/pay', [OrderController::class, 'pay']);
+    Route::post('/orders/{id}/refund', [OrderController::class, 'refund']);
     Route::apiResource('orders', OrderController::class)->only(['index', 'store', 'show']);
 
     // Profile
     Route::put('/profile', [ProfileController::class, 'update']);
+
+    // Favorites
+    Route::get('/favorites', [App\Http\Controllers\FavoriteController::class, 'index']);
+    Route::post('/favorites', [App\Http\Controllers\FavoriteController::class, 'store']);
+    Route::delete('/favorites/{productId}', [App\Http\Controllers\FavoriteController::class, 'destroy']);
 
     // Staff/Admin routes
     Route::middleware('is_admin')->prefix('admin')->group(function () {
@@ -56,6 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/users/{id}', [App\Http\Controllers\AdminController::class, 'updateUser']);
         Route::post('/users/{id}/wallet/transaction', [App\Http\Controllers\AdminController::class, 'walletTransaction']);
         Route::get('/orders', [App\Http\Controllers\AdminController::class, 'orders']);
+        Route::post('/orders/{id}/refund', [App\Http\Controllers\OrderController::class, 'refund']);
         Route::get('/orders/{id}', [App\Http\Controllers\AdminController::class, 'show']);
         Route::get('/products', [ProductController::class, 'adminIndex']);
         Route::post('/products', [ProductController::class, 'store']);

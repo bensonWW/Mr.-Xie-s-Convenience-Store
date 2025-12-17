@@ -1,9 +1,22 @@
 <template>
   <div class="space-y-6">
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-        <h3 class="font-bold text-gray-800">購物紀錄</h3>
-        <!-- <a href="#" class="text-sm text-xieOrange hover:underline" @click.prevent>查看所有訂單 &rarr;</a> -->
+      <div class="px-6 py-4 border-b border-gray-100">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-bold text-gray-800">購物紀錄</h3>
+        </div>
+        <!-- Status Tabs -->
+        <div class="flex space-x-6 text-sm overflow-x-auto no-scrollbar">
+          <button
+            v-for="tab in tabs"
+            :key="tab.value"
+            @click="currentTab = tab.value"
+            class="pb-2 whitespace-nowrap transition-colors border-b-2"
+            :class="currentTab === tab.value ? 'border-xieOrange text-xieOrange font-bold' : 'border-transparent text-gray-500 hover:text-gray-700'"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
       </div>
 
       <div class="overflow-x-auto">
@@ -18,7 +31,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
-            <tr v-for="order in orders" :key="order.id" class="hover:bg-gray-50 transition">
+            <tr v-for="order in filteredOrders" :key="order.id" class="hover:bg-gray-50 transition">
               <td class="px-6 py-4 font-bold text-xieBlue">#{{ order.id }}</td>
               <td class="px-6 py-4 text-gray-500">{{ formatDate(order.created_at) }}</td>
               <td class="px-6 py-4 font-bold">NT$ {{ order.total_amount }}</td>
@@ -35,6 +48,7 @@
               </td>
               <td class="px-6 py-4 text-right">
                 <button v-if="order.status === 'pending_payment'" class="bg-xieOrange text-white px-3 py-1 rounded text-xs hover:bg-orange-600 transition mr-2" @click="openOrderDetails(order.id)">去付款</button>
+                <button v-if="order.status === 'processing'" class="bg-red-50 text-red-600 border border-red-200 px-3 py-1 rounded text-xs hover:bg-red-100 transition mr-2" @click="cancelOrder(order)">取消訂單</button>
                 <button class="text-gray-400 hover:text-gray-600 text-xs" @click="openOrderDetails(order.id)">詳情</button>
               </td>
             </tr>
@@ -104,7 +118,25 @@ export default {
   data () {
     return {
       showOrderDetails: false,
-      selectedOrder: null
+      selectedOrder: null,
+      currentTab: 'all',
+      tabs: [
+        { label: '全部', value: 'all' },
+        { label: '處理中', value: 'processing' },
+        { label: '已出貨', value: 'shipped' },
+        { label: '已送達', value: 'delivered' },
+        { label: '已完成', value: 'completed' },
+        { label: '已取消/退款', value: 'refunded' } // Group cancelled/refunded
+      ]
+    }
+  },
+  computed: {
+    filteredOrders () {
+      if (this.currentTab === 'all') return this.orders
+      if (this.currentTab === 'refunded') {
+        return this.orders.filter(o => ['cancelled', 'refunded', 'returned'].includes(o.status))
+      }
+      return this.orders.filter(o => o.status === this.currentTab)
     }
   },
   methods: {
@@ -153,6 +185,18 @@ export default {
       } catch (error) {
         console.error('Payment error:', error)
         this.$toast.error('付款失敗，請稍後再試。')
+      }
+    },
+    async cancelOrder (order) {
+      if (!confirm(`確定要取消訂單 #${order.id} 嗎？\n(若已付款將會全額退款至錢包)`)) return
+
+      try {
+        await api.post(`/orders/${order.id}/refund`)
+        this.$toast.success('訂單已取消並退款')
+        this.$emit('order-updated')
+      } catch (error) {
+        console.error('Refund error:', error)
+        this.$toast.error(error.response?.data?.message || '取消失敗')
       }
     }
   }
