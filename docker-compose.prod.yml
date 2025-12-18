@@ -1,0 +1,75 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mr-xies-app
+    container_name: mr-xies-app
+    restart: always
+    working_dir: /var/www
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+    volumes:
+      - .:/var/www
+    networks:
+      - app-network
+    depends_on:
+      - db
+      - redis
+
+  web:
+    image: nginx:alpine
+    container_name: mr-xies-nginx-prod
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/prod.conf:/etc/nginx/conf.d/default.conf
+      - ./xie_vue/dist:/var/www/frontend
+      - .:/var/www/backend
+    depends_on:
+      - app
+    networks:
+      - app-network
+
+  db:
+    image: mysql:8.0
+    container_name: mr-xies-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-laravel}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_USER: ${DB_USERNAME:-laravel}
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - app-network
+
+  redis:
+    image: redis:alpine
+    container_name: mr-xies-redis
+    restart: always
+    networks:
+      - app-network
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    container_name: mr-xies-meilisearch
+    environment:
+      - MEILI_MASTER_KEY=${MEILISEARCH_KEY:-masterKey}
+      - MEILI_ENV=production
+    volumes:
+      - meili_data:/meili_data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  dbdata:
+  meili_data:

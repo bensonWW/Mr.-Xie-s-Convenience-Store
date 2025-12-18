@@ -227,3 +227,27 @@
     - Found and fixed issue where `Admin View` required `actingAs` session properly.
     - Confirmed `200` vs `201` status quirk in `OrderController` (handled in test).
 - **Next Step**: Await user instructions (Launch or Deployment).
+
+### Phase 11: Deployment Preparation
+- **Status**: Completed
+- **Changes**:
+    - **Frontend**: Built `xie_vue` for production (`npm run build`). Output `dist/` verified.
+    - **Nginx**: Created `docker/nginx/prod.conf` to serve Static Vue Files and Proxy API.
+    - **Docker**: Created `docker-compose.prod.yml` for simplified Production orchestration (App + Web + DB + Redis + Meili).
+    - **Documentation**: Created `deployment_guide.md`.
+- **Issues Resolved**:
+    - **PowerShell**: Fixed `&&` operator syntax error by splitting commands.
+    - **Vue Build**: Fixed syntax error in `OrderHistory.vue` (nested methods block).
+    - **ESLint**: Fixed `padded-blocks` rule violation in `router/index.js`.
+- **Results**:
+    - Production build successful. Artifacts ready for deployment.
+
+### Phase 11 Step 4: Final Launch Verification
+- **Status**: Completed
+- **Changes**:
+    - **Environment**: Stopped dev containers (`docker-compose down`).
+    - **Execution**: Started production stack (`docker-compose -f docker-compose.prod.yml up -d`).
+    - **Verification**: User verified local access via `http://localhost`.
+- **Results**:
+    - Production containers (`nginx-prod`, `app`, `db`, `redis`, `meili`) started successfully.
+    - Dry Run passed. System ready for actual deployment.

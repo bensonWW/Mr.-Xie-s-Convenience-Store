@@ -62,6 +62,19 @@
     - [x] **Smoke Test**: Manual pass through all critical flows (Register, Cart, Checkout, Admin, Profile) (Automated via `SystemSmokeTest`).
     - [x] **Security**: Final check on Admin Routes and User Data protection.
 
+### Phase 11: Deployment Preparation
+- [x] **Step 1: Backend Optimization**
+    - [x] **Config**: Cache Configuration, Routes, and Views (`php artisan optimize`).
+    - [x] **Env**: Prepare `.env.production` example.
+- [x] **Step 2: Frontend Production Build**
+    - [x] **Build**: Run `npm run build` for `xie_vue` to generate `dist/`.
+    - [x] **Serving**: Configure Nginx to serve static `dist/` files.
+- [x] **Step 3: Docker Production Configuration**
+    - [x] **Compose**: Create `docker-compose.prod.yml` optimized for production (no dev ports exposed unnecessarily).
+    - [x] **Network**: Ensure internal network isolation.
+- [x] **Step 4: Final Launch Verification**
+    - [x] **Dry Run**: Spin up the production container set and verify connectivity.
+
 ## Verification Plan
 
 ### Automated Tests

@@ -110,7 +110,6 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-
   if (to.meta.requiresAuth) {
     const token = localStorage.getItem('token')
     const role = localStorage.getItem('user_role')

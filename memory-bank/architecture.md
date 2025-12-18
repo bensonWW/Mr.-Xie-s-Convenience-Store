@@ -87,3 +87,10 @@
     - `SystemSmokeTest`: End-to-end critical path (Register -> Topup -> Shop -> Admin Ship -> User Verify). Covers both User and Admin journeys.
 - **Security Check**: `AdminAuthTest` ensures route protection.
 - **Schema Audit**: `SchemaAuditTest` verifies indexes and soft deletes.
+
+## Deployment Architecture
+- **Production Setup**:
+    - **Separate Services**: Nginx (Web/Reverse Proxy) + Laravel (App/API) + MySQL + Redis + Meilisearch.
+    - **Frontend**: Served as Static Files (`dist/`) via Nginx. No dedicated Node.js container for frontend in prod.
+    - **Config**: `docker-compose.prod.yml` + `docker/nginx/prod.conf`.
+    - **Security**: Nginx handles public traffic. API protected by Sanctum. Internal services (DB, Redis) on isolated network.

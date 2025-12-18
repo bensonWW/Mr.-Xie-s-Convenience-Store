@@ -176,7 +176,6 @@ export default {
         console.error(e)
       }
     },
-  methods: {
     formatDate (dateString) {
       return new Date(dateString).toLocaleDateString()
     },
