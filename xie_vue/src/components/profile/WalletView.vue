@@ -88,8 +88,16 @@ export default {
       }
     },
     handleTopUpSuccess (data) {
-      this.balance = data.balance
-      this.transactions.unshift(data.transaction)
+      if (data && data.balance !== undefined) {
+         this.balance = data.balance
+         if (data.transaction) {
+            this.transactions.unshift(data.transaction)
+         }
+         this.$toast.success('儲值成功！')
+      } else {
+         // Fallback re-fetch if data is incomplete
+         this.fetchWallet()
+      }
     },
     formatDate (dateString) {
       if (!dateString) return ''

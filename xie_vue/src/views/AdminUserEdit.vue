@@ -188,21 +188,29 @@
 
                                         <div>
                                             <label class="block text-sm font-bold text-gray-700 mb-2">會員等級</label>
-                                            <select class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange" disabled>
-                                                <option value="normal" selected>一般會員</option>
-                                                <option value="vip">VIP 會員</option>
-                                                <option value="vvip">VVIP 大戶</option>
-                                            </select>
-                                        </div>
-
-                                        <div>
-                                            <label class="block text-sm font-bold text-gray-700 mb-2">訂閱電子報</label>
-                                            <div class="mt-2">
-                                                <label class="inline-flex items-center cursor-pointer">
-                                                    <input type="checkbox" v-model="form.newsletter" class="w-4 h-4 text-xieOrange rounded border-gray-300 focus-ring-xieOrange">
-                                                    <span class="ml-2 text-sm text-gray-600">願意接收行銷資訊</span>
+                                            <div class="flex items-center gap-2">
+                                                <select v-model="form.member_level" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
+                                                    <option value="normal">一般會員</option>
+                                                    <option value="vip">VIP 會員</option>
+                                                    <option value="vvip">VVIP 大戶</option>
+                                                </select>
+                                                <label class="flex items-center gap-1 cursor-pointer whitespace-nowrap">
+                                                    <input type="checkbox" v-model="form.is_level_locked" class="text-xieOrange rounded focus:ring-xieOrange">
+                                                    <span class="text-sm font-bold text-gray-600">鎖定等級</span>
                                                 </label>
                                             </div>
+                                            <p class="text-xs text-gray-400 mt-1" v-if="form.is_level_locked">
+                                                <i class="fas fa-lock text-xieOrange"></i> 此會員等級已鎖定，系統不會自動調整
+                                            </p>
+                                        </div>
+
+                                        <!-- Status Select instead of newsletter which is less relevant for admin edit here -->
+                                        <div>
+                                            <label class="block text-sm font-bold text-gray-700 mb-2">帳號狀態</label>
+                                            <select v-model="form.status" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
+                                                <option value="active">正常 (Active)</option>
+                                                <option value="banned">停用 (Banned)</option>
+                                            </select>
                                         </div>
 
                                     </div>
@@ -312,6 +320,8 @@ export default {
         address: '',
         status: 'active',
         memo: '',
+        member_level: 'normal',
+        is_level_locked: false,
         newsletter: true
       }
     }
@@ -341,6 +351,8 @@ export default {
           status: user.status || 'active',
           memo: user.memo || '',
           newsletter: user.newsletter !== undefined ? user.newsletter : true,
+          member_level: user.member_level || 'normal',
+          is_level_locked: !!user.is_level_locked,
           password: '',
           password_confirmation: ''
         }

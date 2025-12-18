@@ -131,14 +131,51 @@ export default {
     }
   },
   computed: {
-    filteredOrders () {
-      if (this.currentTab === 'all') return this.orders
-      if (this.currentTab === 'refunded') {
-        return this.orders.filter(o => ['cancelled', 'refunded', 'returned'].includes(o.status))
-      }
-      return this.orders.filter(o => o.status === this.currentTab)
+    // filteredOrders removed as we now filter via API
+  },
+  watch: {
+    currentTab () {
+       this.fetchOrders()
     }
   },
+  mounted () {
+    this.fetchOrders()
+  },
+  methods: {
+    async fetchOrders () {
+      try {
+        const params = {}
+        if (this.currentTab !== 'all') {
+           // Map 'refunded' tab to 'cancelled' status if backend doesn't support grouping yet, or handle multiple.
+           // For now simple mapping:
+           if (this.currentTab === 'refunded') {
+             // Backend doesn't support array for status yet in our simple change, 
+             // so let's just fetch all and filter locally for this special complex tab, 
+             // OR fetch 'cancelled' and 'refunded' separately?
+             // Let's stick to fetch all for 'refunded' tab for now to avoid complexity, 
+             // or just search 'cancelled'.
+             params.status = 'cancelled' 
+           } else {
+             params.status = this.currentTab
+           }
+        }
+        
+        const response = await api.get('/orders', { params })
+        this.$emit('update:orders', response.data) // If parent controls orders
+        // But wait, props says 'orders'. The component doesn't fetch itself in original code?
+        // Original code: "fetchOrders" method calls api.get('/orders') and sets "this.orders = ..." in ProfileView!
+        // OrderHistory received "orders" as prop.
+        // So I should emit event to parent to fetch with filter?
+        // OR refactor OrderHistory to fetch its own data?
+        // The instructions say "Update OrderHistory.vue".
+        // Let's change ProfileView to handle the filter change event from OrderHistory.
+        
+        // Actually, let's keep it simple: Emitting an event 'filter-change' to parent is better design.
+        this.$emit('filter-change', this.currentTab)
+      } catch (e) {
+        console.error(e)
+      }
+    },
   methods: {
     formatDate (dateString) {
       return new Date(dateString).toLocaleDateString()

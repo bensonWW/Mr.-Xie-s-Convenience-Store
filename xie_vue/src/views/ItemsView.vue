@@ -60,7 +60,10 @@
               <router-link :to="`/items/${item.id}`">{{ item.name }}</router-link>
             </h3>
             <div class="flex items-end justify-between">
-              <div class="text-xieOrange font-bold text-lg leading-none">NT$ {{ item.price.toLocaleString() }}</div>
+              <div>
+                 <div v-if="item.original_price" class="text-xs text-gray-400 line-through">NT$ {{ Number(item.original_price).toLocaleString() }}</div>
+                 <div class="text-xieOrange font-bold text-lg leading-none">NT$ {{ Number(item.price).toLocaleString() }}</div>
+              </div>
               <button @click.prevent="addToCart(item)" class="bg-xieOrange text-white p-2 rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md hover:bg-orange-600">
                 <i class="fas fa-cart-plus"></i>
               </button>

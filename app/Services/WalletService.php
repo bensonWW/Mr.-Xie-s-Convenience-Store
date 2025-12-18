@@ -40,6 +40,21 @@ class WalletService
     }
 
     /**
+     * Make a payment from user's wallet.
+     *
+     * @param User $user
+     * @param float $amount
+     * @param string|null $description
+     * @param string|null $referenceId
+     * @return WalletTransaction
+     * @throws Exception
+     */
+    public function pay(User $user, float $amount, ?string $description = null, ?string $referenceId = null): WalletTransaction
+    {
+        return $this->processTransaction($user, -$amount, 'payment', $description, $referenceId);
+    }
+
+    /**
      * Refund funds to user's wallet.
      *
      * @param User $user

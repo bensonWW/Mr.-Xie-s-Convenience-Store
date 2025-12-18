@@ -4,7 +4,7 @@
 -   **Framework**: Laravel 12.x
 -   **Language**: PHP 8.2+
 -   **Database**: MySQL 8.0
--   **Search Engine**: Meilisearch (for product search) - *To be configured*.
+-   **Search Engine**: SQL `LIKE` with Index (Meilisearch removed).
 -   **Cache/Queue**: Redis.
 -   **Authentication**: Laravel Sanctum (API Token).
 -   **Testing**: PHPUnit / Pest.
@@ -12,10 +12,10 @@
 ## Frontend
 -   **App Name**: `xie_vue`
 -   **Framework**: Vue.js 3
--   **State Management**: Vuex / Pinia (TBD based on verification).
+-   **State Management**: **Vuex** (Confirmed).
 -   **Router**: Vue Router.
 -   **HTTP Client**: Axios.
--   **Styling**: SCSS / Tailwind (TBD).
+-   **Styling**: **Tailwind CSS** (Confirmed).
 
 ## DevOps & Infrastructure
 -   **Containerization**: Docker & Docker Compose.

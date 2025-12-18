@@ -141,4 +141,89 @@
     - **Status**: Done.
     - **Implementation**:
         - **Frontend**: Updated `AppHeader.vue` to link Heart icon to `/profile?tab=wishlist`.
-        - **Logic**: Updated `ProfileView.vue` to watch for `tab` query parameter and switch tabs automatically.
+### 9. Major Refactoring & Features Integration (Phase 9)
+- [x] **Step 1: Admin & Security Hardening (P1)**
+    - **Status**: Done.
+    - **Implementation**:
+        - **Auth**: Removed `VITE_BYPASS_AUTH_DEV` from `router/index.js`.
+        - **Logout**: Updated `store/index.js` `CLEAR_AUTH` mutation to use `localStorage.clear()` for complete cleanup.
+        - **Member Level**: Created migration `add_is_level_locked_to_users_table`. Updated `User` model.
+        - **Admin UI**: Updated `AdminController` to handle locking. Updated `AdminUserEdit.vue` to allow manual level setting and locking.
+        - **Tests**: Created and Verified `AdminAuthTest.php` (Route protection) and `MemberLevelTest.php` (Locking logic).
+
+- [x] **Step 2: Database Schema & Settings (P1)**
+    - **Status**: Done.
+    - **Implementation**:
+        - **Schema**: Created `settings` table (Key/Value store) and `Setting` model.
+        - **Address**: Created `addresses` table (City, District, Zip, etc.) and `Address` model (Soft Deletes).
+        - **Frontend**: Added `taiwan_districts.json` for city/district selector logic.
+        - **Normalization**: Validated 3NF for core tables via Audit.
+        - **Test**: Created `SchemaIntegrityTest.php` to verify table existence and structure. **PASSED**.
+
+- [x] **Step 3: Frontend Experience Refinement (P1)**
+    - **Status**: Done.
+    - **Implementation**:
+        - **Backend**: Added `original_price` (Decimal) to `products` table.
+        - **API**: Updated `OrderController@index` to support `?status={status}` filtering. Updated `ProfileController@update` to handle structured address data (`city`, `district`, `detail_address`).
+        - **Frontend**:
+            - **Address**: Implemented `AddressManager.vue` with City/District selectors (using `taiwan_districts.json`).
+            - **Cart**: Updated `AppHeader.vue` to hide Cart Badge for guests.
+            - **Orders**: Updated `OrderHistory.vue` and `ProfileView.vue` to use Server-side status filtering.
+            - **Products**: Updated `ItemsView.vue` to display Original Price vs Sale Price.
+        - **Test**: Created `tests/Feature/Phase9Step3Test.php` verifying schema, order filtering, and address update logic. **PASSED**.
+        - **Issues Encountered & Resolved**:
+            - **User Model**: Missing `addresses()` relationship caused `ProfileController` logic to fail. -> **Fixed**: Added `hasMany` relationship.
+            - **Test Factory**: `OrderFactory` referenced a non-existent `payment_method` column, causing test crashes. -> **Fixed**: Removed invalid column from Factory definition.
+
+- [x] **Step 4: Smart Payment & Logistics (P1)**
+    - **Status**: Done.
+    - **Implementation**:
+        - **Backend**: Added `logistics_number` and `payment_method` to `orders` table.
+        - **Logic**: Implemented auto-generation of `LOGI-{YYYYMMDD}-{Unique}` in `Order::booted()`. Enforced default `payment_method` = 'wallet'.
+        - **Frontend**: Updated `WalletView` to auto-refresh balance/transactions after successful Top-up. Refined `UserTopUpModal` toast logic.
+        - **Test**: Created `tests/Feature/Phase9Step4Test.php`. **PASSED**.
+        - **Issues Encountered & Resolved**:
+            - **Order Model**: Accidentally removed `items()` relationship while adding `booted()` method. -> **Fixed**: Restored `items()` method.
+
+- [x] **Step 5: Admin Dashboard & Stats (P1)**
+    - **Status**: Done.
+    - **Implementation**:
+        - **Backend**: Updated `AdminController@stats` to aggregate revenue from `WalletTransaction` (type='payment'). Added `WalletService::pay` method.
+        - **Frontend**:
+            - `AdminDashboard.vue`: Implemented dynamic charts fetching data from API.
+            - `AdminOrders.vue`: Removed unsafe inline status editing.
+            - `AdminOrderDetail.vue`: Added confirmation modal for status updates.
+        - **Test**: Created `tests/Feature/DashboardStatsTest.php`. **PASSED**.
+        - **Issues Encountered & Resolved**:
+            - **Discrepancy**: `WalletService` was strictly using `withdrawal` for payments. Added `pay()` (type='payment') to align with stats logic.
+
+- [x] **Step 6: Comprehensive Database Audit (P1)**
+    - **Status**: Done.
+    - **Implementation**:
+        - **Indexing**: Added performance indexes for `products.category`, `orders.status`, `orders.created_at`, `wallet_transactions.type`, `wallet_transactions.created_at`.
+        - **Integrity**: Enforced `SoftDeletes` on `users`, `products`, `orders` to ensure data safety.
+        - **Migration**: Cleaned up schema via `2025_12_19_000029_audit_add_indexes_and_cleanup.php`.
+        - **Test**: Created `tests/Feature/SchemaAuditTest.php` verifying indexes and soft delete columns. **PASSED**.
+
+### 10. Final Polish & Launch Readiness (Phase 10)
+- [x] **Step 1: Free Shipping & Add-on Logic (P1)**
+    - **Status**: Done.
+    - **Implementation**:
+        - **Backend**: Added `shipping_fee` to `orders`. Implemented `OrderController` logic to fetch `free_shipping_threshold` (1000) and apply fee (60).
+        - **Settings**: Created `SettingsController` API (`GET /settings`). Added `Setting::get` helper. Seeder added.
+        - **Frontend**: Updated `CarView.vue` to fetch settings, show dynamic progress banner ("還差 $X 免運"), and calculate Final Total with Shipping Fee.
+        - **Test**: Created `ShippingFeeTest.php`. **PASSED**.
+        - **Issues Encountered & Resolved**:
+            - **Setting Model**: `Setting::get` helper method was missing in the model, causing test failures. -> **Fixed**: Added static `get` method to retrieve value or default.
+
+### Phase 10 Step 2: System-wide Verification
+- **Status**: Completed
+- **Changes**:
+    - Created `tests/Feature/SystemSmokeTest.php` to verify critical flows (Register, Top-up, Shop, Admin View/Ship, User Profile).
+    - Verified `AdminAuthTest.php` for security.
+    - Verified `OrderController` interaction with `WalletService` and `Settings`.
+- **Results**:
+    - All smoke tests passed.
+    - Found and fixed issue where `Admin View` required `actingAs` session properly.
+    - Confirmed `200` vs `201` status quirk in `OrderController` (handled in test).
+- **Next Step**: Await user instructions (Launch or Deployment).

@@ -12,7 +12,7 @@
               <th class="p-4 font-bold">總金額</th>
               <th class="p-4 font-bold">目前狀態</th>
               <th class="p-4 font-bold">下單日期</th>
-              <th class="p-4 font-bold">狀態更新</th>
+              <th class="p-4 font-bold">操作</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
@@ -30,17 +30,8 @@
               </td>
               <td class="p-4 text-gray-600 text-sm">{{ new Date(order.created_at).toLocaleDateString() }}</td>
               <td class="p-4" @click.stop>
-                <select class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-xieOrange bg-white mr-2"
-                        :value="order.status"
-                        @change="updateOrderStatus(order.id, $event.target.value)">
-                  <option value="pending_payment">Pending Payment</option>
-                  <option value="processing">Processing</option>
-                  <option value="shipped">Shipped</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-                <button class="text-gray-400 hover:text-xieOrange" @click.stop="$router.push(`/admin/orders/${order.id}`)">
-                    <i class="fas fa-edit"></i>
+                <button class="bg-xieBlue text-white px-3 py-1 rounded text-xs hover:bg-gray-700 transition" @click.stop="$router.push(`/admin/orders/${order.id}`)">
+                    查看詳情
                 </button>
               </td>
             </tr>
@@ -96,15 +87,7 @@ export default {
         console.error(e)
       }
     },
-    async updateOrderStatus (id, status) {
-      try {
-        await api.put(`/admin/orders/${id}/status`, { status })
-        this.$toast.success('狀態更新成功')
-        this.fetchOrders(this.currentPage) // Refresh current list
-      } catch (e) {
-        this.$toast.error('更新失敗')
-      }
-    },
+    // updateOrderStatus removed as inline editing is disabled
     getStatusClass (status) {
       const map = {
         pending_payment: 'bg-yellow-100 text-yellow-600',

@@ -8,159 +8,67 @@
 
 ## Proposed Changes
 
-### Phase 1: Foundation & Clean-up
-- [x] **Memory Bank Initialization**
-    - [x] Create `PRD.md`, `tech-stack.md`, `implementation-plan.md`, `architecture.md`, `progress.md`.
-- [x] **Environment Stabilization**
-    - [x] Update `composer.json` to use Laravel `^12.0`.
-    - [x] Update `Dockerfile` and `docker-compose.yml` for production-readiness.
-    - [x] Clean re-install of dependencies (`vendor`, `node_modules`).
-    - [x] Verify application boot.
+### Phase 1-8: Foundation & Initial Features (Completed)
+(See `progress.md` for detailed history of Phases 1-8)
 
-### Phase 2: Core Backend - Internal Credit System
-- [x] **Database Schema**
-    - [x] Create migration for `wallet_balance` in `users` table (or separate `wallets` table).
-    - [x] Create migration for `wallet_transactions` table (audit log).
-- [x] **Backend Logic**
-    - [x] Implement `WalletService` (deposit, withdraw, check balance).
-    - [x] Create `WalletController` (API endpoints).
-    - [x] Write Feature Tests (`WalletTest.php`).
+### Phase 9: Major Refactoring & Features Integration (Current Focus)
+> [!IMPORTANT]
+> **Constraint**: Strict 3NF normalization, Soft Deletes, and Admin Security Enforcement.
+> **Testing**: All financial computations requiring `FeatureTest`. All Schema changes require `MigrationTest`.
 
-### Phase 3: Backend - API Verification & Completeness
-- [x] **Gap Analysis**
-    - [x] Match `xie_vue` API calls against `routes/api.php`.
-    - [x] Identify missing endpoints for "Product Management", "Orders", "Profile".
-- [x] **Fix & Test**
-    - [x] Implement missing Controllers/Methods.
-    - [x] Write tests for critical flows (Checkout with Credits).
+- [x] **Step 1: Admin & Security Hardening (Issues 1, 4, 11)**
+    - [x] **Auth**: Remove `VITE_BYPASS_AUTH_DEV`. Implement Admin Login + Redirect Fix.
+    - [x] **Security**: Ensure `Logout` clears `LocalStorage` entirely.
+    - [x] **Member Level**: Add `is_level_locked` column to `users`. Allow Admin to toggle lock and manually set level.
+    - [x] **Test**: `AdminAuthTest.php`, `MemberLevelTest.php`.
 
-### Phase 4: Frontend - Integration & Verification (`xie_vue`)
-- [x] **Top-up UI**
-    - [x] Add "My Wallet" section in User Profile.
-    - [x] Implement "Top-up" modal/page (Mock flow).
-- [x] **Payment Integration**
-    - [x] Update Checkout flow to allow payment via "Internal Balance".
-- [x] **Manual Verification**
-    - [x] Record walkthroughs for: Register -> Top-up -> Buy -> Deduct Balance -> Order History.
+- [x] **Step 2: Database Schema & Settings (Issue 7, 12, 15, 16)**
+    - [x] **Settings**: Create `settings` table. migrate `free_shipping_threshold` to this table.
+    - [x] **Address**: Refactor `addresses` table (City, District, Zip). Add JSON mapping file to frontend.
+    - [x] **Normalization**: Audit `products`, `orders`, `users` keys/indexes. Ensure 3NF.
+    - [x] **Test**: `SchemaIntegrityTest.php` (Verify FKs and Indices).
 
-### Phase 5: Admin Panel Updates (Wallet Management)
-- [x] **Backend: Wallet Administration**
-    - [x] Create `POST /api/admin/users/{id}/wallet/transaction` (Admin Deposit/Withdraw).
-    - [x] Update `AdminController@users` to ensure balance visibility.
-    - [x] Update `AdminController@showUser` to include `walletTransactions`.
-- [x] **Frontend: User List**
-    - [x] Update `AdminUsers.vue` to show "Wallet Balance" column.
-- [x] **Frontend: User Details & Actions**
-    - [x] Update `AdminUserEdit.vue` to display balance.
-    - [x] Implement "Admin Top-up/Deduct" modal in `AdminUserEdit.vue`.
-    - [x] Display transaction history in `AdminUserEdit.vue`.
+- [x] **Step 3: Frontend Experience Refinement (Issues 2, 5, 6, 8, 12)**
+    - [x] **Address UI**: Implement City/District Selectors (tw-city-selector logic).
+    - [x] **Cart**: Hide Guest Cart Badge. Redirect "Add to Cart" to login if guest.
+    - [x] **Badge Sync**: Debounce (500ms) cart update actions.
+    - [x] **Order Status**: Implement **Server-side** icons filter (API query params).
+    - [x] **Price Display**: Show Original Price, Sale Price, and Floor-rounded Discount %.
 
-### Phase 6: Admin Auth Fix & Wallet UI Polish
-- [x] **Step 1: Debug Admin Authentication**
-    - [x] Create `.env` variable `VITE_BYPASS_AUTH_DEV` for temporary access.
-    - [x] Debug `router/index.js` guard logic via code update.
-    - [x] Update `UserSeeder` with diverse transaction data (Deposit/Withdraw types).
-    - [x] **Rebuild Frontend Container**: Run `docker compose up -d --build frontend` to apply Auth/Env changes.
-- [x] **Step 2: Admin UI Components Refactor (Tailwind)**
-    - [x] Extract "Balance Card" to `components/admin/WalletBalanceCard.vue`.
-    - [x] Extract "Transaction List" to `components/admin/WalletTransactionTable.vue`.
-    - [x] Extract "Action Modal" to `components/admin/WalletActionModal.vue`.
-    - [x] Apply CSS Transitions for hover/modal effects.
-- [x] **Step 3: Customer UI (WalletView) Consistency**
-    - [x] Apply same design tokens (`xieOrange`, `xieBlue`) to Member Center Wallet View.
+- [x] **Step 4: Smart Payment & Logistics (Issues 3, 10, 13)**
+    - [x] **Payment**: Hardcode "Wallet Only". Auto-select wallet if sufficiency check passes.
+    - [x] **Logistics**: Auto-generate `LOGI-{YYYYMMDD}-{Unique}` on `OrderCreated`.
+    - [x] **Top-up**: Add Toast Notification on success. Auto-refresh Wallet Balance.
 
-### Phase 7: Final Polish & Fixes
-- [x] **Step 1: Debug Admin Auth Redirection (P0)**
-    - [x] Investigate `router/index.js` guard loop or failure.
-    - [x] Create a browser verification test.
-    - [x] Fix logic to allow Admin Login to correctly redirect.
-- [x] **Step 2: Wallet UI Polish (P1)**
-    - [x] Visual verification of new Admin Wallet components.
-    - [x] Enhance "Wow" factor (Animations/Gradients).
+- [x] **Step 5: Admin Dashboard & Stats (Issues 9, 13, 14)**
+    - [x] **Revenue Chart**: Fix "Last 7 Days" logic. Query `wallet_transactions` where type='payment'.
+    - [x] **Stats**: Fix "Total Consumption" (Sum of negative payments).
+    - [x] **Order List**: Remove inline status edit. Status change only in Detail View (with Confirm Modal).
+    - [x] **Test**: `DashboardStatsTest.php` (Verify specific 7-day aggregation logic).
 
-### Phase 8: Bug Fixes & Refinements (Current Focus)
-> [!NOTE]
-> **General Rule**: All new logic in this phase requires **Strict PHPUnit Feature Tests**.
+- [x] **Step 6: Comprehensive Database Audit (Issue 16)**
+    - [x] **Scalability**: Verify Indexes on `category_id`, `created_at` (for reports), `status`.
+    - [x] **Integrity**: Verify `Repeatable Read` isolation and `FOR UPDATE` locks in `OrderService`.
+    - [x] **Cleanup**: Remove unused columns/tables if found during audit.
 
-- [x] **Step 1: Fix Wishlist Refresh Issue (P1)**
-    - [x] **Issue**: Items removed/added to wishlist reappear or persist after page refresh.
-    - [x] **Task**: Verify `WishlistGrid.vue` reactivity and API state management (Local vs Server sync).
-- [x] **Step 2: Simplify Admin Product Creation (P2)**
-    - [x] **Issue**: Product creation validation is too strict (`Store ID required`) and UI has unnecessary fields.
-    - [x] **Task**:
-        - Remove SKU, Barcode, etc. from "Required" list in Backend Validation.
-        - Set default `store_id` (e.g., to 1) if not provided by Admin UI.
-- [x] **Step 3: Fix Add to Cart Notification (P2)**
-    - [x] **Issue**: Clicking "Add to Cart" directly (e.g. from Product Card/Detail) provides no visual feedback/toast.
-    - [x] **Task**: Implement Global Toast Notification (using `vue-toastification` or similar existing lib).
-- [x] **Step 4: Fix Cart Count Reactivity (P2)**
-    - [x] **Issue**: The cart badge number (Navbar) does not update immediately when items are added/removed.
-    - [x] **Task**: Implement a global Event Bus or use Vuex/Pinia state to sync cart count across components (`Navbar` vs `Cart`).
-- [x] **Step 5: Implement Missing Profile Sections (P2)**
-    - [x] **Issue**: "Order History" and "Address Management" UI sections are incomplete or placeholders.
-    - [x] **Task**:
-        - Implement `OrderHistory.vue`: List user orders with status and detail view.
-        - Implement `AddressManager.vue` (or `ProfileEdit.vue` expansion): CRUD for user addresses.
+### Phase 10: Final Polish & Launch Readiness (Partially Complete)
+- [x] **Step 1: Free Shipping & Add-on Logic (Issue 7)**
+    - [x] **Frontend**: Show "Add $X for Free Shipping" in Cart.
+    - [x] **Frontend**: "Add Items" button redirects to Product List.
+    - [x] **Backend**: Calculate `shipping_fee` in `OrderController` based on `settings.free_shipping_threshold`.
+    - [x] **Test**: `ShippingFeeTest.php` (Verify fee application).
 
-- [x] **Step 6: Order Status Workflow & Refunds (P1)**
-    - [x] **Logic**:
-        - **Status Flow**: `Processing` (Paid immediately on order) -> `Shipped` -> `Delivered` -> `Completed`.
-        - **Refunds**: support **Full Refund Only** (Cancelled).
-        - **Automation**: Triggering Refund MUST automatically credit `wallet_balance` and log `REFUND` transaction.
-    - [x] **Task**:
-        - Update `Order` model states.
-        - Create `OrderService::refund(Order $order)` logic.
-        - Update `OrderHistory.vue` with tabs for statuses.
-        - Add "Refund/Cancel" button (only for allowed states).
-    - [x] **Test**: `OrderRefundTest.php` (Verify balance restoration).
-
-- [x] **Step 7: Enforce Wallet-Only Payment & Discount Prep (P1)**
-    - [x] **Logic**:
-        - **Payment**: Hardcode to "Internal Wallet". Hide other options.
-        - **Validation**: If `Balance < Total`, show **"Top-up Needed" Modal** (Guide user, don't just disable).
-        - **Calculation**: Prepare `OrderService` to handle `Subtotal - Discount + Shipping = Total` (Prep for Step 11).
-    - [x] **Task**:
-        - Refactor Checkout UI.
-        - Implement "Insufficient Balance" Modal with redirection/inline top-up link.
-        - Ensure Atomic Transaction (Deduct Balance + Create Order).
-
-- [x] **Step 8: Order Snapshots (Data Integrity) (P2)**
-    - [x] **Logic**: User address/phone might change. Order must preserve data at time of purchase.
-    - [x] **Task**:
-        - **Migration**: Add `snapshot_data` (JSON) column to `orders` table.
-        - **Backend**: Store Address/Phone/MemberLevel snapshot when creating order.
-        - **Admin UI**: Read from snapshot in `AdminOrderDetails`.
-    - [x] **Test**: Verify snapshot data persists after User profile update.
-
-- [x] **Step 9: Smart Check-out Address UX (P2)**
-    - [x] **Logic**: Uninterrupted flow.
-    - [x] **Task**:
-        - If no address exists during checkout, show **Inline Modal** to add one (keep user on page).
-        - Auto-select the new address.
-
-- [x] **Step 10: Admin User Edit Improvements (P3)**
-    - [x] **Task**: Allow Name edit, Optional Password update.
-
-- [x] **Step 11: Member Levels & Discounts (P2 - Logic integrated with Order)**
-    - [x] **Logic**:
-        - **Config-based**: Define Levels (e.g., Normal, VIP, Platinum) and Discounts in `config/shop.php` (Mock DB for now).
-        - **Automation**: Listener on `OrderCompleted` -> Check `total_spent` -> Upgrade Level automatically.
-        - **Display**: Discount shown as separate **Line Item** in Cart/Order.
-    - [x] **Task**:
-        - Implement `MemberLevelService`.
-        - Integrate discount calculation into `Cart` and `OrderService`.
-        - Update Admin UI to allow manual level override.
-    - [x] **Test**: `MemberUpgradeTest.php`, `DiscountCalculationTest.php`.
-
-- [x] **Step 12: Fix Wishlist Navigation (P3)**
-    - [x] **Task**: Navbar Heart icon -> Redirect to `/profile?tab=wishlist`.
+- [x] **Step 2: System-wide Verification**
+    - [x] **Smoke Test**: Manual pass through all critical flows (Register, Cart, Checkout, Admin, Profile) (Automated via `SystemSmokeTest`).
+    - [x] **Security**: Final check on Admin Routes and User Data protection.
 
 ## Verification Plan
 
 ### Automated Tests
-- Run `php artisan test` for all backend logic.
-- Target coverage: Auth, Wallet, Products, Orders.
+-   **Feature Tests**: `php artisan test --filter Wallet` (Critical)
+-   **Browser Tests`: Manual walkthrough required for UI interactions (Debounce, Selectors).
 
 ### Manual Verification
-- **Step-by-Step Walkthroughs**: Documented in `progress.md` after each feature.
-- **Docker Production Test**: `docker compose up --build` should result in a fully functional app.
+-   **Admin**: Login -> Lock User Level -> Verify Auto-upgrade skipped.
+-   **User**: Top-up -> Buy -> Verify "Last 7 Days" chart updates correctly for Admin.
+-   **Guest**: Attempt to Add to Cart -> Verify Redirect.

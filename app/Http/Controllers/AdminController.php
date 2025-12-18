@@ -16,26 +16,31 @@ class AdminController extends Controller
 
     public function stats()
     {
-        return Cache::remember('admin_stats', 600, function () {
-            $totalSales = Order::where('status', '!=', 'cancelled')->sum('total_amount');
+        return Cache::remember('admin_stats', 60, function () { // Reduced cache time for realtime feel
+            // 1. Total Consumption (Actual Revenue)
+            $totalSales = abs(\App\Models\WalletTransaction::where('type', 'payment')->sum('amount'));
+
+            // 2. Counts
             $orderCount = Order::count();
             $userCount = User::where('role', 'customer')->count();
+
+            // 3. Low Stock
             $lowStockProducts = Product::where('stock', '<', 10)->take(10)->get();
 
-            // Recent orders
+            // 4. Recent Orders
             $recentOrders = Order::with('user')->latest()->take(5)->get();
 
-            // Sales by category
+            // 5. Sales by Category (Keep OrderItems for granular product data)
             $salesByCategory = DB::table('order_items')
                 ->join('products', 'order_items.product_id', '=', 'products.id')
                 ->select('products.category', DB::raw('SUM(order_items.quantity * order_items.price) as total'))
                 ->groupBy('products.category')
                 ->get();
 
-            // AOV
+            // 6. AOV
             $aov = $orderCount > 0 ? round($totalSales / $orderCount) : 0;
 
-            // Top 5 Products
+            // 7. Top Products
             $topProducts = DB::table('order_items')
                 ->join('products', 'order_items.product_id', '=', 'products.id')
                 ->select('products.name', 'products.image', DB::raw('SUM(order_items.quantity) as total_qty'), DB::raw('SUM(order_items.quantity * order_items.price) as total_amount'))
@@ -43,6 +48,22 @@ class AdminController extends Controller
                 ->orderByDesc('total_qty')
                 ->take(5)
                 ->get();
+
+            // 8. Last 7 Days Revenue Chart
+            $chartData = [
+                'labels' => [],
+                'values' => []
+            ];
+
+            for ($i = 6; $i >= 0; $i--) {
+                $date = now()->subDays($i)->format('Y-m-d');
+                $sum = \App\Models\WalletTransaction::where('type', 'payment')
+                    ->whereDate('created_at', $date)
+                    ->sum('amount');
+
+                $chartData['labels'][] = now()->subDays($i)->format('m/d');
+                $chartData['values'][] = abs($sum); // Convert negative payment to positive revenue
+            }
 
             return [
                 'total_sales' => $totalSales,
@@ -52,7 +73,8 @@ class AdminController extends Controller
                 'recent_orders' => $recentOrders,
                 'sales_by_category' => $salesByCategory,
                 'aov' => $aov,
-                'top_products' => $topProducts
+                'top_products' => $topProducts,
+                'chart_data' => $chartData
             ];
         });
     }
@@ -169,7 +191,9 @@ class AdminController extends Controller
             $user->password = Hash::make($request->password);
         }
         if ($request->has('phone')) $user->phone = $request->phone;
-        // if ($request->has('status')) $user->status = $request->status;
+        if ($request->has('status')) $user->status = $request->status;
+        if ($request->has('member_level')) $user->member_level = $request->member_level;
+        if ($request->has('is_level_locked')) $user->is_level_locked = $request->boolean('is_level_locked');
 
         // Allow updating balance directly? No, use transaction method.
 

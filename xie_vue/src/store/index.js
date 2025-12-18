@@ -35,8 +35,7 @@ export default createStore({
       state.token = null
       state.user = null
       state.isLoggedIn = false
-      localStorage.removeItem('token')
-      localStorage.removeItem('user_role')
+      localStorage.clear()
     }
   },
   actions: {

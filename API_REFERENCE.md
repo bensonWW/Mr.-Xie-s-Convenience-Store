@@ -1,7 +1,7 @@
 # API Reference
 
 Base URL: 
-- **Production / Cloud**: `https://mr-xie-s-convenience-store-ch-back-icvbux.laravel.cloud/api`
+- **Production / Cloud**: `https://mr-xie-s-convenience-store-main-d3awzd.laravel.cloud/api`
 - **Local Development**: `http://localhost:8000/api`
 
 > **Note**: For local Docker development, the frontend is configured to use `http://localhost:8000/api` via the `VUE_APP_API_URL` build argument in `docker-compose.yml`.

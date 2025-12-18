@@ -158,10 +158,10 @@ export default {
         this.chart = markRaw(new Chart(ctx, {
           type: 'line',
           data: {
-            labels: ['11/24', '11/25', '11/26', '11/27', '11/28', '11/29', '11/30'],
+            labels: this.stats.chart_data ? this.stats.chart_data.labels : [],
             datasets: [{
               label: '營收',
-              data: [12000, 19000, 3000, 5000, 2000, 96000, 68000],
+              data: this.stats.chart_data ? this.stats.chart_data.values : [],
               borderColor: '#ed8936',
               backgroundColor: 'rgba(237, 137, 54, 0.1)',
               fill: true,

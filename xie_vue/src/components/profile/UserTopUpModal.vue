@@ -71,7 +71,7 @@ export default {
           amount: this.topUpAmount,
           description: '線上儲值 (Mock)'
         })
-        this.$toast.success('儲值成功！')
+        // this.$toast.success('儲值成功！') // Handled by parent
         this.$emit('success', res.data)
         this.close()
       } catch (e) {

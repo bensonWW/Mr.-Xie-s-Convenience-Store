@@ -165,6 +165,7 @@ export default {
       }
     },
     async updateStatus () {
+      if (!confirm('確定要更新訂單狀態嗎？')) return
       try {
         await api.put(`/admin/orders/${this.order.id}/status`, { status: this.order.status })
         this.$toast.success('狀態更新成功')

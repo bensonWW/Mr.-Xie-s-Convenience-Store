@@ -25,6 +25,9 @@ class Order extends Model
         'status',
         'total_amount',
         'discount_amount',
+        'shipping_fee',
+        'payment_method',
+        'logistics_number',
         'snapshot_data',
     ];
 
@@ -40,5 +43,19 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($order) {
+            if (empty($order->logistics_number)) {
+                $date = now()->format('Ymd');
+                $unique = strtoupper(substr(uniqid(), -5));
+                $order->logistics_number = "LOGI-{$date}-{$unique}";
+            }
+            if (empty($order->payment_method)) {
+                $order->payment_method = 'wallet';
+            }
+        });
     }
 }

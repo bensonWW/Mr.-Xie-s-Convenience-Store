@@ -20,7 +20,13 @@ class OrderController extends Controller
     }
     public function index(Request $request)
     {
-        return $request->user()->orders()->with('items.product')->latest()->get();
+        $query = $request->user()->orders()->with('items.product')->latest();
+
+        if ($request->has('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        return $query->get();
     }
 
 
@@ -71,7 +77,17 @@ class OrderController extends Controller
                     }
                 }
 
-                $finalAmount = (int) round(max(0, $totalAmount));
+                // 4. Calculate Shipping Fee
+                $freeShippingThreshold = \App\Models\Setting::get('free_shipping_threshold', 1000); // Default 1000
+                $shippingFeeConfig = \App\Models\Setting::get('shipping_fee', 60); // Default 60
+                $shippingFee = 0;
+
+                // Check against amount AFTER discounts (Net Spend)
+                if ($totalAmount < $freeShippingThreshold) {
+                    $shippingFee = $shippingFeeConfig;
+                }
+
+                $finalAmount = (int) round(max(0, $totalAmount + $shippingFee));
 
                 // 4. Create Order First (to get ID)
                 $order = Order::create([
@@ -79,6 +95,7 @@ class OrderController extends Controller
                     'status' => 'processing', // Default to Processing (Paid) explicitly
                     'total_amount' => $finalAmount,
                     'discount_amount' => $memberDiscount, // Track member discount specifically
+                    'shipping_fee' => $shippingFee,
                     'snapshot_data' => [
                         'customer_name' => $user->name,
                         'email' => $user->email,
@@ -100,7 +117,7 @@ class OrderController extends Controller
 
                 // 6. Deduct Wallet Balance (Atomic)
                 // If this fails, the whole transaction rolls back (Order is deleted, Stock restored)
-                $walletService->withdraw(
+                $walletService->pay(
                     $user,
                     $finalAmount,
                     "Payment for Order #{$order->id}",

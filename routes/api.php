@@ -20,6 +20,7 @@ Route::get('/categories', [ProductController::class, 'categories']);
 
 Route::get('/stores', [StoreController::class, 'index']);
 Route::get('/stores/{id}', [StoreController::class, 'show']);
+Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'index']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {

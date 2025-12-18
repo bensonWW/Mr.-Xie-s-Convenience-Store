@@ -13,6 +13,8 @@ const availableCoupons = ref([])
 const selectedCouponId = ref('')
 const discountAmount = ref(0)
 const appliedCoupon = ref(null)
+const shippingFeeConfig = ref(60)
+const freeShippingThreshold = ref(1000)
 
 const userBalance = ref(0)
 const userLevel = ref('normal')
@@ -22,6 +24,7 @@ const showAddressModal = ref(false)
 const isProcessing = ref(false)
 
 onMounted(() => {
+  fetchSettings()
   fetchCart()
   fetchCoupons()
   fetchUserProfile()
@@ -44,6 +47,16 @@ async function fetchUserWallet () {
     userBalance.value = res.data.balance || 0
   } catch (error) {
     console.error('Fetch wallet error:', error)
+  }
+}
+
+async function fetchSettings () {
+  try {
+    const res = await api.get('/settings')
+    shippingFeeConfig.value = res.data.shipping_fee
+    freeShippingThreshold.value = res.data.free_shipping_threshold
+  } catch (error) {
+    console.error('Fetch settings error:', error)
   }
 }
 
@@ -92,9 +105,20 @@ const memberDiscountAmount = computed(() => {
   return Math.round(cartTotal.value * rate)
 })
 
+const currentShippingFee = computed(() => {
+  const netSubtotal = cartTotal.value - memberDiscountAmount.value - discountAmount.value
+  return netSubtotal >= freeShippingThreshold.value ? 0 : shippingFeeConfig.value
+})
+
+const diffForFreeShipping = computed(() => {
+  const netSubtotal = cartTotal.value - memberDiscountAmount.value - discountAmount.value
+  return Math.max(0, freeShippingThreshold.value - netSubtotal)
+})
+
 const finalTotal = computed(() => {
   let total = cartTotal.value - memberDiscountAmount.value
   total -= discountAmount.value
+  total += currentShippingFee.value
   return Math.max(0, Math.round(total))
 })
 
@@ -225,12 +249,16 @@ function handleAddressSuccess (newAddress) {
   <div class="bg-gray-100 font-sans text-gray-700 min-h-screen">
     <main class="container mx-auto px-4 py-8">
 
-        <div class="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded mb-6 flex items-center justify-between">
+        <div class="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded mb-6 flex items-center justify-between" v-if="diffForFreeShipping > 0">
             <div class="flex items-center gap-2">
                 <i class="fas fa-truck-fast"></i>
-                <span>還差 <span class="font-bold">NT$ 800</span> 可享免運優惠！</span>
+                <span>還差 <span class="font-bold">NT$ {{ diffForFreeShipping }}</span> 可享免運優惠！</span>
             </div>
-            <a href="#" class="text-sm underline hover:text-xieOrange">去湊單 &rarr;</a>
+            <router-link to="/items" class="text-sm underline hover:text-xieOrange">去湊單 &rarr;</router-link>
+        </div>
+        <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded mb-6 flex items-center gap-2" v-else>
+             <i class="fas fa-check-circle"></i>
+             <span>恭喜！您已符合免運資格！</span>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -333,7 +361,8 @@ function handleAddressSuccess (newAddress) {
                         </div>
                         <div class="flex justify-between">
                             <span>運費 (宅配)</span>
-                            <span>$0</span>
+                            <span v-if="currentShippingFee === 0" class="text-green-600 font-bold">免運費</span>
+                            <span v-else>$ {{ currentShippingFee }}</span>
                         </div>
                         <div class="flex justify-between text-xieOrange" v-if="memberDiscountAmount > 0">
                             <span>會員折扣 ({{ userLevel.toUpperCase() }})</span>

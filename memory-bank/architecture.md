@@ -2,103 +2,88 @@
 
 ## System Architecture
 **Monolithic API with SPA Frontend**
--   **Backend**: Laravel serves as a headless API provider.
--   **Frontend**: Vue.js SPA consumes APIs.
+-   **Backend**: Laravel 12.x serves as a headless API provider.
+-   **Frontend**: Vue.js 3 SPA (`xie_vue`) using **Vuex** for state management and **Tailwind CSS** for styling.
 -   **Communication**: RESTful JSON API.
 
 ## Key Design Patterns (Backend)
 
 ### 1. Service Layer
 -   **Problem**: Fat Controllers containing too much business logic.
--   **Solution**: Encapsulate business logic in `Services` (e.g., `WalletService`, `OrderService`, `ImageUploadService`).
-    -   *Controllers* should calculate input/output.
-    -   *Services* handle the actual transactional logic.
+-   **Solution**: Encapsulate business logic in `Services`.
+    -   `WalletService`: Handle strict transaction logging (`topup`, `payment`, `refund`).
+    -   `OrderService`: Handle stock deduction, snapshotting, and status transitions.
+    -   `MemberLevelService`: Handle upgrades and `is_level_locked` checks.
+    -   **Controllers** should only handle Request validation and Response formatting.
 
-### 2. Wallet & Transactions
--   **Design**: Double-entry bookkeeping style (simplified).
--   **Table `users`**: Contains `wallet_balance` (denormalized for speed) or calculated from transactions.
-    -   *Decision*: Add `balance` column to `users` for read performance, but **must** strict update via transactions.
+### 2. Data Integrity & Normalization (3NF)
+-   **Core Tables (Users, Products, Orders)**: Must strictly follow 3NF.
+-   **Soft Deletes**: Use `deleted_at` everywhere to preserve history. **[Enforced via Audit]**
+-   **Transactions**:
+    -   **Isolation**: `Repeatable Read`.
+    -   **Locking**: `SELECT ... FOR UPDATE` when checking Stock and Wallet Balance to prevent race conditions.
+    -   **Indexing**: Critical columns (`category`, `status`, `created_at`) indexed for performance. **[Implemented]**
+-   **Settings Table**:
+    -   `key` (string, unique), `value` (text/json), `description`.
+    -   Stores `free_shipping_threshold`, `member_level_rules`, etc.
+
+### 3. Wallet & Transactions
 -   **Table `wallet_transactions`**:
     -   `user_id`
-    -   `type` (deposit, withdrawal, payment, refund)
-    -   `amount`
-    -   `reference_id` (e.g., order_id)
-    -   `description`
--   **Concurrency**: Use Database Transactions (`DB::transaction`) and `lockForUpdate()` when modifying balance.
--   **Admin Management**: Admins can force deposit/withdrawal via `AdminController`.
--   **Refunds (Automated)**:
-    -   Triggering a "Full Refund" MUST wrap the following in a transaction:
-        1.  Change Order Status to `refunded` (or `cancelled`).
-        2.  Credit `user.wallet_balance`.
-        3.  Create `wallet_transactions` record (Type: `REFUND`, Reference: `order_id`).
+    -   `type`: ENUM (`topup`, `payment`, `refund`)
+    -   `amount`: Decimal. Positive for Top-up, Negative for Payment/Refund debit.
+    -   `reference_table`: String (e.g., 'orders')
+    -   `reference_id`: Integer
+-   **Balance Calculation**:
+    -   `users.balance` is a cache column.
+    -   Validation: `User balance` MUST equal `SUM(transactions.amount)`.
+    -   **Refunds**: Must be atomic. Order Cancelled -> Wallet Credited -> Transaction Logged.
 
-### 3. Order Processing & Snapshots
--   **Status State Machine**:
-    -   `Processing` (Paid): Default state upon successful Wallet deduction.
-    -   `Shipped`: Admin marks as shipped.
-    -   `Delivered`: Item arrives.
-    -   `Completed`: Final successful state.
-    -   `Refunded`/`Cancelled`: Exceptional terminal state.
--   **Data Integrity (Snapshots)**:
-    -   **Problem**: User updates address/phone after order, breaking historical record.
-    -   **Solution**: `orders` table adds `snapshot_data` (JSON).
-    -   **Content**: Stores `{ "shipping_address": "...", "contact_phone": "...", "member_level_at_purchase": "..." }` at creation time.
-    -   Admin views utilize this snapshot, falling back to live data only if snapshot is null (legacy).
+### 4. Address & Logistics
+-   **Address Structure**:
+    -   Backend: `addresses` table or JSON column? -> **Decision**: `addresses` table for normalization.
+    -   Columns: `user_id`, `city`, `district`, `zip_code`, `detail_address`, `recipient_name`, `phone`.
+-   **Frontend Data**: JSON file for Taiwan City/District/Zip mapping.
+-   **Logistics Number**:
+    -   Format: `LOGI-{YYYYMMDD}-{Sequence}`.
+    -   Generated via `LogisticsService` ensuring uniqueness.
 
-### 4. Member System (Levels & Discounts)
--   **Strategy**: Configuration-based (Code First).
--   **Definition**: Levels and Rules defined in `config/shop.php` (e.g., Thresholds, Discount %).
--   **Automation**: System checks `User::total_spent` on `OrderCompleted` event to auto-upgrade.
--   **Calculation**: Discounts apply to **Subtotal**.
-    -   `Total = (Subtotal - LevelDiscount) + Shipping`.
-    -   Displayed as a distinct negative Line Item.
-
-### 5. API Response Standard
--   Standardized JSON structure:
-    ```json
-    {
-        "success": true,
-        "data": { ... },
-        "message": "Operation successful"
-    }
-    ```
+### 5. Frontend Strategy
+-   **State Management**: **Vuex**.
+    -   `cart` module: Syncs Badge count (Debounced).
+    -   `auth` module: Handles Token and User Profile.
+-   **Routing**:
+    -   **Auth Guard**: Strictly checks Token validity.
+    -   **Dev Mode**: `VITE_BYPASS_AUTH_DEV` REMOVED. **[Implemented]**
+-   **Components**:
+    -   **Atomic Design**: Use Tailwind CSS utility classes.
+    -   **Toast**: Global notification for actions (e.g., "Top-up Successful").
 
 ## Database Schema Updates (Proposed)
--   `users`: Add `decimal('balance', 10, 2) default(0.00)` **[Implemented]**
--   `wallet_transactions`: New table. **[Implemented]**
--   `orders`: Add `json('snapshot_data')->nullable()` (For address/phone history). **[Implemented]**
--   `favorites`: New table (Wishlist). **[Implemented]**
--   `users`: Add `member_level` column. **[Implemented]**
--   `orders`: Add `discount_amount` column. **[Implemented]**
+-   `users`: Add `is_level_locked` (boolean default false). **[Implemented]**
+-   `settings`: New table for global configs. **[Implemented]**
+-   `orders`:
+    -   `logistics_number` (string, unique, nullable). **[Implemented]**
+    -   `payment_method` (enum: 'wallet'). **[Implemented]**
+-   `addresses`: Refactor to `city`, `district`, `zip_code`. **[Implemented]**
+-   `products`: Add `original_price` (decimal). **[Implemented]**
 
-### 4. Admin Panel Strategy
--   **User Management**:
-    -   `AdminUsers.vue`: List users with a new column for "Wallet Balance".
-    -   `AdminUserEdit.vue`: Detailed view including a dedicated "Wallet History" tab and "Manage Wallet" (Top-up/Deduct) modal.
-    -   *Security*: Only Admins (role `admin`) can access these routes and invoke wallet modification APIs.
+## Order & Payment Flow
+-   **Checkout**:
+    -   FE: Check `UserBalance` vs `CartTotal`.
+    -   If Insufficient: Show Inline Top-up Modal.
+    -   **Payment**: Backend validates Balance > Total (Atomic Lock).
+    -   **Add-ons**: "Go Add Items" links to Product List.
+-   **Revenue Stats**:
+    -   Logic: `SUM(amount * -1)` where `type = 'payment'` and `created_at` in range. **[Implemented]**
+    -   **Free Shipping**:
+    -   Calculated at Order Creation.
+    -   Threshold loaded from `settings` table (`Setting::get('free_shipping_threshold')`).
+    -   Fee stored in `orders.shipping_fee`.
 
-### 5. Frontend Strategy & Constraints
--   **Auth State**:
-    -   Continue using `LocalStorage` for token/role persistence (Simpler fix than Pinia migration).
-    -   **Dev Bypass**: Use `VITE_BYPASS_AUTH_DEV=true` strictly for development UI verification.
--   **Styling**:
-    -   **Framework**: Tailwind CSS (Allowed exemption).
-    -   **Tokens**: Primary `xieOrange` (#ed8936), Secondary `xieBlue` (#2d3748).
-    -   **Animation**: Pure CSS Transitions (No external libraries like animate.css).
--   **Component Structure (Implemented)**:
-    -   **Atomic Design**: Monolithic pages (`AdminUserEdit.vue`) refactored into:
-        -   `WalletBalanceCard`: Displays current balance and "Manage" trigger.
-        -   `WalletTransactionTable`: Lists history with type-based styling (Deposit=Green, Withdraw=Red).
-        -   `WalletActionModal`: Handles manual fund adjustments (Validates amounts and reasons).
-        -   `WalletActionModal`: Handles manual fund adjustments (Validates amounts and reasons).
-        -   `UserTopUpModal`: **[New]** Shared component for Inline Top-up (used in Profile and Checkout).
-        -   `InlineAddressModal`: **[New]** Checkout component for setting address without leaving the page.
-
-### 6. Order & Payment Flow (Refined)
--   **Atomic Payment**:
-    -   Backend (`OrderController::store`): Wraps "Stock Deduction", "Order Creation", and "Wallet Withdraw" in a single DB Transaction.
-    -   Policy: **Immediate Payment Required**. Orders are created as `processing` (Paid). If balance < total, creation fails (`402`).
--   **Checkout UX**: 
-    -   Real-time check of `UserBalance` vs `CartTotal`.
-    -   If Insufficient: "Check Out" button replaced by "Top Up" (triggers `UserTopUpModal`).
-    -   User stays on page, tops up, and immediately proceeds to checkout.
+## Testing Strategy
+- **Feature Tests**: Primary verification method.
+    - `WalletE2ETest`: Dedicated Wallet flow.
+    - `SystemSmokeTest`: End-to-end critical path (Register -> Topup -> Shop -> Admin Ship -> User Verify). Covers both User and Admin journeys.
+- **Security Check**: `AdminAuthTest` ensures route protection.
+- **Schema Audit**: `SchemaAuditTest` verifies indexes and soft deletes.

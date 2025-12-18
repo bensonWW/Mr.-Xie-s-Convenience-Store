@@ -49,6 +49,7 @@ class User extends Authenticatable
         'status',
         'balance',
         'member_level',
+        'is_level_locked',
     ];
 
     /**
@@ -73,6 +74,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'birthday' => 'date',
             'balance' => 'decimal:2',
+            'is_level_locked' => 'boolean',
         ];
     }
 
@@ -99,5 +101,10 @@ class User extends Authenticatable
     public function favorites()
     {
         return $this->hasMany(Favorite::class);
+    }
+
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
     }
 }

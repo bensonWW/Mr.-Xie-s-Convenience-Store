@@ -46,6 +46,7 @@
               v-if="currentView === 'dashboard' || currentView === 'orders'"
               :orders="orders"
               @order-updated="fetchOrders"
+              @filter-change="fetchOrders"
             />
 
             <CouponWallet
@@ -159,10 +160,18 @@ export default {
         }
       }
     },
-    async fetchOrders () {
+    async fetchOrders (status = 'all') {
       if (!this.user) return
       try {
-        const response = await api.get('/orders')
+        const params = {}
+        if (status && status !== 'all') {
+             if (status === 'refunded') {
+                 params.status = 'cancelled'
+             } else {
+                 params.status = status
+             }
+        }
+        const response = await api.get('/orders', { params })
         this.orders = response.data
       } catch (error) {
         console.error('Error fetching orders:', error)
