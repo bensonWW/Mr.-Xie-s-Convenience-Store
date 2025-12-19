@@ -1,13 +1,8 @@
 <template>
   <div class="py-8">
-    <!-- TEMP DEBUG BANNER -->
-    <div class="bg-red-500 text-white p-2 text-center text-xs font-mono">
-      DEBUG: BYPASS={{ bypassEnvValue }} (Process: {{ processEnvValue }})
-    </div>
-
     <!-- 未登入：登入 / 註冊區 -->
     <AuthOverlay v-if="!isLoggedIn" />
-
+    
     <!-- 已登入：會員中心 -->
     <div v-else class="container mx-auto px-4 pb-12 grid grid-cols-1 md:grid-cols-4 gap-6">
 
@@ -117,9 +112,7 @@ export default {
       orders: [],
       coupons: [],
       wishlist: [],
-      currentView: 'dashboard',
-      bypassEnvValue: process.env.VUE_APP_BYPASS_AUTH_DEV || 'undefined',
-      processEnvValue: process.env.VUE_APP_BYPASS_AUTH_DEV || 'undefined'
+      currentView: 'dashboard'
     }
   },
   computed: {

@@ -151,6 +151,10 @@
         - **Admin UI**: Updated `AdminController` to handle locking. Updated `AdminUserEdit.vue` to allow manual level setting and locking.
         - **Tests**: Created and Verified `AdminAuthTest.php` (Route protection) and `MemberLevelTest.php` (Locking logic).
 
+- [x] **Step 1.1: Remove Admin Debug Bypass (P0)**
+    - **Status**: Done.
+    - **Fix**: Removed `VUE_APP_BYPASS_AUTH_DEV` from `docker-compose.yml` and `Dockerfile`. Cleaned up `ProfileView.vue` debug banner.Verified via `AdminAuthTest`.
+
 - [x] **Step 2: Database Schema & Settings (P1)**
     - **Status**: Done.
     - **Implementation**:
