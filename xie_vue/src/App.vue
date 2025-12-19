@@ -26,6 +26,9 @@ export default {
     setTheme (t) {
       this.theme = t
     }
+  },
+  created () {
+    this.$store.dispatch('checkAuth')
   }
 }
 </script>

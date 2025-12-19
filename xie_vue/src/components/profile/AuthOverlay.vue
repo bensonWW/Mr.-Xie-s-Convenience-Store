@@ -57,6 +57,7 @@
 
 <script>
 import api from '../../services/api'
+import { mapActions } from 'vuex'
 import { useToast } from 'vue-toastification'
 
 export default {
@@ -76,15 +77,13 @@ export default {
     }
   },
   methods: {
+    ...mapActions(['login']),
     async handleLogin () {
       try {
-        const response = await api.post('/login', {
+        await this.login({
           email: this.loginEmail,
           password: this.loginPassword
         })
-        const { access_token: accessToken, user } = response.data
-        localStorage.setItem('token', accessToken)
-        localStorage.setItem('user_role', user.role)
 
         // Notify parent or reload
         this.toast.success('登入成功！')

@@ -13,22 +13,23 @@ echo "Target: $baseUrl\n";
 echo "========================================\n\n";
 
 // Helper function to make requests
-function makeRequest($url, $method = 'GET', $data = []) {
+function makeRequest($url, $method = 'GET', $data = [])
+{
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/json']);
-    
+
     if ($method === 'POST') {
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
     }
-    
+
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $error = curl_error($ch);
     curl_close($ch);
-    
+
     return ['code' => $httpCode, 'body' => $response, 'error' => $error];
 }
 
@@ -61,7 +62,8 @@ if ($res['code'] === 200) {
     $data = json_decode($res['body'], true);
     if (isset($data['token']) || isset($data['access_token'])) {
         echo "✅ Login Successful!\n";
-        echo "Token received: " . substr($data['token'] ?? $data['access_token'], 0, 15) . "...\n";
+        $token = $data['token'] ?? $data['access_token']; // Capture for next step
+        echo "Token received: " . substr($token, 0, 15) . "...\n";
     } else {
         echo "⚠️  Request OK (200) but no token found in response.\n";
         print_r($data);
@@ -75,6 +77,37 @@ if ($res['code'] === 200) {
     echo "Status: " . $res['code'] . "\n";
     echo "Error: " . $res['error'] . "\n";
     echo "Body: " . $res['body'] . "\n";
+}
+
+echo "\n";
+
+// 3. Get User Profile (Check Role)
+if (isset($token)) {
+    echo "[3] Fetching User Profile (GET /user)...\n";
+    $profileUrl = "$baseUrl/user";
+
+    $ch = curl_init($profileUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Accept: application/json',
+        "Authorization: Bearer $token"
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode === 200) {
+        $user = json_decode($response, true);
+        echo "✅ Profile Fetched\n";
+        echo "ID: " . ($user['id'] ?? 'N/A') . "\n";
+        echo "Name: " . ($user['name'] ?? 'N/A') . "\n";
+        echo "Email: " . ($user['email'] ?? 'N/A') . "\n";
+        echo "Role: " . ($user['role'] ?? '⚠️ MISSING') . "\n"; // Critical check
+    } else {
+        echo "❌ Profile Fetch Failed ($httpCode)\n";
+        echo "Body: $response\n";
+    }
 }
 
 echo "\n========================================\n";

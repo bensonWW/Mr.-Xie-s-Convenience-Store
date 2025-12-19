@@ -14,26 +14,6 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 
-// TEMP: Reset Cloud Admin Password
-Route::get('/reset-admin-password-temp-999', function () {
-    $user = \App\Models\User::where('email', 'admin@mrxie.com')->first();
-    if (!$user) {
-        // Create if missing
-        $user = \App\Models\User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@mrxie.com',
-            'password' => \Illuminate\Support\Facades\Hash::make('password'),
-            'role' => 'admin',
-            'phone' => '0912-345-678',
-            'status' => 'active',
-        ]);
-        return response()->json(['message' => 'Admin created with password: password']);
-    }
-    $user->password = \Illuminate\Support\Facades\Hash::make('password');
-    $user->save();
-    return response()->json(['message' => 'Admin password reset to: password']);
-});
-
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/categories', [ProductController::class, 'categories']);

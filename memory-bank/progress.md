@@ -155,6 +155,11 @@
     - **Status**: Done.
     - **Fix**: Removed `VUE_APP_BYPASS_AUTH_DEV` from `docker-compose.yml` and `Dockerfile`. Cleaned up `ProfileView.vue` debug banner.Verified via `AdminAuthTest`.
 
+- [x] **Step 1.2: Fix Cloud Admin Role Sync (P0)**
+    - **Status**: Done.
+    - **Issue**: `AppHeader` missed admin role data on page reload. `AuthOverlay` didn't update Vuex store directly.
+    - **Fix**: Updated `App.vue` to dispatch `checkAuth` on load. Refactored `AuthOverlay.vue` to use Vuex actions.
+
 - [x] **Step 2: Database Schema & Settings (P1)**
     - **Status**: Done.
     - **Implementation**:
