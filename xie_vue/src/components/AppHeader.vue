@@ -119,7 +119,9 @@ export default {
     },
     handleLogout () {
       this.logout().then(() => {
-        window.location.reload()
+        if (this.$route.path !== '/profile') {
+          this.$router.push('/profile')
+        }
       })
     }
   },

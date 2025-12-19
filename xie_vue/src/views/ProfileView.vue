@@ -81,7 +81,7 @@
 
 <script>
 import api from '../services/api'
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import AuthOverlay from '../components/profile/AuthOverlay.vue'
 import UserSidebar from '../components/profile/UserSidebar.vue'
 import DashboardStats from '../components/profile/DashboardStats.vue'
@@ -108,7 +108,6 @@ export default {
   data () {
     return {
       avatarUrl: 'https://img.icons8.com/color/96/000000/user-male-circle--v2.png',
-      user: null,
       orders: [],
       coupons: [],
       wishlist: [],
@@ -116,8 +115,9 @@ export default {
     }
   },
   computed: {
-    isLoggedIn () {
-      return !!this.user
+    ...mapGetters(['currentUser', 'isLoggedIn']),
+    user () {
+      return this.currentUser
     }
   },
   watch: {
@@ -128,31 +128,30 @@ export default {
           this.currentView = 'wishlist'
         }
       }
-    }
-  },
-  created () {
-    this.fetchUser()
-  },
-  methods: {
-    ...mapActions(['logout']), // Use Vuex action we just fixed
-    async fetchUser () {
-      const token = localStorage.getItem('token')
-      if (token) {
-        try {
-          const response = await api.get('/user')
-          this.user = response.data
+    },
+    currentUser: {
+      immediate: true,
+      handler (newVal) {
+        if (newVal) {
           this.fetchOrders()
           this.fetchCoupons()
           this.fetchWishlist()
-        } catch (error) {
-          console.error('Error fetching user:', error)
-          // Do NOT remove token here immediately, let user re-login via UI or interceptor handle 401
-          // But original code removed it.
-          localStorage.removeItem('token')
-          this.user = null
+        } else {
+          // Clear local data on logout
+          this.orders = []
+          this.coupons = []
+          this.wishlist = []
         }
       }
-    },
+    }
+  },
+  created () {
+    // App.vue already dispatches checkAuth, but we can verify here if needed.
+    // user watcher will handle data fetching.
+  },
+  methods: {
+    ...mapActions(['logout']), 
+    // fetchUser removed as we use Vuex state
     async fetchOrders (status = 'all') {
       if (!this.user) return
       try {
@@ -198,7 +197,7 @@ export default {
     handleLogout () {
       this.logout().then(() => {
         this.$toast.info('已登出')
-        setTimeout(() => window.location.reload(), 500)
+        // No reload needed, reactivity handles switch to AuthOverlay
       })
     },
     handleProfileUpdated (updatedUser) {

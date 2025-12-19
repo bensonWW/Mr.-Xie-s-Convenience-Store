@@ -160,6 +160,11 @@
     - **Issue**: `AppHeader` missed admin role data on page reload. `AuthOverlay` didn't update Vuex store directly.
     - **Fix**: Updated `App.vue` to dispatch `checkAuth` on load. Refactored `AuthOverlay.vue` to use Vuex actions.
 
+- [x] **Step 1.3: Fix Logout UX (P1)**
+    - **Status**: Done.
+    - **Issue**: Logout required page refresh to update UI.
+    - **Fix**: Replaced `window.location.reload()` with `$router.push` and updated `ProfileView.vue` to use reactive Vuex state.
+
 - [x] **Step 2: Database Schema & Settings (P1)**
     - **Status**: Done.
     - **Implementation**:
