@@ -41,6 +41,7 @@ async function fetchCart () {
       quantity: item.quantity,
       productId: item.product.id
     }))
+    window.dispatchEvent(new Event('cart:updated'))
   } catch (error) {
     console.error('Fetch cart error:', error)
   }
@@ -86,6 +87,7 @@ async function removeItem (id) {
   try {
     await api.delete(`/cart/items/${id}`)
     cartItems.value = cartItems.value.filter((i) => i.id !== id)
+    window.dispatchEvent(new Event('cart:updated'))
     // Re-validate coupon if total changed (optional, but good practice)
     if (appliedCoupon.value) {
       applyCoupon()
@@ -103,6 +105,7 @@ async function updateQuantity (item, change) {
   try {
     await api.put(`/cart/items/${item.id}`, { quantity: newQty })
     item.quantity = newQty
+    window.dispatchEvent(new Event('cart:updated'))
     // Re-validate coupon if total changed
     if (appliedCoupon.value) {
       applyCoupon()
@@ -126,6 +129,7 @@ async function checkout () {
     discountAmount.value = 0
     appliedCoupon.value = null
     selectedCouponId.value = ''
+    window.dispatchEvent(new Event('cart:updated'))
     router.push('/profile')
   } catch (error) {
     console.error('Checkout error:', error)

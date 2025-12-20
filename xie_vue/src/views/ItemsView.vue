@@ -128,7 +128,14 @@ export default {
     async fetchProducts () {
       try {
         const response = await api.get('/products')
-        this.items = response.data.map(item => {
+        const raw = response.data
+        const list = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.data)
+            ? raw.data
+            : []
+
+        this.items = list.map(item => {
           let imgUrl = ''
           if (item.image) {
             if (item.image.startsWith('http')) {

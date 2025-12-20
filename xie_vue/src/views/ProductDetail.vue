@@ -173,6 +173,7 @@ export default {
           quantity: this.qty
         })
         alert('已加入購物車')
+        window.dispatchEvent(new Event('cart:updated'))
       } catch (error) {
         console.error('Add to cart error:', error)
         alert('加入購物車失敗')
@@ -189,6 +190,7 @@ export default {
         product_id: this.item.id,
         quantity: this.qty
       }).then(() => {
+        window.dispatchEvent(new Event('cart:updated'))
         this.$router.push('/car')
       }).catch(error => {
         console.error('Buy now error:', error)

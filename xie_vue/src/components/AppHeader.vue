@@ -52,9 +52,9 @@
             <span class="text-xs mt-1">收藏</span>
           </router-link>
 
-          <router-link to="/car" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
+          <router-link v-if="isLoggedIn" to="/car" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
             <i class="fas fa-shopping-cart text-xl relative">
-              <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">2</span>
+              <span v-if="cartCount > 0" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-4 h-4 px-1 flex items-center justify-center">{{ cartCount }}</span>
             </i>
             <span class="text-xs mt-1">購物車</span>
           </router-link>
@@ -89,11 +89,14 @@
 </template>
 
 <script>
+import api from '../services/api'
+
 export default {
   name: 'AppHeader',
   data () {
     return {
-      search: ''
+      search: '',
+      cartCount: 0
     }
   },
   computed: {
@@ -112,6 +115,29 @@ export default {
         this.$router.push({ path: '/items', query: { search: this.search.trim() } })
       }
     },
+    async refreshCartCount () {
+      // 未登入顯示 0
+      if (!localStorage.getItem('token')) {
+        this.cartCount = 0
+        return
+      }
+      try {
+        const res = await api.get('/cart')
+        const data = res.data
+        if (Array.isArray(data)) {
+          this.cartCount = data.length
+        } else if (Array.isArray(data?.items)) {
+          this.cartCount = data.items.length
+        } else if (typeof data?.count === 'number') {
+          this.cartCount = data.count
+        } else {
+          this.cartCount = 0
+        }
+      } catch (e) {
+        // 失敗（例如 401），顯示 0
+        this.cartCount = 0
+      }
+    },
     logout () {
       localStorage.removeItem('token')
       localStorage.removeItem('user_role')
@@ -119,6 +145,13 @@ export default {
         window.location.reload()
       })
     }
+  },
+  created () {
+    this.refreshCartCount()
+    window.addEventListener('cart:updated', this.refreshCartCount)
+  },
+  beforeUnmount () {
+    window.removeEventListener('cart:updated', this.refreshCartCount)
   }
 }
 </script>

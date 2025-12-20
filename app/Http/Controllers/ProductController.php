@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller
 {
@@ -101,6 +102,9 @@ class ProductController extends Controller
 
     public function categories()
     {
-        return Product::distinct()->pluck('category');
+        $categories = Cache::remember('api:categories', 600, function () {
+            return Product::distinct()->pluck('category');
+        });
+        return response()->json($categories);
     }
 }
