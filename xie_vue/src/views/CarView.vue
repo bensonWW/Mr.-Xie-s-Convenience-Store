@@ -96,10 +96,27 @@ const memberDiscountAmount = computed(() => {
     return 0 
 })
 
+<<<<<<< HEAD
 const currentShippingFee = computed(() => {
   const netSubtotal = cartTotal.value - memberDiscountAmount.value - discountAmount.value
   return netSubtotal >= freeShippingThreshold.value ? 0 : shippingFeeConfig.value
 })
+=======
+  try {
+    const response = await api.get('/cart')
+    cartItems.value = response.data.items.map(item => ({
+      id: item.id,
+      name: item.product.name,
+      price: Number(item.product.price),
+      quantity: item.quantity,
+      productId: item.product.id
+    }))
+    window.dispatchEvent(new Event('cart:updated'))
+  } catch (error) {
+    console.error('Fetch cart error:', error)
+  }
+}
+>>>>>>> e98904a (Add cart count refresh and event sync across views)
 
 const diffForFreeShipping = computed(() => {
   const netSubtotal = cartTotal.value - memberDiscountAmount.value - discountAmount.value
@@ -148,8 +165,15 @@ async function applyCoupon () {
 async function removeItem (id) {
   if (!confirm('確定要刪除此商品嗎？')) return
   try {
+<<<<<<< HEAD
     await cartStore.removeItem(id)
     // Re-validate coupon if total changed
+=======
+    await api.delete(`/cart/items/${id}`)
+    cartItems.value = cartItems.value.filter((i) => i.id !== id)
+    window.dispatchEvent(new Event('cart:updated'))
+    // Re-validate coupon if total changed (optional, but good practice)
+>>>>>>> e98904a (Add cart count refresh and event sync across views)
     if (appliedCoupon.value) {
       applyCoupon()
     }
@@ -165,7 +189,13 @@ async function updateQuantity (item, change) {
   const newQty = item.quantity + change
   if (newQty < 1) return
   try {
+<<<<<<< HEAD
     await cartStore.updateItem(item.id, newQty)
+=======
+    await api.put(`/cart/items/${item.id}`, { quantity: newQty })
+    item.quantity = newQty
+    window.dispatchEvent(new Event('cart:updated'))
+>>>>>>> e98904a (Add cart count refresh and event sync across views)
     // Re-validate coupon if total changed
     if (appliedCoupon.value) {
       applyCoupon()
@@ -218,8 +248,12 @@ async function checkout () {
     discountAmount.value = 0
     appliedCoupon.value = null
     selectedCouponId.value = ''
+<<<<<<< HEAD
     // window.dispatchEvent(new CustomEvent('cart:updated')) // REMOVED
     
+=======
+    window.dispatchEvent(new Event('cart:updated'))
+>>>>>>> e98904a (Add cart count refresh and event sync across views)
     router.push('/profile')
   } catch (error) {
     console.error('Checkout error:', error)

@@ -52,10 +52,10 @@
             <span class="text-xs mt-1">收藏</span>
           </router-link>
 
-          <router-link to="/car" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
+          <router-link v-if="isLoggedIn" to="/car" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
             <i class="fas fa-shopping-cart text-xl relative">
-              <span v-if="isLoggedIn && cartLoading" class="absolute -top-2 -right-2 bg-gray-400 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center animate-pulse">...</span>
-              <span v-else-if="isLoggedIn && cartCount > 0" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">{{ cartCount }}</span>
+              <span v-if="cartLoading" class="absolute -top-2 -right-2 bg-gray-400 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center animate-pulse">...</span>
+              <span v-else-if="cartCount > 0" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-4 h-4 px-1 flex items-center justify-center">{{ cartCount }}</span>
             </i>
             <span class="text-xs mt-1">購物車</span>
           </router-link>
@@ -77,7 +77,7 @@
                <span class="text-xs">後台管理</span>
             </router-link>
 
-             <button @click="logout" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline bg-transparent border-none cursor-pointer">
+             <button @click="handleLogout" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline bg-transparent border-none cursor-pointer">
               <i class="fas fa-sign-out-alt text-xl"></i>
               <span class="text-xs mt-1">登出</span>
             </button>
@@ -90,19 +90,18 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex' // Keep for Auth
-import { useCartStore } from '../stores/cart' // Import Pinia Store
+import { mapActions } from 'vuex'
+import { useCartStore } from '../stores/cart'
 
 export default {
   name: 'AppHeader',
   setup () {
-      const cartStore = useCartStore()
-      return { cartStore }
+    const cartStore = useCartStore()
+    return { cartStore }
   },
   data () {
     return {
       search: ''
-      // cartLoading: false // Handled by store or just ignored for simple count
     }
   },
   computed: {
@@ -113,12 +112,13 @@ export default {
       return this.$store.getters.isAdmin
     },
     cartCount () {
-        // Use Pinia getter
       return this.cartStore.cartCount
+    },
+    cartLoading () {
+      return this.cartStore.loading
     }
   },
   methods: {
-    // ...mapActions('cart', ['fetchCount']), // Removed
     ...mapActions(['logout']),
     doSearch () {
       if (this.search.trim()) {
@@ -131,13 +131,8 @@ export default {
   },
   mounted () {
     if (this.isLoggedIn) {
-       this.cartStore.fetchCart()
-      // this.refreshCart()
+      this.cartStore.fetchCart()
     }
-    // window.addEventListener('cart:updated', this.refreshCart) // Removed, Pinia is reactive
-  },
-  unmounted () {
-    // window.removeEventListener('cart:updated', this.refreshCart)
   }
 }
 </script>

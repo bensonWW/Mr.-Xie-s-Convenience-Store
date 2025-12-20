@@ -210,6 +210,7 @@ export default {
     },
     async fetchProducts (page = 1) {
       try {
+<<<<<<< HEAD
         const params = {
           page: page,
           category: this.selectedCategoryName || undefined,
@@ -229,6 +230,24 @@ export default {
               current_page: response.data.current_page || response.data.meta?.current_page || 1,
               last_page: response.data.last_page || response.data.meta?.last_page || 1,
               total: response.data.total || response.data.meta?.total || 0
+=======
+        const response = await api.get('/products')
+        const raw = response.data
+        const list = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.data)
+            ? raw.data
+            : []
+
+        this.items = list.map(item => {
+          let imgUrl = ''
+          if (item.image) {
+            if (item.image.startsWith('http')) {
+              imgUrl = item.image
+            } else {
+              const baseUrl = api.defaults.baseURL.replace('/api', '')
+              imgUrl = `${baseUrl}/images/${item.image}`
+>>>>>>> e98904a (Add cart count refresh and event sync across views)
             }
           } else {
             console.warn('Unexpected API response structure', response.data)
