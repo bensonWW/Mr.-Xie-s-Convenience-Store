@@ -1,21 +1,14 @@
 <template>
   <div class="space-y-6">
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-100">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="font-bold text-gray-800">購物紀錄</h3>
-        </div>
-        <!-- Status Tabs -->
-        <div class="flex space-x-6 text-sm overflow-x-auto no-scrollbar">
-          <button
-            v-for="tab in tabs"
-            :key="tab.value"
-            @click="currentTab = tab.value"
-            class="pb-2 whitespace-nowrap transition-colors border-b-2"
-            :class="currentTab === tab.value ? 'border-xieOrange text-xieOrange font-bold' : 'border-transparent text-gray-500 hover:text-gray-700'"
-          >
-            {{ tab.label }}
-          </button>
+      <div class="px-6 py-4 border-b border-gray-100 table-header">
+        <div class="flex justify-between items-center">
+          <h3 class="font-bold text-gray-800 flex items-center">
+             購物紀錄
+             <span v-if="currentTab !== 'all'" class="ml-2 text-sm font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+               {{ filterTitle }}
+             </span>
+          </h3>
         </div>
       </div>
 
@@ -124,14 +117,20 @@ export default {
       showOrderDetails: false,
       selectedOrder: null,
       currentTab: this.activeTab,
-      tabs: [
-        { label: '全部', value: 'all' },
-        { label: '處理中', value: 'processing' },
-        { label: '已出貨', value: 'shipped' },
-        { label: '已送達', value: 'delivered' },
-        { label: '已完成', value: 'completed' },
-        { label: '退貨/取消', value: 'refunded' } // Renamed label slightly for consistency
-      ]
+    }
+  },
+  computed: {
+    filterTitle() {
+      const map = {
+        all: '全部',
+        pending_payment: '待付款',
+        processing: '處理中',
+        shipped: '已出貨',
+        delivered: '已送達',
+        completed: '已完成',
+        refunded: '退貨/取消'
+      }
+      return map[this.currentTab] || this.currentTab
     }
   },
   watch: {

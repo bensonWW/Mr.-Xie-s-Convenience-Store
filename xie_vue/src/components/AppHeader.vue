@@ -120,11 +120,7 @@ export default {
       }
     },
     handleLogout () {
-      this.logout().then(() => {
-        if (this.$route.path !== '/profile') {
-          this.$router.push('/profile')
-        }
-      })
+      this.logout()
     },
     async refreshCart () {
       if (this.isLoggedIn) {

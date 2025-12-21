@@ -41,7 +41,7 @@
         </ul>
       </nav>
       <div class="p-4 border-t border-gray-100">
-        <button @click="logout" class="flex items-center gap-3 text-sm text-gray-500 hover:text-red-500 w-full text-left">
+        <button @click="handleLogout" class="flex items-center gap-3 text-sm text-gray-500 hover:text-red-500 w-full text-left">
           <i class="fas fa-sign-out-alt"></i> 登出
         </button>
       </div>
@@ -320,6 +320,7 @@
 
 <script>
 import api from '../services/api'
+import { mapActions } from 'vuex' // Add mapActions
 import { useToast } from 'vue-toastification'
 
 // Import new components
@@ -410,10 +411,10 @@ export default {
         this.$router.push('/admin/users')
       }
     },
-    logout () {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user_role')
-      this.$router.push('/profile')
+    ...mapActions(['logout']), // Map logout action
+    // logout method removed as we use the mapped action directly or wrapper
+    handleLogout () {
+      this.logout() // Store action handles everything now
     },
     toggleBan () {
       this.form.status = this.form.status === 'banned' ? 'active' : 'banned'

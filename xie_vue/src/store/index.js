@@ -1,5 +1,6 @@
 import { createStore } from 'vuex'
-import api from '../services/api' // Assuming api service exists for making requests
+import api from '../services/api'
+import router from '../router'
 
 export default createStore({
   state: {
@@ -53,6 +54,9 @@ export default createStore({
         console.error('Logout error', error)
       } finally {
         commit('CLEAR_AUTH')
+        if (router.currentRoute.value.path !== '/profile') {
+          router.push('/profile')
+        }
       }
     },
     async checkAuth({ commit, state }) {
