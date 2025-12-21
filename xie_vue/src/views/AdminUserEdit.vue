@@ -97,11 +97,11 @@
                         <div v-if="isEdit" class="grid grid-cols-2 gap-2 border-t border-b border-gray-100 py-4 mb-4">
                             <div>
                                 <div class="text-xs text-gray-400">總消費金額</div>
-                                <div class="font-bold text-lg text-xieOrange">$0</div>
+                                <div class="font-bold text-lg text-xieOrange">NT$ {{ totalSpent }}</div>
                             </div>
                             <div class="border-l border-gray-100">
                                 <div class="text-xs text-gray-400">訂單數量</div>
-                                <div class="font-bold text-lg text-gray-700">0</div>
+                                <div class="font-bold text-lg text-gray-700">{{ orderCount }}</div>
                             </div>
                         </div>
 
@@ -256,7 +256,44 @@
 
                             <!-- Orders Tab Placeholder -->
                              <div v-if="activeTab === 'orders'">
-                                <div class="text-center py-12 text-gray-500">
+                                <div v-if="orders.length > 0" class="overflow-x-auto">
+                                   <table class="w-full text-sm text-left">
+                                      <thead class="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
+                                        <tr>
+                                            <th class="px-4 py-3">訂單編號</th>
+                                            <th class="px-4 py-3">日期</th>
+                                            <th class="px-4 py-3">金額</th>
+                                            <th class="px-4 py-3">狀態</th>
+                                            <th class="px-4 py-3">操作</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody class="divide-y divide-gray-100">
+                                          <tr v-for="order in orders" :key="order.id" class="hover:bg-gray-50 transition">
+                                              <td class="px-4 py-3 font-bold text-gray-700">#{{ order.id }}</td>
+                                              <td class="px-4 py-3 text-gray-500 text-xs">{{ new Date(order.created_at).toLocaleString() }}</td>
+                                              <td class="px-4 py-3 font-bold text-gray-800">NT$ {{ order.total_amount }}</td>
+                                              <td class="px-4 py-3">
+                                                  <span class="px-2 py-1 rounded text-xs font-bold"
+                                                    :class="{
+                                                        'bg-red-100 text-red-600': order.status === 'pending_payment',
+                                                        'bg-blue-100 text-blue-600': order.status === 'shipped',
+                                                        'bg-green-100 text-green-600': order.status === 'completed',
+                                                        'bg-gray-100 text-gray-600': order.status === 'processing',
+                                                        'bg-yellow-100 text-yellow-600': order.status === 'cancelled'
+                                                    }">
+                                                    {{ order.status }}
+                                                  </span>
+                                              </td>
+                                              <td class="px-4 py-3">
+                                                  <router-link :to="`/admin/orders/${order.id}`" class="text-xieOrange hover:text-orange-600 font-bold text-xs border border-xieOrange px-2 py-1 rounded hover:bg-orange-50 transition">
+                                                      查看
+                                                  </router-link>
+                                              </td>
+                                          </tr>
+                                      </tbody>
+                                   </table>
+                                </div>
+                                <div v-else class="text-center py-12 text-gray-500">
                                     <i class="fas fa-box-open text-4xl mb-4 text-gray-300"></i>
                                     <p>暫無消費紀錄</p>
                                 </div>
@@ -306,7 +343,10 @@ export default {
       loading: false,
       activeTab: 'basic',
       balance: 0,
+      orderCount: 0,
+      totalSpent: 0,
       transactions: [],
+      orders: [],
       showWalletModal: false,
       walletLoading: false,
       form: {
@@ -356,9 +396,14 @@ export default {
           password: '',
           password_confirmation: ''
         }
-        // Set Wallet Data
+        // Set Wallet & Order Data
         this.balance = user.wallet_balance || 0
         this.transactions = user.wallet_transactions || []
+        this.orders = user.orders || []
+        
+        // Helper to safely access aggregates
+        this.orderCount = user.orders_count || 0
+        this.totalSpent = user.orders_sum_total_amount || 0
       } catch (e) {
         console.error(e)
         this.toast.error('無法載入會員資料')

@@ -118,9 +118,19 @@ class AdminController extends Controller
 
     public function showUser($id)
     {
-        return User::with(['walletTransactions' => function ($query) {
-            $query->latest();
-        }])->findOrFail($id);
+        return User::withCount('orders')
+            ->withSum(['orders' => function ($query) {
+                $query->whereIn('status', ['processing', 'shipped', 'completed']);
+            }], 'total_amount')
+            ->with(['orders' => function ($query) {
+                $query->latest(); // Determine limit? maybe limit 50 for performance or paginate separately?
+                // For now, let's load all or limit reasonably. The UI tab implies a list.
+                // If the user has thousands of orders, this might be heavy.
+                // But for this project scope, eager loading all is likely acceptable or limit to recent 100.
+                $query->latest();
+            }, 'walletTransactions' => function ($query) {
+                $query->latest();
+            }])->findOrFail($id);
     }
 
     public function walletTransaction(Request $request, $id, \App\Services\WalletService $walletService)
