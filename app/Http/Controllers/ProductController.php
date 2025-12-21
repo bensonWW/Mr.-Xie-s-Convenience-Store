@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller
 {
@@ -73,6 +74,7 @@ class ProductController extends Controller
         }
 
         $product = Product::create($data);
+        Cache::forget('categories');
         return response()->json($product, 201);
     }
 
@@ -101,17 +103,21 @@ class ProductController extends Controller
         }
 
         $product->update($data);
+        Cache::forget('categories');
         return response()->json($product);
     }
 
     public function destroy($id)
     {
         Product::destroy($id);
+        Cache::forget('categories');
         return response()->json(['message' => 'Product deleted']);
     }
 
     public function categories()
     {
-        return Product::distinct()->pluck('category');
+        return Cache::remember('categories', 3600, function () {
+            return Product::distinct()->pluck('category');
+        });
     }
 }

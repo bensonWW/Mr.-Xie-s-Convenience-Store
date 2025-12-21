@@ -54,7 +54,8 @@
 
           <router-link to="/car" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
             <i class="fas fa-shopping-cart text-xl relative">
-              <span v-if="isLoggedIn && cartCount > 0" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">{{ cartCount }}</span>
+              <span v-if="isLoggedIn && cartLoading" class="absolute -top-2 -right-2 bg-gray-400 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center animate-pulse">...</span>
+              <span v-else-if="isLoggedIn && cartCount > 0" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">{{ cartCount }}</span>
             </i>
             <span class="text-xs mt-1">購物車</span>
           </router-link>
@@ -95,7 +96,8 @@ export default {
   name: 'AppHeader',
   data () {
     return {
-      search: ''
+      search: '',
+      cartLoading: false
     }
   },
   computed: {
@@ -123,12 +125,26 @@ export default {
           this.$router.push('/profile')
         }
       })
+    },
+    async refreshCart () {
+      if (this.isLoggedIn) {
+        this.cartLoading = true
+        try {
+          await this.fetchCount()
+        } finally {
+          this.cartLoading = false
+        }
+      }
     }
   },
-  created () {
+  mounted () {
     if (this.isLoggedIn) {
-      this.fetchCount()
+      this.refreshCart()
     }
+    window.addEventListener('cart:updated', this.refreshCart)
+  },
+  unmounted () {
+    window.removeEventListener('cart:updated', this.refreshCart)
   }
 }
 </script>

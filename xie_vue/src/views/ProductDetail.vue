@@ -215,7 +215,8 @@ export default {
           quantity: this.qty
         })
         this.$toast.success('已加入購物車')
-        this.$store.dispatch('cart/fetchCount')
+        window.dispatchEvent(new CustomEvent('cart:updated'))
+        // this.$store.dispatch('cart/fetchCount') // Replaced by event listener mechanism
       } catch (error) {
         console.error('Add to cart error:', error)
         this.$toast.error('加入購物車失敗')

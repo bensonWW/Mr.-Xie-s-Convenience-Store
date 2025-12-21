@@ -43,7 +43,13 @@
       </div>
 
       <!-- Product Grid -->
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      <div v-if="filteredItems.length === 0" class="col-span-12 text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
+          <i class="fas fa-box-open text-4xl mb-4 text-gray-300"></i>
+          <p>找不到相關商品</p>
+          <button @click="selectCategory('All')" class="mt-4 text-xieOrange underline text-sm">瀏覽所有商品</button>
+      </div>
+
+      <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         <div
           v-for="item in filteredItems"
           :key="item.id"
@@ -182,17 +188,9 @@ export default {
       try {
         const params = {
           page: page,
-          category: this.selectedCategory !== 'All' ? this.selectedCategory : undefined, // Assuming 'All' or similar handling if needed, though current logic seems to filter client side for search.
-          // Wait, the current logic filters by category in computed property `filteredItems` BUT fetches ALL products.
-          // With pagination, we MUST fetch by category from the server.
-          // Let's check ProductController: it supports `category` and `search` query params.
-          // So we should pass these params to the API.
+          category: this.selectedCategory !== 'All' ? this.selectedCategory : undefined,
           search: this.$route.query.search
         }
-
-        // If we want to use server-side filtering (efficient), we pass params.
-        // However, the original code fetched ALL and filtered client-side.
-        // I should switch to server-side filtering now that we rely on pagination.
 
         if (this.selectedCategory && !this.$route.query.search) {
           params.category = this.selectedCategory
@@ -200,11 +198,32 @@ export default {
 
         const response = await api.get('/products', { params })
 
-        const productsData = response.data.data // Laravel pagination 'data' key
-        this.pagination = {
-          current_page: response.data.current_page,
-          last_page: response.data.last_page,
-          total: response.data.total
+        let productsData = []
+        
+        // Defensive handling for different API response structures
+        if (Array.isArray(response.data)) {
+          // Direct array response (no pagination)
+          productsData = response.data
+          this.pagination = { current_page: 1, last_page: 1, total: productsData.length }
+        } else if (response.data && typeof response.data === 'object') {
+          // Object response (likely paginated)
+          if (Array.isArray(response.data.data)) {
+            // Standard Laravel Pagination resource or paginate() response
+            productsData = response.data.data
+            
+            // Defensively update pagination if meta/links exist or root properties exist
+            this.pagination = {
+              current_page: response.data.current_page || response.data.meta?.current_page || 1,
+              last_page: response.data.last_page || response.data.meta?.last_page || 1,
+              total: response.data.total || response.data.meta?.total || 0
+            }
+          } else {
+            // Fallback: maybe the object itself is the data or some other format
+            // If it has no 'data' array, assume empty or check other fields? 
+            // For now, let's assume if it's not array and doesn't have data.data, it might be empty or error.
+            console.warn('Unexpected API response structure', response.data)
+            productsData = []
+          }
         }
 
         this.items = productsData.map(item => {
@@ -224,6 +243,8 @@ export default {
         })
       } catch (error) {
         console.error('Error fetching products:', error)
+        this.items = []
+        this.toast.error('無法載入商品資料')
       }
     },
     selectCategory (cat) {

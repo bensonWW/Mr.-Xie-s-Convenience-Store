@@ -163,6 +163,7 @@ async function removeItem (id) {
     if (appliedCoupon.value) {
       applyCoupon()
     }
+    window.dispatchEvent(new CustomEvent('cart:updated'))
     toast.info('已刪除商品')
   } catch (error) {
     console.error('Remove item error:', error)
@@ -181,6 +182,7 @@ async function updateQuantity (item, change) {
     if (appliedCoupon.value) {
       applyCoupon()
     }
+    window.dispatchEvent(new CustomEvent('cart:updated'))
   } catch (error) {
     console.error('Update quantity error:', error)
     toast.error('更新數量失敗')
@@ -216,6 +218,7 @@ async function checkout () {
     discountAmount.value = 0
     appliedCoupon.value = null
     selectedCouponId.value = ''
+    window.dispatchEvent(new CustomEvent('cart:updated'))
     // Refresh balance just in case user stays here? Usually redirect.
     router.push('/profile')
   } catch (error) {
