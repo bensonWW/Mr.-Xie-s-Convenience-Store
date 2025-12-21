@@ -116,7 +116,7 @@ export default {
     return {
       showOrderDetails: false,
       selectedOrder: null,
-      currentTab: this.activeTab,
+      currentTab: this.activeTab
     }
   },
   computed: {
