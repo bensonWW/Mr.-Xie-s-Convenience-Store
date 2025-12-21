@@ -70,6 +70,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/products/{id}', [ProductController::class, 'update']);
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
         Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+        Route::put('/orders/{id}/logistics', [OrderController::class, 'updateLogistics']);
         Route::put('/stores/{id}', [StoreController::class, 'update']);
     });
 });

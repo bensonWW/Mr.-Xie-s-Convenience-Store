@@ -112,70 +112,50 @@ export default {
     orders: {
       type: Array,
       default: () => []
+    },
+    activeTab: {
+      type: String,
+      default: 'all'
     }
   },
-  emits: ['order-updated'],
+  emits: ['order-updated', 'filter-change'],
   data () {
     return {
       showOrderDetails: false,
       selectedOrder: null,
-      currentTab: 'all',
+      currentTab: this.activeTab,
       tabs: [
         { label: '全部', value: 'all' },
         { label: '處理中', value: 'processing' },
         { label: '已出貨', value: 'shipped' },
         { label: '已送達', value: 'delivered' },
         { label: '已完成', value: 'completed' },
-        { label: '已取消/退款', value: 'refunded' } // Group cancelled/refunded
+        { label: '退貨/取消', value: 'refunded' } // Renamed label slightly for consistency
       ]
     }
   },
-  computed: {
-    // filteredOrders removed as we now filter via API
-  },
   watch: {
-    currentTab () {
-       this.fetchOrders()
+    activeTab (newVal) {
+      if (newVal !== this.currentTab) {
+        this.currentTab = newVal
+      }
+    },
+    currentTab (newVal) {
+      // Avoid infinite loop if prop update triggered it
+       if (newVal !== this.activeTab) {
+         this.$emit('filter-change', newVal)
+       }
+       // We don't fetch here anymore, the parent listens to 'filter-change' and fetches.
+       // But wait, the parent fetch updates 'orders' prop.
     }
   },
   mounted () {
-    this.fetchOrders()
+    // Initial fetch handled by parent usually, or we trigger it?
+    // Parent created hook calls fetchOrders('all').
   },
   methods: {
-    async fetchOrders () {
-      try {
-        const params = {}
-        if (this.currentTab !== 'all') {
-           // Map 'refunded' tab to 'cancelled' status if backend doesn't support grouping yet, or handle multiple.
-           // For now simple mapping:
-           if (this.currentTab === 'refunded') {
-             // Backend doesn't support array for status yet in our simple change, 
-             // so let's just fetch all and filter locally for this special complex tab, 
-             // OR fetch 'cancelled' and 'refunded' separately?
-             // Let's stick to fetch all for 'refunded' tab for now to avoid complexity, 
-             // or just search 'cancelled'.
-             params.status = 'cancelled' 
-           } else {
-             params.status = this.currentTab
-           }
-        }
-        
-        const response = await api.get('/orders', { params })
-        this.$emit('update:orders', response.data) // If parent controls orders
-        // But wait, props says 'orders'. The component doesn't fetch itself in original code?
-        // Original code: "fetchOrders" method calls api.get('/orders') and sets "this.orders = ..." in ProfileView!
-        // OrderHistory received "orders" as prop.
-        // So I should emit event to parent to fetch with filter?
-        // OR refactor OrderHistory to fetch its own data?
-        // The instructions say "Update OrderHistory.vue".
-        // Let's change ProfileView to handle the filter change event from OrderHistory.
-        
-        // Actually, let's keep it simple: Emitting an event 'filter-change' to parent is better design.
-        this.$emit('filter-change', this.currentTab)
-      } catch (e) {
-        console.error(e)
-      }
-    },
+    // fetchOrders removed, we rely on parent via filter-change event.
+    // Ensure helper methods are kept.
     formatDate (dateString) {
       return new Date(dateString).toLocaleDateString()
     },

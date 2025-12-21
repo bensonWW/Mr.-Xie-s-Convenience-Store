@@ -183,6 +183,18 @@ class OrderController extends Controller
 
         return response()->json($order);
     }
+
+    public function updateLogistics(Request $request, $id)
+    {
+        $request->validate([
+            'logistics_number' => 'nullable|string|max:255'
+        ]);
+
+        $order = Order::findOrFail($id);
+        $order->update(['logistics_number' => $request->logistics_number]);
+
+        return response()->json($order);
+    }
     public function refund(Request $request, $id)
     {
         $order = Order::findOrFail($id);

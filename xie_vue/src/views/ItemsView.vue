@@ -134,6 +134,9 @@ export default {
     }
   },
   created () {
+    if (this.$route.query.category) {
+      this.selectedCategory = this.$route.query.category
+    }
     this.fetchCategories()
     this.fetchProducts()
   },

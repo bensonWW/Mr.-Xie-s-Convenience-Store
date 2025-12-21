@@ -22,26 +22,17 @@
                 :user="user"
                 :coupons="coupons"
                 :orders="orders"
+                @filter-selected="handleDashboardFilter"
               />
-              <div class="mt-8">
-                 <h3 class="font-bold text-gray-800 mb-4">猜你喜歡 (Todo: Component)</h3>
-                 <!-- ... keep existing static content or refactor later ... -->
-                  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div class="bg-white rounded-lg shadow-sm p-3 hover:shadow-md transition cursor-pointer">
-                          <div class="bg-gray-100 h-24 rounded mb-2 flex items-center justify-center text-gray-300"><i class="fas fa-image"></i></div>
-                          <div class="text-xs text-gray-800 font-bold line-clamp-1">Apple Watch S9 GPS</div>
-                          <div class="text-xieOrange font-bold text-sm mt-1">NT$ 13,500</div>
-                      </div>
-                      <!-- More items -->
-                  </div>
-              </div>
+              <!-- Removed duplicate Todo Component placeholder from view -->
             </div>
 
             <OrderHistory
               v-if="currentView === 'dashboard' || currentView === 'orders'"
               :orders="orders"
+              :active-tab="activeOrderTab"
               @order-updated="fetchOrders"
-              @filter-change="fetchOrders"
+              @filter-change="handleOrderFilterChange"
             />
 
             <CouponWallet
@@ -111,7 +102,8 @@ export default {
       orders: [],
       coupons: [],
       wishlist: [],
-      currentView: 'dashboard'
+      currentView: 'dashboard',
+      activeOrderTab: 'all'
     }
   },
   computed: {
@@ -133,7 +125,7 @@ export default {
       immediate: true,
       handler (newVal) {
         if (newVal) {
-          this.fetchOrders()
+          this.fetchOrders() // Initial fetch (all)
           this.fetchCoupons()
           this.fetchWishlist()
         } else {
@@ -168,6 +160,22 @@ export default {
       } catch (error) {
         console.error('Error fetching orders:', error)
       }
+    },
+    handleOrderFilterChange (status) {
+       this.activeOrderTab = status
+       // No need to fetch here, OrderHistory watcher will typically handle it, 
+       // OR if OrderHistory relies on parent to fetch, we do it here.
+       // The existing OrderHistory invokes parent via @filter-change usually?
+       // Wait, existing OrderHistory called fetchOrders internally then emitted data?
+       // No, my analysis of OrderHistory showed it emits 'filter-change'.
+       // Let's ensure alignment.
+       this.fetchOrders(status)
+    },
+    handleDashboardFilter (status) {
+       this.activeOrderTab = status
+       // Scroll to order history or ensure it's visible?
+       // It is visible in dashboard view.
+       this.fetchOrders(status)
     },
     async fetchCoupons () {
       try {
@@ -204,6 +212,7 @@ export default {
       this.user = updatedUser
       this.currentView = 'dashboard'
     },
+
     onAvatarChange (file) {
       if (file) {
         const reader = new FileReader()

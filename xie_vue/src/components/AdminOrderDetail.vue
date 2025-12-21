@@ -72,7 +72,10 @@
                     </div>
                     <div>
                         <span class="block text-gray-500 mb-1">物流單號</span>
-                        <input type="text" placeholder="輸入物流單號" class="border rounded px-2 py-1 w-full text-sm mt-1 focus:border-xieOrange focus:outline-none">
+                        <div class="flex gap-2 mt-1">
+                            <input v-model="order.logistics_number" type="text" placeholder="輸入物流單號" class="border rounded px-2 py-1 flex-1 text-sm focus:border-xieOrange focus:outline-none">
+                            <button @click="updateLogistics" class="bg-gray-100 text-gray-600 px-3 py-1 rounded text-xs hover:bg-gray-200 border border-gray-200">儲存</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -169,6 +172,16 @@ export default {
       try {
         await api.put(`/admin/orders/${this.order.id}/status`, { status: this.order.status })
         this.$toast.success('狀態更新成功')
+      } catch (e) {
+        console.error(e)
+        this.$toast.error('更新失敗')
+      }
+    },
+
+    async updateLogistics () {
+      try {
+        await api.put(`/admin/orders/${this.order.id}/logistics`, { logistics_number: this.order.logistics_number })
+        this.$toast.success('物流單號已更新')
       } catch (e) {
         console.error(e)
         this.$toast.error('更新失敗')
