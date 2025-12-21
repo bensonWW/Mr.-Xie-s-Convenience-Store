@@ -41,9 +41,10 @@
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">{{ item.name }}</h1>
                 <div class="text-sm text-gray-500 mb-4">商品編號：{{ item.id }} | 分類：{{ formatCategory(item.category) }}</div>
 
-                <div class="bg-orange-50 p-4 rounded-lg mb-6 flex items-baseline gap-3">
-                    <span class="text-xs text-gray-500">特價</span>
+                <div class="bg-orange-50 p-4 rounded-lg mb-6 flex items-end gap-3">
+                    <span class="text-xs text-gray-500 mb-1">特價</span>
                     <div class="text-4xl font-bold text-xieOrange">NT$ {{ item.price ? item.price.toLocaleString() : 0 }}</div>
+                    <div v-if="item.original_price" class="text-sm text-gray-400 line-through mb-1">NT$ {{ Number(item.original_price).toLocaleString() }}</div>
                 </div>
 
                 <ul class="space-y-2 text-gray-600 mb-6 text-sm">

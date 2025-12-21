@@ -18,7 +18,7 @@ class AdminController extends Controller
     {
         return Cache::remember('admin_stats', 60, function () { // Reduced cache time for realtime feel
             // 1. Total Consumption (Actual Revenue)
-            $totalSales = abs(\App\Models\WalletTransaction::where('type', 'payment')->sum('amount'));
+            $totalSales = Order::whereIn('status', ['processing', 'shipped', 'completed'])->sum('total_amount');
 
             // 2. Counts
             $orderCount = Order::count();
@@ -57,12 +57,12 @@ class AdminController extends Controller
 
             for ($i = 6; $i >= 0; $i--) {
                 $date = now()->subDays($i)->format('Y-m-d');
-                $sum = \App\Models\WalletTransaction::where('type', 'payment')
+                $sum = Order::whereIn('status', ['processing', 'shipped', 'completed'])
                     ->whereDate('created_at', $date)
-                    ->sum('amount');
+                    ->sum('total_amount');
 
                 $chartData['labels'][] = now()->subDays($i)->format('m/d');
-                $chartData['values'][] = abs($sum); // Convert negative payment to positive revenue
+                $chartData['values'][] = $sum;
             }
 
             return [
