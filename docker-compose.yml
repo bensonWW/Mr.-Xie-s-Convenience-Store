@@ -1,20 +1,41 @@
+# ===========================================
+# Mr. Xie's Convenience Store - Development
+# ===========================================
+
 services:
+  # Laravel Backend (PHP-FPM)
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    image: mr-xies-app
+    image: mr-xies-app:dev
     container_name: mr-xies-app
     restart: unless-stopped
     working_dir: /var/www
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_HOST: db
+      REDIS_HOST: redis
+      MEILISEARCH_HOST: meilisearch
     volumes:
       - .:/var/www
+      - ./docker/php/opcache-dev.ini:/usr/local/etc/php/conf.d/opcache.ini
     networks:
       - app-network
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: [ "CMD", "php-fpm", "-t" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
+  # Nginx Web Server
   web:
     image: nginx:alpine
     container_name: mr-xies-nginx
@@ -28,7 +49,14 @@ services:
       - app
     networks:
       - app-network
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health.php" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
+  # MySQL Database
   db:
     image: mysql:8.0
     container_name: mr-xies-db
@@ -38,43 +66,67 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
       MYSQL_PASSWORD: ${DB_PASSWORD:-root}
       MYSQL_USER: ${DB_USERNAME:-laravel}
-      MYSQL_ALLOW_EMPTY_PASSWORD: 1
     volumes:
       - dbdata:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
     networks:
       - app-network
     ports:
       - "3306:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-root}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
+  # Redis Cache
   redis:
     image: redis:alpine
     container_name: mr-xies-redis
     restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redisdata:/data
     networks:
       - app-network
     ports:
       - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
+  # Meilisearch
   meilisearch:
     image: getmeili/meilisearch:latest
     container_name: mr-xies-meilisearch
     ports:
       - "7700:7700"
     environment:
-      - MEILI_MASTER_KEY=${MEILISEARCH_KEY:-masterKey}
+      MEILI_MASTER_KEY: ${MEILISEARCH_KEY:-masterKey}
+      MEILI_ENV: development
     volumes:
       - meili_data:/meili_data
     networks:
       - app-network
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:7700/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
+  # Vue Frontend (Development with hot reload)
   frontend:
     build:
       context: ./xie_vue
       dockerfile: Dockerfile
       args:
-
         VUE_APP_API_URL: "http://localhost:8000/api"
-    image: mr-xies-vue
+    image: mr-xies-vue:dev
     container_name: mr-xies-vue
     restart: unless-stopped
     ports:
@@ -88,4 +140,8 @@ networks:
 
 volumes:
   dbdata:
+    driver: local
+  redisdata:
+    driver: local
   meili_data:
+    driver: local
