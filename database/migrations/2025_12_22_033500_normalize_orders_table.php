@@ -23,16 +23,15 @@ return new class extends Migration
                 'updated_at' => $order->updated_at,
             ]);
 
-            // Snapshot
+            // Snapshot - all data goes into single 'data' JSON column
             $snapshotData = [
                 'member_level' => $order->snapshot_member_level ?? null,
-                // Add any other legacy snapshot fields if they existed
+                'buyer_email' => $order->buyer_email ?? null,
             ];
 
             DB::table('order_snapshots')->insert([
                 'order_id' => $order->id,
-                'buyer_email' => $order->buyer_email ?? null,
-                'snapshot_data' => json_encode($snapshotData),
+                'data' => json_encode($snapshotData),
                 'created_at' => $order->created_at,
                 'updated_at' => $order->updated_at,
             ]);
@@ -75,8 +74,10 @@ return new class extends Migration
             }
             if (isset($snapshots[$order->id])) {
                 $snap = $snapshots[$order->id];
-                $update['buyer_email'] = $snap->buyer_email;
-                $data = json_decode($snap->snapshot_data, true);
+                $data = json_decode($snap->data, true);
+                if (isset($data['buyer_email'])) {
+                    $update['buyer_email'] = $data['buyer_email'];
+                }
                 if (isset($data['member_level'])) {
                     $update['snapshot_member_level'] = $data['member_level'];
                 }
