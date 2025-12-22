@@ -230,6 +230,8 @@ export default {
             productsData = []
           }
         }
+        // Assign parsed products to component state so the UI can render them
+        this.items = productsData
       } catch (error) {
         console.error('Error fetching products:', error)
         this.items = []

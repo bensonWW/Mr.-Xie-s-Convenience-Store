@@ -40,6 +40,7 @@
 
 <script>
 import api from '../../services/api'
+import { useToast } from 'vue-toastification'
 
 export default {
   name: 'UserTopUpModal',
@@ -50,6 +51,10 @@ export default {
     }
   },
   emits: ['close', 'success'],
+  setup () {
+    const toast = useToast()
+    return { toast }
+  },
   data () {
     return {
       topUpAmount: 1000,
@@ -75,8 +80,10 @@ export default {
         this.$emit('success', res.data)
         this.close()
       } catch (e) {
-        console.error(e)
-        this.$toast.error('儲值失敗')
+        console.error('Top-up error:', e)
+        const status = e.response?.status
+        const backendMessage = e.response?.data?.message || e.response?.data?.error
+        this.toast.error(`儲值失敗 (狀態: ${status ?? '未知'})${backendMessage ? '：' + backendMessage : ''}`)
       } finally {
         this.loading = false
       }

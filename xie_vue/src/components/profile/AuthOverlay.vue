@@ -85,16 +85,14 @@ export default {
           password: this.loginPassword
         })
 
-        // Notify parent or reload
+        // 成功後停留本頁，不做全頁跳轉/重整
         this.toast.success('登入成功！')
-        setTimeout(() => {
-          const redirect = this.$route.query.redirect
-          if (redirect) {
-            window.location.href = redirect
-          } else {
-            window.location.reload()
-          }
-        }, 1000)
+        // 視圖會因為 isLoggedIn 變為 true 而自動切到會員中心
+        // 若一定需要導回特定頁面，使用 SPA 導航即可保留 Toast：
+        // const redirect = this.$route.query.redirect
+        // if (redirect && typeof redirect === 'string' && redirect.startsWith('/')) {
+        //   this.$router.replace(redirect)
+        // }
       } catch (error) {
         console.error('Login error:', error)
         this.toast.error('登入失敗，請檢查帳號密碼。')
@@ -117,12 +115,16 @@ export default {
           password: this.registerPassword,
           password_confirmation: this.registerPasswordConfirm
         })
-        const { access_token: accessToken } = response.data
-        localStorage.setItem('token', accessToken)
+        const { access_token: accessToken, user } = response.data
 
-        // Notify parent or reload
+        // 不重整，直接更新 Vuex 狀態並觸發登入態
+        this.$store.commit('SET_TOKEN', accessToken)
+        if (user) this.$store.commit('SET_USER', user)
+        // 再保險一次請求用戶資料（若後端在註冊回傳無完整 user）
+        this.$store.dispatch('checkAuth').catch(() => {})
+
         this.toast.success('註冊成功！')
-        setTimeout(() => window.location.reload(), 1000)
+        // 視圖會因為 isLoggedIn 變為 true 而自動切到會員中心
       } catch (error) {
         console.error('Register error:', error)
         if (error.response && error.response.data) {

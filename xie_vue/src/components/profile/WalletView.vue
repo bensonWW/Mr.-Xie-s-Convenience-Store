@@ -4,7 +4,7 @@
     <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-xieOrange flex justify-between items-center transition hover:shadow-md">
         <div>
             <h3 class="text-gray-500 text-sm font-bold tracking-wide">我的錢包餘額</h3>
-            <div class="text-3xl font-bold text-xieOrange mt-1">NT$ {{ formatNumber(balance) }}</div>
+            <div class="text-3xl font-bold text-xieOrange mt-1">{{ formatPrice(balance) }}</div>
         </div>
         <button @click="showTopUpModal = true" class="bg-xieOrange text-white px-6 py-2 rounded font-bold hover:bg-orange-600 transition shadow-md flex items-center gap-2">
             <i class="fas fa-plus-circle"></i> 儲值
@@ -36,7 +36,7 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 font-bold" :class="isPositive(t.type) ? 'text-green-600' : 'text-red-600'">
-                            {{ isPositive(t.type) ? '+' : '-' }}${{ formatNumber(Math.abs(t.amount)) }}
+                          {{ isPositive(t.type) ? '+' : '-' }}{{ formatPrice(Math.abs(t.amount)) }}
                         </td>
                         <td class="px-6 py-4 text-gray-600">{{ t.description }}</td>
                     </tr>
@@ -60,12 +60,18 @@
 
 <script>
 import api from '../../services/api'
+import { formatPrice } from '../../utils/currency'
 import UserTopUpModal from './UserTopUpModal.vue'
+import { useToast } from 'vue-toastification'
 
 export default {
   name: 'WalletView',
   components: {
     UserTopUpModal
+  },
+  setup () {
+    const toast = useToast()
+    return { toast }
   },
   data () {
     return {
@@ -78,6 +84,7 @@ export default {
     this.fetchWallet()
   },
   methods: {
+    formatPrice,
     async fetchWallet () {
       try {
         const res = await api.get('/user/wallet')
@@ -93,7 +100,7 @@ export default {
         if (data.transaction) {
           this.transactions.unshift(data.transaction)
         }
-        this.$toast.success('儲值成功！')
+        this.toast.success('儲值成功！')
       } else {
         // Fallback re-fetch if data is incomplete
         this.fetchWallet()
@@ -103,13 +110,11 @@ export default {
       if (!dateString) return ''
       return new Date(dateString).toLocaleString()
     },
-    formatNumber (val) {
-      return Number(val).toLocaleString()
-    },
     getTypeName (type) {
       const map = {
         deposit: '儲值',
         withdraw: '提領/扣款',
+        withdrawal: '提領/扣款',
         payment: '消費支付',
         refund: '退款'
       }
@@ -119,6 +124,7 @@ export default {
       const map = {
         deposit: 'bg-green-100 text-green-700',
         withdraw: 'bg-red-100 text-red-700',
+        withdrawal: 'bg-red-100 text-red-700',
         payment: 'bg-blue-100 text-blue-700',
         refund: 'bg-purple-100 text-purple-700'
       }
