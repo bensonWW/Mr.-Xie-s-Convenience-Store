@@ -34,7 +34,7 @@
                 </div>
               </td>
               <td class="p-4 font-bold text-gray-800">{{ prod.name }}</td>
-              <td class="p-4 text-xieOrange font-bold">${{ prod.price }}</td>
+              <td class="p-4 text-xieOrange font-bold">{{ formatPrice(prod.price) }}</td>
               <td class="p-4 text-gray-600"><span class="bg-gray-100 px-2 py-1 rounded text-xs">{{ prod.category }}</span></td>
               <td class="p-4">
                 <span :class="prod.stock < 10 ? 'text-red-500 font-bold' : 'text-green-600'">{{ prod.stock }}</span>
@@ -81,6 +81,7 @@
 
 <script>
 import api from '../services/api'
+import { formatPrice } from '../utils/currency'
 
 export default {
   name: 'AdminProducts',
@@ -96,6 +97,7 @@ export default {
     this.fetchProducts()
   },
   methods: {
+    formatPrice,
     async fetchProducts (page = 1) {
       try {
         const res = await api.get(`/admin/products?page=${page}`)

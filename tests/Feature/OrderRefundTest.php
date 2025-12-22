@@ -64,17 +64,17 @@ class OrderRefundTest extends TestCase
             ->postJson("/api/orders/{$order->id}/refund");
 
         $response->assertStatus(200)
-            ->assertJsonPath('order.status', 'refunded');
+            ->assertJsonPath('order.status', 'cancelled');
 
         // 3. Verify Balance Restored
         $this->assertEquals($initialBalance + 200, $walletService->getBalance($this->user));
 
-        // Verify Transaction Log
+        // Verify Transaction Log (using order_id now instead of reference_id)
         $this->assertDatabaseHas('wallet_transactions', [
             'user_id' => $this->user->id,
             'type' => 'refund',
             'amount' => 200,
-            'reference_id' => "ORDER_REFUND_{$order->id}"
+            'order_id' => $order->id
         ]);
 
         // Verify Stock Restored
@@ -106,14 +106,14 @@ class OrderRefundTest extends TestCase
             ->postJson("/api/orders/{$order->id}/refund");
 
         $response->assertStatus(200);
-        $this->assertEquals('refunded', $order->fresh()->status);
+        $this->assertEquals('cancelled', $order->fresh()->status->value);
     }
 
     public function test_cannot_refund_already_refunded_order()
     {
         $order = Order::create([
             'user_id' => $this->user->id,
-            'status' => 'refunded',
+            'status' => 'cancelled',
             'total_amount' => 100
         ]);
 
@@ -138,7 +138,7 @@ class OrderRefundTest extends TestCase
             ->postJson("/api/orders/{$order->id}/refund");
 
         $response->assertStatus(200);
-        $this->assertEquals('cancelled', $order->fresh()->status);
+        $this->assertEquals('cancelled', $order->fresh()->status->value);
 
         // Balance unchanged
         $this->assertEquals($initialBalance, app(WalletService::class)->getBalance($this->user));

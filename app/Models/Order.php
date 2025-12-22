@@ -8,13 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * @property int $id
  * @property int $user_id
- * @property string $status
+ * @property \App\Enums\OrderStatus $status
  * @property float $total_amount
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\User $user
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\OrderItem[] $items
- * @mixin \Illuminate\Database\Eloquent\Builder
+ * @property-read \App\Models\OrderAddress|null $address
+ * @property-read \App\Models\OrderSnapshot|null $snapshot
  */
 class Order extends Model
 {
@@ -28,11 +29,15 @@ class Order extends Model
         'shipping_fee',
         'payment_method',
         'logistics_number',
-        'snapshot_data',
+        // 'buyer_email', // Moved to Snapshot
+        // 'shipping_name', // Moved to Address
+        // 'shipping_phone', // Moved to Address
+        // 'shipping_address', // Moved to Address
+        // 'snapshot_member_level', // Moved to Snapshot
     ];
 
     protected $casts = [
-        'snapshot_data' => 'array',
+        'status' => \App\Enums\OrderStatus::class,
     ];
 
     public function user()
@@ -45,17 +50,13 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    protected static function booted()
+    public function address()
     {
-        static::creating(function ($order) {
-            if (empty($order->logistics_number)) {
-                $date = now()->format('Ymd');
-                $unique = strtoupper(substr(uniqid(), -5));
-                $order->logistics_number = "LOGI-{$date}-{$unique}";
-            }
-            if (empty($order->payment_method)) {
-                $order->payment_method = 'wallet';
-            }
-        });
+        return $this->hasOne(OrderAddress::class);
+    }
+
+    public function snapshot()
+    {
+        return $this->hasOne(OrderSnapshot::class);
     }
 }

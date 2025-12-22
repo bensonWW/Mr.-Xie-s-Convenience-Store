@@ -34,8 +34,8 @@
             <a href="#">{{ item.name }}</a>
           </h3>
           <div class="flex items-end gap-2 mb-4">
-            <span class="text-xl font-bold" :class="item.status === 'available' ? 'text-xieOrange' : 'text-gray-500'">NT$ {{ item.price.toLocaleString() }}</span>
-            <span v-if="item.original_price" class="text-xs text-gray-400 line-through mb-1">NT$ {{ item.original_price.toLocaleString() }}</span>
+            <span class="text-xl font-bold" :class="item.status === 'available' ? 'text-xieOrange' : 'text-gray-500'">{{ formatPrice(item.price) }}</span>
+            <span v-if="item.original_price" class="text-xs text-gray-400 line-through mb-1">{{ formatPrice(item.original_price) }}</span>
           </div>
 
           <button v-if="item.status === 'available'" class="w-full bg-xieOrange text-white py-2 rounded font-bold hover:bg-orange-600 transition flex items-center justify-center gap-2" @click="addToCartFromWishlist(item)">
@@ -60,6 +60,7 @@
 <script>
 import { useToast } from 'vue-toastification'
 import api from '../../services/api'
+import { formatPrice } from '../../utils/currency'
 
 export default {
   name: 'WishlistGrid',
@@ -75,6 +76,7 @@ export default {
     return { toast }
   },
   methods: {
+    formatPrice,
     async removeFromWishlist (id) {
       if (confirm('確定要將此商品移出追蹤清單嗎？')) {
         try {

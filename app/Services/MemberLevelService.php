@@ -4,26 +4,35 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Order;
+use App\Models\MemberLevel;
 
 class MemberLevelService
 {
     /**
-     * Calculate discount for a user based on subtotal.
+     * Calculate discount for a user based on subtotal (in cents).
      *
      * @param User $user
-     * @param float $subtotal
-     * @return float
+     * @param int $subtotal
+     * @return int
      */
-    public function calculateDiscount(User $user, float $subtotal): float
+    public function calculateDiscount(User $user, int $subtotal): int
     {
-        $level = $user->member_level ?? 'normal';
-        $config = config("shop.levels.{$level}");
+        // Get discount from the normalized MemberLevel model
+        $level = $user->memberLevelModel;
 
-        if (!$config || !isset($config['discount'])) {
-            return 0.00;
+        if (!$level) {
+            // Fallback: try to find by slug (backward compatibility)
+            $slug = $user->member_level ?? 'normal';
+            $level = MemberLevel::findBySlug($slug);
         }
 
-        return round($subtotal * $config['discount'], 2);
+        if (!$level || $level->discount <= 0) {
+            return 0;
+        }
+
+        // Discount is a decimal e.g. 0.05 for 5% off.
+        // Result should be rounded to nearest cent.
+        return (int) round($subtotal * $level->discount);
     }
 
     /**
@@ -34,32 +43,47 @@ class MemberLevelService
      */
     public function checkAndUpgrade(User $user): void
     {
+        // Skip if level is locked by admin
+        if ($user->is_level_locked) {
+            return;
+        }
+
         // Calculate total spent from COMPLETED or PROCESSING (Paid) orders
         $totalSpent = Order::where('user_id', $user->id)
             ->whereIn('status', ['completed', 'processing'])
             ->sum('total_amount');
 
-        $levels = config('shop.levels');
+        // Get all levels sorted by threshold descending
+        $levels = MemberLevel::orderBy('threshold', 'desc')->get();
 
-        // Sort levels by threshold descending
-        uasort($levels, function ($a, $b) {
-            return $b['threshold'] <=> $a['threshold'];
-        });
-
-        $currentLevel = $user->member_level;
-        $newLevel = 'normal';
-
-        foreach ($levels as $key => $data) {
-            if ($totalSpent >= $data['threshold']) {
-                $newLevel = $key;
+        $newLevel = null;
+        foreach ($levels as $level) {
+            if ($totalSpent >= $level->threshold) {
+                $newLevel = $level;
                 break;
             }
         }
 
+        // Fallback to normal if no level matched
+        if (!$newLevel) {
+            $newLevel = MemberLevel::findBySlug('normal');
+        }
+
         // Update if level changed
-        if ($newLevel !== $currentLevel) {
-            $user->member_level = $newLevel;
+        if ($newLevel && $user->member_level_id !== $newLevel->id) {
+            $user->member_level_id = $newLevel->id;
+            $user->member_level = $newLevel->slug; // Keep for SQLite compatibility
             $user->save();
         }
+    }
+
+    /**
+     * Get all available member levels.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getAllLevels()
+    {
+        return MemberLevel::orderBy('threshold', 'asc')->get();
     }
 }
