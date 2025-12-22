@@ -115,7 +115,7 @@
 import api from '../services/api'
 import { useToast } from 'vue-toastification'
 import { formatPrice } from '../utils/currency'
-import { resolveImageUrl } from '../utils/image'
+// import { resolveImageUrl } from '../utils/image'
 import { useCartStore } from '../stores/cart' // Import Store
 
 export default {
