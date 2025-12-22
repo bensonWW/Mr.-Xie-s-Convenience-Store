@@ -147,21 +147,35 @@ async function applyCoupon () {
 
 async function removeItem (id) {
   if (!confirm('確定要刪除此商品嗎？')) return
-  await cartStore.removeItem(id)
-  // Re-validate coupon if total changed
-  if (appliedCoupon.value) {
-     applyCoupon()
+  try {
+    await cartStore.removeItem(id)
+    // Re-validate coupon if total changed
+    if (appliedCoupon.value) {
+      applyCoupon()
+    }
+  } catch (error) {
+    console.error('Remove item error (CarView):', error)
+    const status = error.response?.status
+    const backendMessage = error.response?.data?.message || error.response?.data?.error
+    toast.error(`刪除失敗 (狀態: ${status ?? '未知'})${backendMessage ? '：' + backendMessage : ''}`)
   }
 }
 
 async function updateQuantity (item, change) {
   const newQty = item.quantity + change
   if (newQty < 1) return
-  await cartStore.updateItem(item.id, newQty) 
-   // Re-validate coupon if total changed
-   if (appliedCoupon.value) {
+  try {
+    await cartStore.updateItem(item.id, newQty)
+    // Re-validate coupon if total changed
+    if (appliedCoupon.value) {
       applyCoupon()
-   }
+    }
+  } catch (error) {
+    console.error('Update quantity error (CarView):', error)
+    const status = error.response?.status
+    const backendMessage = error.response?.data?.message || error.response?.data?.error
+    toast.error(`更新數量失敗 (狀態: ${status ?? '未知'})${backendMessage ? '：' + backendMessage : ''}`)
+  }
 }
 
 async function checkout () {

@@ -46,7 +46,7 @@
       <div v-if="filteredItems.length === 0" class="col-span-12 text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
           <i class="fas fa-box-open text-4xl mb-4 text-gray-300"></i>
           <p>找不到相關商品</p>
-          <button @click="selectCategory('All')" class="mt-4 text-xieOrange underline text-sm">瀏覽所有商品</button>
+          <button @click="showAll" class="mt-4 text-xieOrange underline text-sm">瀏覽所有商品</button>
       </div>
 
       <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -78,7 +78,6 @@
         </div>
       </div>
 
-      <!-- Pagination -->
       <!-- Pagination -->
       <div class="mt-8 flex justify-center space-x-2" v-if="pagination.last_page > 1">
         <button
@@ -116,13 +115,13 @@ import api from '../services/api'
 import { useToast } from 'vue-toastification'
 import { formatPrice } from '../utils/currency'
 import { resolveImageUrl } from '../utils/image'
-import { useCartStore } from '../stores/cart' // Import Store
+import { useCartStore } from '../stores/cart'
 
 export default {
   name: 'ItemsView',
   setup () {
     const toast = useToast()
-    const cartStore = useCartStore() // Setup store
+    const cartStore = useCartStore()
     return { toast, cartStore }
   },
   data () {
@@ -149,7 +148,7 @@ export default {
       if (this.$route.query.search) {
         return `搜尋: "${this.$route.query.search}"`
       }
-      return `${this.selectedCategoryName}商品`
+      return this.selectedCategoryName ? `${this.selectedCategoryName}商品` : '所有商品'
     },
     selectedCategoryName () {
       if (typeof this.selectedCategory === 'object' && this.selectedCategory !== null) {
@@ -174,8 +173,6 @@ export default {
         })
         .filter(cat => cat.displayName && typeof cat.displayName === 'string' && !cat.displayName.includes('[object'))
     },
-    // We no longer filter client side because we have pagination.
-    // The items in `this.items` are already filtered by the server.
     filteredItems () {
       return this.items
     }
@@ -190,19 +187,21 @@ export default {
       }
       try {
         await this.cartStore.addToCart(item.id, 1)
-        // store shows success toast; keep optional contextual message if desired
       } catch (error) {
         console.error('Add to cart error (ItemsView):', error)
-        // store already shows detailed error toast
+        const status = error.response?.status
+        const backendMessage = error.response?.data?.message || error.response?.data?.error
+        if (!backendMessage) {
+          this.toast.error(`加入購物車失敗${status ? ` (狀態: ${status})` : ''}`)
+        }
       }
     },
     async fetchCategories () {
       try {
         const response = await api.get('/categories')
         this.categories = response.data
-        // Use validCategories for initial selection
         if (this.validCategories.length > 0 && !this.selectedCategory && !this.$route.query.search) {
-          this.selectedCategory = this.validCategories[0]
+          this.selectedCategory = this.validCategories[0].displayName
           this.fetchProducts(1)
         }
       } catch (error) {
@@ -213,27 +212,34 @@ export default {
       try {
         const params = {
           page: page,
-          category: this.selectedCategoryName !== 'All' ? this.selectedCategoryName : undefined,
+          category: this.selectedCategoryName || undefined,
           search: this.$route.query.search
         }
 
         const response = await api.get('/products', { params })
 
-        // Standard Laravel Pagination Response Expected
-        if (response.data && response.data.data) {
-           this.items = response.data.data.map(item => ({
-             ...item,
-             img: resolveImageUrl(item.image)
-           }))
-           this.pagination = {
-             current_page: response.data.current_page,
-             last_page: response.data.last_page,
-             total: response.data.total
-           }
-        } else {
-           console.warn('Unexpected API format, fallback to empty', response.data)
-           this.items = []
+        let productsData = []
+        if (Array.isArray(response.data)) {
+          productsData = response.data
+          this.pagination = { current_page: 1, last_page: 1, total: productsData.length }
+        } else if (response.data && typeof response.data === 'object') {
+          if (Array.isArray(response.data.data)) {
+            productsData = response.data.data
+            this.pagination = {
+              current_page: response.data.current_page || response.data.meta?.current_page || 1,
+              last_page: response.data.last_page || response.data.meta?.last_page || 1,
+              total: response.data.total || response.data.meta?.total || 0
+            }
+          } else {
+            console.warn('Unexpected API response structure', response.data)
+            productsData = []
+          }
         }
+
+        this.items = productsData.map(item => ({
+          ...item,
+          img: resolveImageUrl(item.image)
+        }))
       } catch (error) {
         console.error('Error fetching products:', error)
         this.items = []
@@ -241,16 +247,15 @@ export default {
       }
     },
     selectCategory (cat) {
-      this.selectedCategory = cat
-      const categoryName = cat.name || cat
-      if (this.$route.query.search) {
-        // If searching, clear search to show category
-        this.$router.push({ path: '/items', query: { category: categoryName } })
-      } else {
-        // Update URL to keep state
-        this.$router.push({ path: '/items', query: { category: categoryName } })
-      }
-      this.fetchProducts(1) // Reset to page 1
+      const categoryName = cat.displayName || cat.name || cat
+      this.selectedCategory = categoryName
+      this.$router.push({ path: '/items', query: { category: categoryName } })
+      this.fetchProducts(1)
+    },
+    showAll () {
+      this.selectedCategory = ''
+      this.$router.push({ path: '/items' })
+      this.fetchProducts(1)
     },
     changePage (page) {
       if (page < 1 || page > this.pagination.last_page) return

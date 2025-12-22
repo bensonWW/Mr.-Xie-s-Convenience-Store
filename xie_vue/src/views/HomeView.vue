@@ -80,7 +80,7 @@ export default {
       }
     },
     goToCategory (cat) {
-      const categoryName = cat.name || cat
+      const categoryName = typeof cat === 'string' ? cat : (cat.displayName || cat.name || '')
       this.$router.push({ path: '/items', query: { category: categoryName } })
     }
   }

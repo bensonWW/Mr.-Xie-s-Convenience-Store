@@ -223,7 +223,6 @@ export default {
         await this.cartStore.addToCart(this.item.id, this.qty)
       } catch (error) {
         console.error('Add to cart error (ProductDetail):', error)
-        // Error toast handled in store; keep a fallback just in case
         const status = error.response?.status
         const backendMessage = error.response?.data?.message || error.response?.data?.error
         if (!backendMessage) {
@@ -280,6 +279,7 @@ export default {
     },
     formatCategory (cat) {
       if (Array.isArray(cat)) return cat.join('、')
+      if (cat && typeof cat === 'object') return cat.name || ''
       return cat
     }
   }

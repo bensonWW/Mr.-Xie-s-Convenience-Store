@@ -401,7 +401,6 @@ export default {
         this.balance = user.wallet_balance || 0
         this.transactions = user.wallet_transactions || []
         this.orders = user.orders || []
-        
         // Helper to safely access aggregates
         this.orderCount = user.orders_count || 0
         this.totalSpent = user.orders_sum_total_amount || 0
