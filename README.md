@@ -1,97 +1,295 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://img.icons8.com/color/96/shop--v1.png" alt="Mr. Xie's Convenience Store" width="100"/>
 </p>
 
-## About Laravel
+<h1 align="center">謝老闆便利店 Mr. Xie's Convenience Store</h1>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<p align="center">
+  <strong>現代化全端電商平台</strong><br>
+  Built with Laravel 11 + Vue 3 + Docker
+</p>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+<p align="center">
+  <img src="https://img.shields.io/badge/Laravel-11-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel"/>
+  <img src="https://img.shields.io/badge/Vue.js-3-4FC08D?style=flat-square&logo=vue.js&logoColor=white" alt="Vue.js"/>
+  <img src="https://img.shields.io/badge/PHP-8.3-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP"/>
+  <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL"/>
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker"/>
+</p>
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 📋 目錄
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- [功能特色](#-功能特色)
+- [技術架構](#-技術架構)
+- [快速開始](#-快速開始)
+- [Docker 部署](#-docker-部署)
+- [API 文檔](#-api-文檔)
+- [專案結構](#-專案結構)
+- [開發指南](#-開發指南)
+- [授權條款](#-授權條款)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## ✨ 功能特色
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 🛒 購物系統
+- 商品瀏覽、分類過濾
+- 購物車管理
+- 願望清單
+- 全文搜尋 (Meilisearch)
 
-### Premium Partners
+### 💰 會員與錢包
+- 會員等級制度 (一般/VIP/VVIP)
+- 電子錢包儲值
+- 等級專屬折扣
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 📦 訂單管理
+- 完整訂單流程
+- 訂單狀態追蹤
+- 退款機制
 
-## Contributing
+### 🔐 管理後台
+- 商品管理 (CRUD)
+- 訂單管理
+- 會員管理
+- 優惠券系統
+- 營收報表
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## 🛠 技術架構
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Frontend                             │
+│  Vue 3 + Vue Router + Pinia + Axios + Chart.js             │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                         Nginx                               │
+│              (Reverse Proxy + Static Files)                 │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Laravel Backend                          │
+│  PHP 8.3 + Laravel 11 + Eloquent ORM + Sanctum Auth        │
+└─────────────────────────────────────────────────────────────┘
+                              │
+          ┌───────────────────┼───────────────────┐
+          ▼                   ▼                   ▼
+    ┌──────────┐       ┌──────────┐       ┌──────────────┐
+    │  MySQL   │       │  Redis   │       │ Meilisearch  │
+    │   8.0    │       │  Cache   │       │   Search     │
+    └──────────┘       └──────────┘       └──────────────┘
+```
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 🚀 快速開始
 
-## License
+### 系統需求
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- PHP >= 8.3
+- Composer >= 2.0
+- Node.js >= 18
+- MySQL >= 8.0
+- Redis (可選)
+- Docker & Docker Compose (推薦)
 
-## Kubernetes Deployment
+### 本地安裝
 
-This project includes configuration for deploying to a Kubernetes cluster.
+```bash
+# 1. 克隆專案
+git clone https://github.com/Chester0629/Mr.-Xie-s-Convenience-Store.git
+cd Mr.-Xie-s-Convenience-Store
 
-### Prerequisites
-- Docker
-- Kubernetes Cluster (Minikube, Docker Desktop, or Cloud)
-- `kubectl` CLI
+# 2. 安裝 Backend 依賴
+composer install
+cp .env.example .env
+php artisan key:generate
 
-### Steps
+# 3. 設定資料庫
+# 編輯 .env 設定資料庫連線
+php artisan migrate --seed
 
-1. **Build Docker Images**
-   ```bash
-   # Build Backend
-   docker build -t laravel-backend:latest .
+# 4. 安裝 Frontend 依賴
+cd xie_vue
+npm install
+npm run build  # 或 npm run serve 開發模式
+cd ..
 
-   # Build Frontend
-   docker build -t vue-frontend:latest ./xie_vue
-   ```
+# 5. 啟動服務
+php artisan serve
+```
 
-2. **Generate Secrets**
-   Edit `k8s/02-secret.yaml` and set your `APP_KEY` (base64 encoded) and `DB_PASSWORD` (base64 encoded).
+---
 
-3. **Apply Manifests**
-   ```bash
-   kubectl apply -f k8s/
-   ```
+## 🐳 Docker 部署
 
-4. **Access Application**
-   - The Frontend is exposed via a LoadBalancer service on port 80.
-   - The Backend is internal but can be accessed by the frontend service via DNS `laravel-backend`.
+### 一鍵部署
 
-### Component Overview
-- **MySQL**: Persistent database storage.
-- **Backend**: Scalable Laravel API pods.
-- **Frontend**: Nginx serving Vue.js static files.
-- **Migration Job**: Automatically runs database migrations on deploy.
+```bash
+# Windows
+deploy.bat
+
+# Linux/macOS
+./deploy.sh
+```
+
+### 手動部署
+
+```bash
+# 開發環境
+docker-compose up -d
+
+# 生產環境
+docker-compose -f docker-compose.prod.yml up -d --build
+
+# 執行遷移
+docker exec mr-xies-app php artisan migrate --force
+
+# 優化快取
+docker exec mr-xies-app php artisan config:cache
+docker exec mr-xies-app php artisan route:cache
+```
+
+### 使用 Makefile
+
+```bash
+make up          # 啟動開發環境
+make up-prod     # 啟動生產環境
+make migrate     # 執行遷移
+make fresh       # 重置資料庫 + 種子資料
+make test        # 執行測試
+make logs        # 查看日誌
+make shell       # 進入容器 shell
+```
+
+### 服務端口
+
+| 服務 | 開發環境 | 生產環境 |
+|------|----------|----------|
+| Frontend | http://localhost:8080 | http://localhost |
+| Backend API | http://localhost:8000 | http://localhost/api |
+| MySQL | localhost:3306 | - |
+| Redis | localhost:6379 | - |
+| Meilisearch | localhost:7700 | - |
+
+---
+
+## 📖 API 文檔
+
+### 認證
+
+```bash
+# 登入
+POST /api/login
+Content-Type: application/json
+{
+  "email": "user@example.com",
+  "password": "password"
+}
+
+# 登出
+POST /api/logout
+Authorization: Bearer {token}
+```
+
+### 主要端點
+
+| Method | Endpoint | 說明 |
+|--------|----------|------|
+| GET | `/api/products` | 取得商品列表 |
+| GET | `/api/products/{id}` | 取得商品詳情 |
+| GET | `/api/categories` | 取得分類列表 |
+| GET | `/api/cart` | 取得購物車 |
+| POST | `/api/cart` | 加入購物車 |
+| POST | `/api/orders` | 建立訂單 |
+| GET | `/api/orders` | 取得訂單列表 |
+| GET | `/api/wallet/balance` | 取得錢包餘額 |
+| POST | `/api/wallet/deposit` | 錢包儲值 |
+
+---
+
+## 📁 專案結構
+
+```
+Mr.-Xie-s-Convenience-Store/
+├── app/
+│   ├── Http/Controllers/     # API 控制器
+│   ├── Models/               # Eloquent 模型
+│   └── Services/             # 業務邏輯服務
+├── database/
+│   ├── migrations/           # 資料庫遷移
+│   └── seeders/              # 種子資料
+├── docker/
+│   ├── nginx/                # Nginx 配置
+│   ├── php/                  # PHP-FPM 配置
+│   └── mysql/                # MySQL 配置
+├── tests/
+│   ├── Feature/              # 功能測試
+│   └── Unit/                 # 單元測試
+├── xie_vue/                  # Vue 3 前端
+│   ├── src/
+│   │   ├── components/       # Vue 元件
+│   │   ├── views/            # 頁面視圖
+│   │   ├── stores/           # Pinia 狀態管理
+│   │   └── router/           # Vue Router
+│   └── public/
+├── docker-compose.yml        # 開發環境配置
+├── docker-compose.prod.yml   # 生產環境配置
+├── Dockerfile                # PHP 應用鏡像
+├── Makefile                  # 常用命令
+├── deploy.sh                 # 部署腳本 (Linux)
+└── deploy.bat                # 部署腳本 (Windows)
+```
+
+---
+
+## 👨‍💻 開發指南
+
+### 執行測試
+
+```bash
+# 執行所有測試
+php artisan test
+
+# 或使用 Docker
+make test
+```
+
+### 程式碼風格
+
+```bash
+# PHP (Laravel Pint)
+./vendor/bin/pint
+
+# Vue.js (ESLint)
+cd xie_vue && npm run lint
+```
+
+### 環境變數
+
+複製 `docker/.env.docker` 到 `.env` 並設定以下關鍵變數：
+
+```env
+APP_KEY=              # 執行 php artisan key:generate
+DB_PASSWORD=          # 資料庫密碼
+MEILISEARCH_KEY=      # Meilisearch API 密鑰
+```
+
+---
+
+## 📄 授權條款
+
+本專案採用 [MIT License](LICENSE) 授權。
+
+---
+
+<p align="center">
+  Made with ❤️ by Chester
+</p>

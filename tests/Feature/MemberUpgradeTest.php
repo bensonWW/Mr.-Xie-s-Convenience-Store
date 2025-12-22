@@ -83,8 +83,9 @@ class MemberUpgradeTest extends TestCase
         $response->assertStatus(201);
 
         // 3. Assert
-        // Total should be 100 - 5% = 95
-        $this->assertEquals(95, $response->json('total_amount'));
+        // Total should be: 100 - 5% = 95, plus shipping fee (60) = 155
+        // discount_amount is just the member discount, not including shipping
+        $this->assertEquals(155, $response->json('total_amount')); // 95 + 60 shipping
         $this->assertEquals(5, $response->json('discount_amount'));
     }
 }

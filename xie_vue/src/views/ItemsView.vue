@@ -67,8 +67,8 @@
             </h3>
             <div class="flex items-end justify-between">
               <div>
-                 <div v-if="item.original_price" class="text-xs text-gray-400 line-through">NT$ {{ Number(item.original_price).toLocaleString() }}</div>
-                 <div class="text-xieOrange font-bold text-lg leading-none">NT$ {{ Number(item.price).toLocaleString() }}</div>
+                 <div v-if="item.original_price" class="text-xs text-gray-400 line-through">{{ formatPrice(item.original_price) }}</div>
+                 <div class="text-xieOrange font-bold text-lg leading-none">{{ formatPrice(item.price) }}</div>
               </div>
               <button @click.prevent="addToCart(item)" class="bg-xieOrange text-white p-2 rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md hover:bg-orange-600">
                 <i class="fas fa-cart-plus"></i>
@@ -114,12 +114,16 @@
 <script>
 import api from '../services/api'
 import { useToast } from 'vue-toastification'
+import { formatPrice } from '../utils/currency'
+import { resolveImageUrl } from '../utils/image'
+import { useCartStore } from '../stores/cart' // Import Store
 
 export default {
   name: 'ItemsView',
   setup () {
     const toast = useToast()
-    return { toast }
+    const cartStore = useCartStore() // Setup store
+    return { toast, cartStore }
   },
   data () {
     return {
@@ -155,6 +159,7 @@ export default {
     }
   },
   methods: {
+    formatPrice,
     async addToCart (item) {
       if (!localStorage.getItem('token')) {
         this.toast.warning('請先登入')
@@ -198,10 +203,6 @@ export default {
           search: this.$route.query.search
         }
 
-        if (this.selectedCategory && !this.$route.query.search) {
-          params.category = this.selectedCategory
-        }
-
         const response = await api.get('/products', { params })
 
         let productsData = []
@@ -229,22 +230,6 @@ export default {
             productsData = []
           }
         }
-
-        this.items = productsData.map(item => {
-          let imgUrl = ''
-          if (item.image) {
-            if (item.image.startsWith('http')) {
-              imgUrl = item.image
-            } else {
-              const baseUrl = api.defaults.baseURL.replace('/api', '')
-              imgUrl = `${baseUrl}/images/${item.image}`
-            }
-          }
-          return {
-            ...item,
-            img: imgUrl
-          }
-        })
       } catch (error) {
         console.error('Error fetching products:', error)
         this.items = []

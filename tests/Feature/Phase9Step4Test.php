@@ -8,6 +8,7 @@ use Tests\TestCase;
 use App\Models\User;
 use App\Models\Order;
 use Illuminate\Support\Facades\Schema;
+use App\Services\OrderSequenceGenerator;
 
 class Phase9Step4Test extends TestCase
 {
@@ -21,15 +22,18 @@ class Phase9Step4Test extends TestCase
         ]));
     }
 
-    public function test_order_auto_generates_logistics_and_defaults_payment()
+    public function test_order_can_be_created_with_logistics_number()
     {
         $user = User::factory()->create();
+        $generator = app(OrderSequenceGenerator::class);
+        $logisticsNumber = $generator->generateLogisticsNumber();
 
         $order = Order::create([
             'user_id' => $user->id,
             'total_amount' => 1000,
             'status' => 'pending_payment',
-            'snapshot_data' => []
+            'logistics_number' => $logisticsNumber,
+            'payment_method' => 'wallet',
         ]);
 
         $this->assertNotNull($order->logistics_number);
@@ -40,19 +44,20 @@ class Phase9Step4Test extends TestCase
     public function test_logistics_number_is_unique()
     {
         $user = User::factory()->create();
+        $generator = app(OrderSequenceGenerator::class);
 
         $order1 = Order::create([
             'user_id' => $user->id,
             'total_amount' => 100,
             'status' => 'processing',
-            'snapshot_data' => []
+            'logistics_number' => $generator->generateLogisticsNumber(),
         ]);
 
         $order2 = Order::create([
             'user_id' => $user->id,
             'total_amount' => 200,
             'status' => 'processing',
-            'snapshot_data' => []
+            'logistics_number' => $generator->generateLogisticsNumber(),
         ]);
 
         $this->assertNotEquals($order1->logistics_number, $order2->logistics_number);

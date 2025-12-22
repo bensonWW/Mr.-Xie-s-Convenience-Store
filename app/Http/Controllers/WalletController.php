@@ -52,7 +52,8 @@ class WalletController extends Controller
         ]);
 
         $user = $request->user();
-        $amount = $request->input('amount');
+        // Frontend sends dollars, we convert to cents
+        $amount = (int) ($request->input('amount') * 100);
         $description = $request->input('description', 'Manual Deposit');
 
         try {

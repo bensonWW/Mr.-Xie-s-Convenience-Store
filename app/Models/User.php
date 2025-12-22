@@ -19,12 +19,16 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $address
  * @property string|null $birthday
  * @property int|null $store_id
+ * @property int|null $member_level_id
  * @property string $status
+ * @property int $balance
+ * @property bool $is_level_locked
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Order[] $orders
  * @property-read \App\Models\Cart|null $cart
  * @property-read \App\Models\Store|null $store
+ * @property-read \App\Models\MemberLevel|null $memberLevel
  * @mixin \Illuminate\Database\Eloquent\Builder
  */
 class User extends Authenticatable
@@ -48,7 +52,7 @@ class User extends Authenticatable
         'store_id',
         'status',
         'balance',
-        'member_level',
+        'member_level_id',
         'is_level_locked',
     ];
 
@@ -73,9 +77,54 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'birthday' => 'date',
-            'balance' => 'decimal:2',
             'is_level_locked' => 'boolean',
         ];
+    }
+
+    /**
+     * Get the member level relationship.
+     */
+    public function memberLevel()
+    {
+        return $this->belongsTo(MemberLevel::class, 'member_level_id');
+    }
+
+    /**
+     * Alias for memberLevel() - cleaner access.
+     */
+    public function level()
+    {
+        return $this->memberLevel();
+    }
+
+    /**
+     * Get the member level slug (backward compatibility accessor).
+     * This allows existing code using $user->member_level to continue working.
+     */
+    public function getMemberLevelAttribute(): string
+    {
+        return $this->memberLevel?->slug ?? 'normal';
+    }
+
+    /**
+     * Set member level by slug (backward compatibility for tests).
+     * Converts slug to member_level_id.
+     */
+    public function setMemberLevelAttribute(?string $value): void
+    {
+        if ($value === null) {
+            return;
+        }
+
+        // Try to find the level by slug and set member_level_id
+        try {
+            $level = MemberLevel::where('slug', $value)->first();
+            if ($level) {
+                $this->attributes['member_level_id'] = $level->id;
+            }
+        } catch (\Exception $e) {
+            // Ignore - MemberLevel table might not exist yet
+        }
     }
 
     public function cart()
@@ -106,5 +155,10 @@ class User extends Authenticatable
     public function addresses()
     {
         return $this->hasMany(Address::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
     }
 }

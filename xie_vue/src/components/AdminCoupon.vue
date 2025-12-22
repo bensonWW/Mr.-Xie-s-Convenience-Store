@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import api from '../services/api'
 import { useToast } from 'vue-toastification'
+import { formatPrice } from '../utils/currency'
 
 const toast = useToast()
 const coupons = ref([])
@@ -58,6 +59,8 @@ function openEditModal (coupon) {
   isEditing.value = true
   form.value = {
     ...coupon,
+    discount_amount: (coupon.type === 'fixed') ? coupon.discount_amount / 100 : coupon.discount_amount,
+    limit_price: coupon.limit_price ? coupon.limit_price / 100 : 0,
     starts_at: formatDate(coupon.starts_at),
     ends_at: formatDate(coupon.ends_at)
   }
@@ -66,11 +69,20 @@ function openEditModal (coupon) {
 
 async function saveCoupon () {
   try {
+    const payload = { ...form.value }
+    // Convert logic
+    if (payload.type === 'fixed') {
+        payload.discount_amount = Math.round(payload.discount_amount * 100)
+    }
+    if (payload.limit_price) {
+        payload.limit_price = Math.round(payload.limit_price * 100)
+    }
+
     if (isEditing.value) {
-      await api.put(`/admin/coupons/${form.value.id}`, form.value)
+      await api.put(`/admin/coupons/${form.value.id}`, payload)
       toast.success('更新成功')
     } else {
-      await api.post('/admin/coupons', form.value)
+      await api.post('/admin/coupons', payload)
       toast.success('新增成功')
     }
     showModal.value = false
@@ -123,9 +135,9 @@ async function deleteCoupon (id) {
             </tr>
             <tr v-for="coupon in coupons" :key="coupon.id" class="hover:bg-gray-50 transition">
               <td class="p-4 font-bold text-gray-800">{{ coupon.code }}</td>
-              <td class="p-4 text-xieOrange font-bold">{{ coupon.discount_amount }}</td>
+              <td class="p-4 text-xieOrange font-bold">{{ coupon.type === 'fixed' ? formatPrice(coupon.discount_amount) : coupon.discount_amount + '%' }}</td>
               <td class="p-4 text-gray-600"><span class="bg-gray-100 px-2 py-1 rounded text-xs">{{ coupon.type === 'fixed' ? '定額' : '百分比' }}</span></td>
-              <td class="p-4 text-gray-600">{{ coupon.limit_price || '無' }}</td>
+              <td class="p-4 text-gray-600">{{ coupon.limit_price ? formatPrice(coupon.limit_price) : '無' }}</td>
               <td class="p-4 text-gray-600 text-sm">{{ coupon.starts_at ? coupon.starts_at.slice(0, 10) : '即時' }}</td>
               <td class="p-4 text-gray-600 text-sm">{{ coupon.ends_at ? coupon.ends_at.slice(0, 10) : '永久' }}</td>
               <td class="p-4 text-right space-x-2">

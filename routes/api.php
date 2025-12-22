@@ -10,9 +10,11 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WalletController;
 use Illuminate\Support\Facades\Route;
 
-// Public routes
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login'])->name('login');
+// Public routes (with rate limiting for auth)
+Route::middleware('throttle:30,1')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login'])->name('login');
+});
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
@@ -28,9 +30,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::put('/user/profile', [AuthController::class, 'updateProfile']);
 
-    // Wallet
-    Route::get('/user/wallet', [WalletController::class, 'show']);
-    Route::post('/user/wallet/deposit', [WalletController::class, 'deposit']);
+    // Wallet (with stricter rate limiting for financial operations)
+    Route::middleware('throttle:60,1')->group(function () {
+        Route::get('/user/wallet', [WalletController::class, 'show']);
+        Route::post('/user/wallet/deposit', [WalletController::class, 'deposit']);
+    });
 
     // Cart
     Route::get('/cart', [CartController::class, 'index']);
@@ -38,11 +42,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/cart/items/{itemId}', [CartController::class, 'updateItem']);
     Route::delete('/cart/items/{itemId}', [CartController::class, 'removeItem']);
 
-    // Orders
+    // Orders (payment operations with rate limiting)
     Route::post('/coupons/check', [CouponController::class, 'check']);
     Route::get('/coupons', [CouponController::class, 'index']);
-    Route::post('/orders/{id}/pay', [OrderController::class, 'pay']);
-    Route::post('/orders/{id}/refund', [OrderController::class, 'refund']);
+
+    Route::middleware('throttle:30,1')->group(function () {
+        Route::post('/orders/{order}/pay', [OrderController::class, 'pay']);
+        Route::post('/orders/{order}/refund', [OrderController::class, 'refund']);
+    });
+
     Route::apiResource('orders', OrderController::class)->only(['index', 'store', 'show']);
 
     // Profile
@@ -57,20 +65,27 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('is_admin')->prefix('admin')->group(function () {
         Route::apiResource('coupons', CouponController::class);
         Route::get('/stats', [App\Http\Controllers\AdminController::class, 'stats']);
-        Route::get('/users', [App\Http\Controllers\AdminController::class, 'users']);
-        Route::post('/users', [App\Http\Controllers\AdminController::class, 'storeUser']);
-        Route::get('/users/{id}', [App\Http\Controllers\AdminController::class, 'showUser']);
-        Route::put('/users/{id}', [App\Http\Controllers\AdminController::class, 'updateUser']);
-        Route::post('/users/{id}/wallet/transaction', [App\Http\Controllers\AdminController::class, 'walletTransaction']);
-        Route::get('/orders', [App\Http\Controllers\AdminController::class, 'orders']);
-        Route::post('/orders/{id}/refund', [App\Http\Controllers\OrderController::class, 'refund']);
-        Route::get('/orders/{id}', [App\Http\Controllers\AdminController::class, 'show']);
+
+        // Admin User Management
+        Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index']);
+        Route::post('/users', [App\Http\Controllers\Admin\UserController::class, 'store']);
+        Route::get('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'show']);
+        Route::put('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'update']);
+        Route::post('/users/{id}/wallet/transaction', [App\Http\Controllers\Admin\UserController::class, 'walletTransaction']);
+
+        // Admin Order Management
+        Route::get('/orders', [App\Http\Controllers\Admin\OrderController::class, 'index']);
+        Route::get('/orders/{id}', [App\Http\Controllers\Admin\OrderController::class, 'show']);
+
+        // Other Admin routes
+        Route::post('/orders/{order}/refund', [App\Http\Controllers\OrderController::class, 'refund']); // This seems to still use the main OrderController, which is fine if logic is shared or acceptable.
+
         Route::get('/products', [ProductController::class, 'adminIndex']);
         Route::post('/products', [ProductController::class, 'store']);
         Route::put('/products/{id}', [ProductController::class, 'update']);
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
-        Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
-        Route::put('/orders/{id}/logistics', [OrderController::class, 'updateLogistics']);
+        Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus']);
+        Route::put('/orders/{order}/logistics', [OrderController::class, 'updateLogistics']);
         Route::put('/stores/{id}', [StoreController::class, 'update']);
     });
 });

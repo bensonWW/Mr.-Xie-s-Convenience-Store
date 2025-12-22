@@ -11,6 +11,15 @@ class Cart extends Model
 
     protected $fillable = ['user_id'];
 
+    protected $appends = ['total_amount'];
+
+    public function getTotalAmountAttribute()
+    {
+        return $this->items->reduce(function ($total, $item) {
+            return $total + ($item->quantity * ($item->product->price ?? 0));
+        }, 0);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -31,9 +31,9 @@
                                     <!-- <div class="text-xs text-gray-500">規格: 全配版</div> -->
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-center">${{ item.price }}</td>
+                            <td class="px-6 py-4 text-center">{{ formatPrice(item.price) }}</td>
                             <td class="px-6 py-4 text-center">{{ item.quantity }}</td>
-                            <td class="px-6 py-4 text-right font-bold">${{ item.price * item.quantity }}</td>
+                            <td class="px-6 py-4 text-right font-bold">{{ formatPrice(item.price * item.quantity) }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -41,7 +41,7 @@
                 <div class="p-6 border-t border-gray-100 bg-gray-50">
                     <div class="flex justify-between mb-2 text-sm">
                         <span class="text-gray-500">商品小計</span>
-                        <span>${{ order.total_amount }}</span>
+                        <span>{{ formatPrice(order.total_amount) }}</span>
                     </div>
                     <!-- Placeholder for shipping and discount as they are not in current API response structure yet -->
                     <!-- <div class="flex justify-between mb-2 text-sm">
@@ -54,7 +54,7 @@
                     </div> -->
                     <div class="flex justify-between mt-4 pt-4 border-t border-gray-200">
                         <span class="font-bold text-lg">訂單總金額</span>
-                        <span class="font-bold text-2xl text-xieOrange">${{ order.total_amount }}</span>
+                        <span class="font-bold text-2xl text-xieOrange">{{ formatPrice(order.total_amount) }}</span>
                     </div>
                 </div>
             </div>
@@ -144,6 +144,7 @@
 <script>
 import api from '../services/api'
 import { useRoute } from 'vue-router'
+import { formatPrice } from '../utils/currency'
 
 export default {
   name: 'AdminOrderDetail',
@@ -158,6 +159,7 @@ export default {
     this.fetchOrder(id)
   },
   methods: {
+    formatPrice,
     async fetchOrder (id) {
       try {
         const res = await api.get(`/admin/orders/${id}`)

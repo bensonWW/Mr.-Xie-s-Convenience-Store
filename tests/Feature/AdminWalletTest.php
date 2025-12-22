@@ -27,28 +27,28 @@ class AdminWalletTest extends TestCase
         $response = $this->actingAs($this->admin)
             ->postJson("/api/admin/users/{$this->user->id}/wallet/transaction", [
                 'type' => 'deposit',
-                'amount' => 500,
+                'amount' => 500, // 500 dollars
                 'description' => 'Admin Bonus'
             ]);
 
         $response->assertStatus(200);
         $this->assertDatabaseHas('users', [
             'id' => $this->user->id,
-            'balance' => 500
+            'balance' => 50000 // 500 dollars = 50000 cents
         ]);
     }
 
     public function test_admin_can_withdraw_funds_from_user()
     {
+        // Balance is in cents, API amount is in dollars (converted to cents)
+        // Set balance to 100000 cents ($1000) so we can withdraw 300 dollars (30000 cents)
+        $this->user->forceFill(['balance' => 100000])->save();
         $this->user->refresh();
-        $this->user->forceFill(['balance' => 1000])->save();
-        $this->user->refresh(); // Just to be sure
-        // dump("User Balance Before Test: " . $this->user->balance);
 
         $response = $this->actingAs($this->admin)
             ->postJson("/api/admin/users/{$this->user->id}/wallet/transaction", [
                 'type' => 'withdraw',
-                'amount' => 300,
+                'amount' => 300, // 300 dollars = 30000 cents
                 'description' => 'Admin Correction'
             ]);
 
@@ -56,18 +56,19 @@ class AdminWalletTest extends TestCase
         $response->assertStatus(200);
         $this->assertDatabaseHas('users', [
             'id' => $this->user->id,
-            'balance' => 700
+            'balance' => 70000 // 100000 - 30000 = 70000 cents
         ]);
     }
 
     public function test_admin_cannot_withdraw_insufficient_funds()
     {
-        $this->user->update(['balance' => 100]);
+        // Balance is 10000 cents ($100), try to withdraw 500 dollars (50000 cents)
+        $this->user->update(['balance' => 10000]);
 
         $response = $this->actingAs($this->admin)
             ->postJson("/api/admin/users/{$this->user->id}/wallet/transaction", [
                 'type' => 'withdraw',
-                'amount' => 500,
+                'amount' => 500, // 500 dollars = 50000 cents, more than 10000
                 'description' => 'Admin Correction'
             ]);
 

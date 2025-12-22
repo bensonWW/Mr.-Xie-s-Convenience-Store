@@ -16,24 +16,35 @@ class DashboardStatsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_revenue_chart_aggregates_payments_correctly()
+    public function test_revenue_chart_aggregates_orders_correctly()
     {
         $user = User::factory()->create();
         $admin = User::factory()->create(['role' => 'admin', 'email' => 'admin@test.com']);
-        $walletService = new WalletService();
 
-        // Deposit enough funds first
-        $walletService->deposit($user, 1000, 'Initial Deposit', 'init_1');
+        // Clear cache to ensure fresh data
+        Cache::forget('admin_stats');
 
-        // 1. Create Payments in last 7 days
-        // Today: -100
-        $walletService->pay($user, 100, 'Payment 1', 'order_1');
+        // 1. Create Orders in last 7 days (status: processing or completed counts as revenue)
+        // Today: 100
+        Order::create([
+            'user_id' => $user->id,
+            'status' => 'processing',
+            'total_amount' => 100,
+            'logistics_number' => 'LOGI-TEST-001',
+        ]);
 
-        // Yesterday: -200
+        // Yesterday: 200
         $this->travel(-1)->days();
-        // Since we are creating transactions, created_at is automatic.
-        $walletService->pay($user, 200, 'Payment 2', 'order_2');
+        Order::create([
+            'user_id' => $user->id,
+            'status' => 'completed',
+            'total_amount' => 200,
+            'logistics_number' => 'LOGI-TEST-002',
+        ]);
         $this->travelBack();
+
+        // Clear cache again
+        Cache::forget('admin_stats');
 
         // Act
         $response = $this->actingAs($admin)->getJson('/api/admin/stats');
@@ -50,23 +61,44 @@ class DashboardStatsTest extends TestCase
         $this->assertEquals(200, $chartData['values'][$yesterdayIndex]);
     }
 
-    public function test_total_consumption_sums_payments_only()
+    public function test_total_sales_sums_paid_orders_only()
     {
         $user = User::factory()->create();
         $admin = User::factory()->create(['role' => 'admin']);
-        $walletService = new WalletService();
 
-        // Deposit 1000 (Should NOT be counted)
-        $walletService->deposit($user, 1000, 'Topup', 'topup_1');
+        // Clear cache
+        Cache::forget('admin_stats');
 
-        // Spend 300 (Should be counted)
-        $walletService->pay($user, 300, 'Buy Item', 'order_1');
+        // Pending order (should NOT be counted)
+        Order::create([
+            'user_id' => $user->id,
+            'status' => 'pending_payment',
+            'total_amount' => 1000,
+            'logistics_number' => 'LOGI-TEST-003',
+        ]);
 
-        // Withdraw 50 (Should NOT be counted as consumption, it is a withdrawal)
-        $walletService->withdraw($user, 50, 'Cash Out', 'withdraw_1');
+        // Processing order (SHOULD be counted - paid)
+        Order::create([
+            'user_id' => $user->id,
+            'status' => 'processing',
+            'total_amount' => 300,
+            'logistics_number' => 'LOGI-TEST-004',
+        ]);
+
+        // Cancelled order (should NOT be counted)
+        Order::create([
+            'user_id' => $user->id,
+            'status' => 'cancelled',
+            'total_amount' => 500,
+            'logistics_number' => 'LOGI-TEST-005',
+        ]);
+
+        // Clear cache again
+        Cache::forget('admin_stats');
 
         $response = $this->actingAs($admin)->getJson('/api/admin/stats');
 
-        $this->assertEquals(300, $response->json('total_sales')); // total_sales mapped to Consumption
+        // Only the 'processing' order (300) should count
+        $this->assertEquals(300, $response->json('total_sales'));
     }
 }

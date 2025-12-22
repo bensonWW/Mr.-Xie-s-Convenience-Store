@@ -43,8 +43,8 @@
 
                 <div class="bg-orange-50 p-4 rounded-lg mb-6 flex items-end gap-3">
                     <span class="text-xs text-gray-500 mb-1">特價</span>
-                    <div class="text-4xl font-bold text-xieOrange">NT$ {{ item.price ? item.price.toLocaleString() : 0 }}</div>
-                    <div v-if="item.original_price" class="text-sm text-gray-400 line-through mb-1">NT$ {{ Number(item.original_price).toLocaleString() }}</div>
+                    <div class="text-4xl font-bold text-xieOrange">{{ formatPrice(item.price) }}</div>
+                    <div v-if="item.original_price" class="text-sm text-gray-400 line-through mb-1">{{ formatPrice(item.original_price) }}</div>
                 </div>
 
                 <ul class="space-y-2 text-gray-600 mb-6 text-sm">
@@ -58,7 +58,7 @@
                 <div class="space-y-6">
                     <div class="flex justify-between items-center text-sm">
                         <div class="text-gray-600">庫存狀況：<span class="text-green-600 font-bold">現貨充足 (剩餘 {{ item.stock || 0 }} 件)</span></div>
-                        <div class="font-bold text-gray-800">總計：<span class="text-xieOrange text-xl ml-2">NT$ {{ totalPrice.toLocaleString() }}</span></div>
+                        <div class="font-bold text-gray-800">總計：<span class="text-xieOrange text-xl ml-2">{{ formatPrice(totalPrice) }}</span></div>
                     </div>
 
                     <div class="flex items-center gap-4">
@@ -118,6 +118,7 @@
 
 <script>
 import api from '../services/api'
+import { formatPrice } from '../utils/currency'
 
 export default {
   name: 'ProductDetail',
@@ -147,6 +148,7 @@ export default {
     }
   },
   methods: {
+    formatPrice,
     toggleWishlist () {
       if (!localStorage.getItem('token')) {
         this.$toast.warning('請先登入')

@@ -285,8 +285,8 @@ export default {
         const prod = res.data
         this.form = {
           name: prod.name,
-          price: prod.price,
-          original_price: prod.original_price, // Assuming backend has this or ignores it
+          price: prod.price / 100,
+          original_price: prod.original_price ? prod.original_price / 100 : null,
           stock: prod.stock,
           category: prod.category,
           information: prod.information,
@@ -362,6 +362,7 @@ export default {
       try {
         const formData = new FormData()
         formData.append('name', this.form.name)
+        // Price sent as raw float (Dollars), backend handles conversion to Cents
         formData.append('price', this.form.price)
         if (this.form.original_price) formData.append('original_price', this.form.original_price)
         formData.append('stock', this.form.stock)

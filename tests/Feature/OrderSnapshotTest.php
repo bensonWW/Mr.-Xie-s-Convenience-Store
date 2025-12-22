@@ -18,9 +18,11 @@ class OrderSnapshotTest extends TestCase
         // 1. Setup User with initial data
         $originalAddress = '123 Old St, Old City';
         $originalPhone = '0900000001';
+        $originalEmail = 'test@example.com';
         $user = User::factory()->create([
             'address' => $originalAddress,
             'phone' => $originalPhone,
+            'email' => $originalEmail,
             'balance' => 10000,
         ]);
 
@@ -44,20 +46,28 @@ class OrderSnapshotTest extends TestCase
 
         // 5. Verify Snapshot immediately
         $order = Order::find($orderId);
-        $this->assertNotNull($order->snapshot_data);
-        $this->assertEquals($originalAddress, $order->snapshot_data['shipping_address']);
-        $this->assertEquals($originalPhone, $order->snapshot_data['phone']);
+        // $this->assertNotNull($order->snapshot_data); // Removed
+        $this->assertEquals($originalAddress, $order->address->address);
+        $this->assertEquals($originalPhone, $order->address->phone);
+        $this->assertEquals($originalEmail, $order->snapshot->buyer_email);
 
         // 6. Change User Data
         $newAddress = '456 New Blvd, New City';
         $user->update([
             'address' => $newAddress,
             'phone' => '0999999999',
+            'email' => 'new@example.com',
         ]);
 
         // 7. Verify Order Snapshot is UNCHANGED
         $order->refresh();
-        $this->assertEquals($originalAddress, $order->snapshot_data['shipping_address']);
-        $this->assertNotEquals($newAddress, $order->snapshot_data['shipping_address']);
+        $this->assertEquals($originalAddress, $order->address->address);
+        $this->assertNotEquals($newAddress, $order->address->address);
+
+        $this->assertEquals($originalPhone, $order->address->phone);
+        $this->assertEquals('0900000001', $order->address->phone);
+
+        $this->assertEquals($originalEmail, $order->snapshot->buyer_email);
+        $this->assertNotEquals('new@example.com', $order->snapshot->buyer_email);
     }
 }

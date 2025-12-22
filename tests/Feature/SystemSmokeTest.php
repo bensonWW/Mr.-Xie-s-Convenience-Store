@@ -40,7 +40,7 @@ class SystemSmokeTest extends TestCase
         // 1.2 Top-up
         $response = $this->withHeader('Authorization', "Bearer $token")
             ->postJson('/api/user/wallet/deposit', ['amount' => 2000, 'description' => 'Smoke Deposit']);
-        $response->assertStatus(200)->assertJson(['balance' => 2000]);
+        $response->assertStatus(200)->assertJson(['balance' => 200000]);
 
         // 1.3 Setup Products (Admin/Store Owner usually does this, we mock it)
         $store = Store::create([
@@ -91,6 +91,18 @@ class SystemSmokeTest extends TestCase
 
         $this->assertEquals(1200, $orderResponse->json('total_amount'));
         $this->assertEquals(0, $orderResponse->json('shipping_fee'));
+        $this->assertEquals('pending_payment', $orderResponse->json('status'));
+
+        // 1.6 Pay for Order
+        $this->withHeader('Authorization', "Bearer $token")
+            ->postJson("/api/orders/{$orderId}/pay")
+            ->assertStatus(200);
+
+        // Verify status is now processing
+        $orderResponse = $this->withHeader('Authorization', "Bearer $token")
+            ->getJson("/api/orders/{$orderId}")
+            ->assertStatus(200);
+
         $this->assertEquals('processing', $orderResponse->json('status'));
 
         // ==========================================

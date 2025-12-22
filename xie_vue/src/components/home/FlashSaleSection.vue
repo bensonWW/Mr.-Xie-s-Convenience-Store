@@ -22,8 +22,8 @@
         </div>
         <div class="p-3">
           <h3 class="text-sm font-bold text-gray-800 line-clamp-2 h-10 mb-2 group-hover:text-xieOrange">{{ product.name }}</h3>
-          <div class="text-gray-400 text-xs line-through">NT$ {{ Math.round(product.price * 1.5) }}</div>
-          <div class="text-xieOrange font-bold text-lg">NT$ {{ product.price }}</div>
+          <div class="text-gray-400 text-xs line-through">{{ formatPrice(Math.round(product.price * 1.5)) }}</div>
+          <div class="text-xieOrange font-bold text-lg">{{ formatPrice(product.price) }}</div>
           <div class="mt-2 w-full bg-gray-200 rounded-full h-1.5">
             <div class="bg-red-500 h-1.5 rounded-full" :style="{ width: getRandomProgress(product.id) + '%' }"></div>
           </div>
@@ -36,6 +36,7 @@
 
 <script>
 import api from '../../services/api'
+import { formatPrice } from '../../utils/currency'
 
 export default {
   name: 'FlashSaleSection',
@@ -48,10 +49,12 @@ export default {
     this.fetchFlashSaleProducts()
   },
   methods: {
+    formatPrice,
     async fetchFlashSaleProducts () {
       try {
         const res = await api.get('/products')
         // Take first 5 products for demo
+        // ... (truncated)
         this.products = res.data.data ? res.data.data.slice(0, 5) : res.data.slice(0, 5)
       } catch (e) {
         console.error('Fetch flash sale error', e)

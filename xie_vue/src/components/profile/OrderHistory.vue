@@ -27,7 +27,7 @@
             <tr v-for="order in orders" :key="order.id" class="hover:bg-gray-50 transition">
               <td class="px-6 py-4 font-bold text-xieBlue">#{{ order.id }}</td>
               <td class="px-6 py-4 text-gray-500">{{ formatDate(order.created_at) }}</td>
-              <td class="px-6 py-4 font-bold">NT$ {{ order.total_amount }}</td>
+              <td class="px-6 py-4 font-bold">{{ formatPrice(order.total_amount) }}</td>
               <td class="px-6 py-4">
                 <span class="py-1 px-3 rounded-full text-xs font-bold"
                       :class="{
@@ -70,7 +70,7 @@
             <div class="text-gray-500">物流狀態</div>
             <div class="font-bold text-right text-blue-600">{{ getLogisticsStatus(selectedOrder.status) }}</div>
             <div class="text-gray-500">總金額</div>
-            <div class="font-bold text-right text-xl">NT$ {{ selectedOrder.total_amount }}</div>
+            <div class="font-bold text-right text-xl">{{ formatPrice(selectedOrder.total_amount) }}</div>
           </div>
 
           <div class="border-t border-gray-100 pt-4">
@@ -80,7 +80,7 @@
                   <span class="text-gray-800 truncate flex-1 mr-4">{{ item.product ? item.product.name : '未知商品' }}</span>
                   <div class="text-gray-500 whitespace-nowrap">
                     <span>x{{ item.quantity }}</span>
-                    <span class="ml-3 font-bold text-gray-800">NT$ {{ item.price * item.quantity }}</span>
+                    <span class="ml-3 font-bold text-gray-800">{{ formatPrice(item.price * item.quantity) }}</span>
                   </div>
                 </li>
              </ul>
@@ -98,6 +98,8 @@
 
 <script>
 import api from '../../services/api'
+import { ORDER_STATUS_LABELS, LOGISTICS_STATUS_LABELS } from '../../utils/constants'
+import { formatPrice } from '../../utils/currency'
 
 export default {
   name: 'OrderHistory',
@@ -120,17 +122,8 @@ export default {
     }
   },
   computed: {
-    filterTitle () {
-      const map = {
-        all: '全部',
-        pending_payment: '待付款',
-        processing: '處理中',
-        shipped: '已出貨',
-        delivered: '已送達',
-        completed: '已完成',
-        refunded: '退貨/取消'
-      }
-      return map[this.currentTab] || this.currentTab
+    filterTitle() {
+      return ORDER_STATUS_LABELS[this.currentTab] || this.currentTab
     }
   },
   watch: {
@@ -153,32 +146,17 @@ export default {
     // Parent created hook calls fetchOrders('all').
   },
   methods: {
+    formatPrice,
     // fetchOrders removed, we rely on parent via filter-change event.
     // Ensure helper methods are kept.
     formatDate (dateString) {
       return new Date(dateString).toLocaleDateString()
     },
     getStatusText (status) {
-      const map = {
-        pending_payment: '待付款',
-        processing: '處理中',
-        shipped: '已出貨',
-        delivered: '已送達',
-        completed: '已完成',
-        cancelled: '已取消',
-        returned: '已退貨'
-      }
-      return map[status] || status
+      return ORDER_STATUS_LABELS[status] || status
     },
     getLogisticsStatus (status) {
-      const map = {
-        pending_payment: '待付款',
-        processing: '備貨中',
-        shipped: '已出貨',
-        completed: '已送達',
-        cancelled: '已取消'
-      }
-      return map[status] || status
+      return LOGISTICS_STATUS_LABELS[status] || status
     },
     async openOrderDetails (orderId) {
       try {
@@ -199,7 +177,11 @@ export default {
         this.$emit('order-updated')
       } catch (error) {
         console.error('Payment error:', error)
-        this.$toast.error('付款失敗，請稍後再試。')
+        if (error.response?.data?.error_code === 'INSUFFICIENT_BALANCE') {
+             this.$toast.error('餘額不足，請前往儲值')
+        } else {
+             this.$toast.error(error.response?.data?.message || '付款失敗，請稍後再試。')
+        }
       }
     },
     async cancelOrder (order) {

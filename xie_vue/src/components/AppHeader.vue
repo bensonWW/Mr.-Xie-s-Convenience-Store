@@ -90,14 +90,19 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions } from 'vuex' // Keep for Auth
+import { useCartStore } from '../stores/cart' // Import Pinia Store
 
 export default {
   name: 'AppHeader',
+  setup () {
+      const cartStore = useCartStore()
+      return { cartStore }
+  },
   data () {
     return {
-      search: '',
-      cartLoading: false
+      search: ''
+      // cartLoading: false // Handled by store or just ignored for simple count
     }
   },
   computed: {
@@ -108,11 +113,12 @@ export default {
       return this.$store.getters.isAdmin
     },
     cartCount () {
-      return this.$store.getters['cart/count']
+        // Use Pinia getter
+      return this.cartStore.cartCount
     }
   },
   methods: {
-    ...mapActions('cart', ['fetchCount']),
+    // ...mapActions('cart', ['fetchCount']), // Removed
     ...mapActions(['logout']),
     doSearch () {
       if (this.search.trim()) {
@@ -121,26 +127,17 @@ export default {
     },
     handleLogout () {
       this.logout()
-    },
-    async refreshCart () {
-      if (this.isLoggedIn) {
-        this.cartLoading = true
-        try {
-          await this.fetchCount()
-        } finally {
-          this.cartLoading = false
-        }
-      }
     }
   },
   mounted () {
     if (this.isLoggedIn) {
-      this.refreshCart()
+       this.cartStore.fetchCart()
+      // this.refreshCart()
     }
-    window.addEventListener('cart:updated', this.refreshCart)
+    // window.addEventListener('cart:updated', this.refreshCart) // Removed, Pinia is reactive
   },
   unmounted () {
-    window.removeEventListener('cart:updated', this.refreshCart)
+    // window.removeEventListener('cart:updated', this.refreshCart)
   }
 }
 </script>

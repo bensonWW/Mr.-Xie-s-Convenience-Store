@@ -3,28 +3,41 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::query();
+        $query = Product::with('category');
 
         // If filtering, do NOT cache (too many variations). 
         // Only cache the default "landing" page 1 with no params.
         if (empty($request->all()) || (count($request->all()) == 1 && $request->has('page'))) {
             $page = $request->input('page', 1);
             // Cache key based on page
-            return \Illuminate\Support\Facades\Cache::remember("products_active_page_{$page}", 300, function () {
-                return Product::where('status', 'active')->paginate(20);
+            return Cache::remember("products_active_page_{$page}", 300, function () {
+                return Product::with('category')->where('status', 'active')->paginate(20);
             });
         }
 
+        // Filter by category (supports ID, slug, or name for backwards compatibility)
         if ($request->has('category')) {
-            $query->where('category', $request->category);
+            $categoryInput = $request->category;
+
+            if (is_numeric($categoryInput)) {
+                $query->where('category_id', $categoryInput);
+            } else {
+                // Support both slug and name for backwards compatibility
+                $query->whereHas('category', function ($q) use ($categoryInput) {
+                    $q->where('name', $categoryInput)
+                        ->orWhere('slug', $categoryInput);
+                });
+            }
         }
 
         if ($request->has('search')) {
@@ -36,12 +49,12 @@ class ProductController extends Controller
 
     public function adminIndex()
     {
-        return Product::latest()->paginate(20);
+        return Product::with('category')->latest()->paginate(20);
     }
 
     public function show($id)
     {
-        return Product::findOrFail($id);
+        return Product::with('category')->findOrFail($id);
     }
 
     public function store(Request $request)
@@ -49,22 +62,40 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|string',
             'price' => 'required|numeric',
-            'category' => 'required|string',
+            'category' => 'required|string', // Can be category name or ID
             'stock' => 'required|integer',
             'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:10240',
         ]);
 
-        $data = $request->all();
+        $data = $request->only(['name', 'price', 'original_price', 'information', 'status', 'stock', 'store_id', 'category']);
 
-        // Default store_id if not provided
-        // Only allow if user belongs to a store, or explicit admin override
+        // Handle category: convert name/slug to category_id
+        $categoryInput = $data['category'];
+        unset($data['category']);
+
+        if (is_numeric($categoryInput)) {
+            $data['category_id'] = $categoryInput;
+        } else {
+            // Find or create category
+            $category = Category::firstOrCreate(
+                ['name' => $categoryInput],
+                ['slug' => Str::slug($categoryInput)]
+            );
+            $data['category_id'] = $category->id;
+        }
+
+        // Resolve store_id: prefer explicit, fallback to user's store, or error
         if (!isset($data['store_id'])) {
             $user = $request->user();
             if ($user && $user->store_id) {
                 $data['store_id'] = $user->store_id;
             } else {
-                // Fallback to store 1 default
-                $data['store_id'] = 1;
+                // Use first available store instead of creating ghost data
+                $existingStore = \App\Models\Store::first();
+                if (!$existingStore) {
+                    abort(422, 'No store available. Please create a store first.');
+                }
+                $data['store_id'] = $existingStore->id;
             }
         }
 
@@ -73,9 +104,17 @@ class ProductController extends Controller
             $data['image'] = $path;
         }
 
+        // Convert Price to Cents
+        if (isset($data['price'])) {
+            $data['price'] = (int) round($data['price'] * 100);
+        }
+        if (isset($data['original_price'])) {
+            $data['original_price'] = (int) round($data['original_price'] * 100);
+        }
+
         $product = Product::create($data);
         Cache::forget('categories');
-        return response()->json($product, 201);
+        return response()->json($product->load('category'), 201);
     }
 
     public function update(Request $request, $id)
@@ -85,12 +124,29 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'string',
             'price' => 'numeric',
-            'category' => 'string',
+            'category' => 'string', // Can be category name or ID
             'stock' => 'integer',
             'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:10240',
         ]);
 
-        $data = $request->all();
+        $data = $request->only(['name', 'price', 'original_price', 'information', 'status', 'stock', 'store_id', 'category']);
+
+        // Handle category if provided
+        if (isset($data['category'])) {
+            $categoryInput = $data['category'];
+            unset($data['category']);
+
+            if (is_numeric($categoryInput)) {
+                $data['category_id'] = $categoryInput;
+            } else {
+                // Find or create category
+                $category = Category::firstOrCreate(
+                    ['name' => $categoryInput],
+                    ['slug' => Str::slug($categoryInput)]
+                );
+                $data['category_id'] = $category->id;
+            }
+        }
 
         if ($request->hasFile('image')) {
             // Delete old image if exists
@@ -102,9 +158,17 @@ class ProductController extends Controller
             $data['image'] = $path;
         }
 
+        // Convert Price to Cents
+        if (isset($data['price'])) {
+            $data['price'] = (int) round($data['price'] * 100);
+        }
+        if (isset($data['original_price'])) {
+            $data['original_price'] = (int) round($data['original_price'] * 100);
+        }
+
         $product->update($data);
         Cache::forget('categories');
-        return response()->json($product);
+        return response()->json($product->load('category'));
     }
 
     public function destroy($id)
@@ -114,10 +178,13 @@ class ProductController extends Controller
         return response()->json(['message' => 'Product deleted']);
     }
 
+    /**
+     * Get all categories (normalized from categories table).
+     */
     public function categories()
     {
         return Cache::remember('categories', 3600, function () {
-            return Product::distinct()->pluck('category');
+            return Category::orderBy('name')->get(['id', 'name', 'slug']);
         });
     }
 }
