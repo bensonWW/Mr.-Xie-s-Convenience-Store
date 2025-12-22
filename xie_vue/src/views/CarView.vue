@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import api from '../services/api'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
-import { useCartStore } from '../stores/cart' // Import Store
+import { useCartStore } from '../stores/cart'
 import UserTopUpModal from '../components/profile/UserTopUpModal.vue'
 import InlineAddressModal from '../components/profile/InlineAddressModal.vue'
 import { formatPrice } from '../utils/currency'
@@ -34,7 +34,7 @@ const isProcessing = ref(false)
 
 onMounted(() => {
   fetchSettings()
-  cartStore.fetchCart() // Use store action
+  cartStore.fetchCart()
   fetchCoupons()
   fetchUserProfile()
   fetchUserWallet()
@@ -80,43 +80,14 @@ async function fetchCoupons () {
   }
 }
 
-// Discount logic should ideally be on server, but if we must estimate here:
-// For now, we removed the hardcoded 'rates' constant as requested.
-// We should rely on what the server tells us about the price.
-// If the server doesn't return the discounted total, we might have a display issue.
-// Valid strategy: Request server for cart summary? 
-// Or assume 'cartTotal' from store includes member discounts if backend handles it?
-// Let's assume for this Refactor that backend *should* handle it, 
-// OR we calculate it in the STORE if we must.
-// BUT the instruction was "Remove: rates constant... Update: Read discount amounts directly from API response".
-// So let's rely on `cartStore`. If `cartStore` doesn't have it, we show 0 for now (safer than wrong hardcode).
 const memberDiscountAmount = computed(() => {
-    // If store has a field for member discount, utilize it.
-    // Otherwise 0.
-    return 0 
+  return 0
 })
 
-<<<<<<< HEAD
 const currentShippingFee = computed(() => {
   const netSubtotal = cartTotal.value - memberDiscountAmount.value - discountAmount.value
   return netSubtotal >= freeShippingThreshold.value ? 0 : shippingFeeConfig.value
 })
-=======
-  try {
-    const response = await api.get('/cart')
-    cartItems.value = response.data.items.map(item => ({
-      id: item.id,
-      name: item.product.name,
-      price: Number(item.product.price),
-      quantity: item.quantity,
-      productId: item.product.id
-    }))
-    window.dispatchEvent(new Event('cart:updated'))
-  } catch (error) {
-    console.error('Fetch cart error:', error)
-  }
-}
->>>>>>> e98904a (Add cart count refresh and event sync across views)
 
 const diffForFreeShipping = computed(() => {
   const netSubtotal = cartTotal.value - memberDiscountAmount.value - discountAmount.value
@@ -130,7 +101,6 @@ const finalTotal = computed(() => {
   return Math.max(0, Math.round(total))
 })
 
-// Check if balance is sufficient
 const isBalanceInsufficient = computed(() => {
   return userBalance.value < finalTotal.value
 })
@@ -148,10 +118,10 @@ async function applyCoupon () {
   try {
     const response = await api.post('/coupons/check', {
       code: coupon.code,
-      total_amount: cartTotal.value // Note: Using store computed total
+      total_amount: cartTotal.value
     })
     appliedCoupon.value = response.data
-    discountAmount.value = Math.round(response.data.discount_amount) // Rounding for display if needed
+    discountAmount.value = Math.round(response.data.discount_amount)
     toast.success(`優惠卷已套用：${response.data.message}`)
   } catch (error) {
     console.error('Coupon error:', error)
@@ -165,15 +135,7 @@ async function applyCoupon () {
 async function removeItem (id) {
   if (!confirm('確定要刪除此商品嗎？')) return
   try {
-<<<<<<< HEAD
     await cartStore.removeItem(id)
-    // Re-validate coupon if total changed
-=======
-    await api.delete(`/cart/items/${id}`)
-    cartItems.value = cartItems.value.filter((i) => i.id !== id)
-    window.dispatchEvent(new Event('cart:updated'))
-    // Re-validate coupon if total changed (optional, but good practice)
->>>>>>> e98904a (Add cart count refresh and event sync across views)
     if (appliedCoupon.value) {
       applyCoupon()
     }
@@ -189,14 +151,7 @@ async function updateQuantity (item, change) {
   const newQty = item.quantity + change
   if (newQty < 1) return
   try {
-<<<<<<< HEAD
     await cartStore.updateItem(item.id, newQty)
-=======
-    await api.put(`/cart/items/${item.id}`, { quantity: newQty })
-    item.quantity = newQty
-    window.dispatchEvent(new Event('cart:updated'))
->>>>>>> e98904a (Add cart count refresh and event sync across views)
-    // Re-validate coupon if total changed
     if (appliedCoupon.value) {
       applyCoupon()
     }
@@ -209,20 +164,17 @@ async function updateQuantity (item, change) {
 }
 
 async function checkout () {
-  // Ensure server-side cart is in sync before proceeding
   await cartStore.fetchCart()
   if (cartItems.value.length === 0) {
     toast.error('購物車是空的，請先加入商品')
     return
   }
 
-  // 1. Check Address
   if (!userAddress.value) {
     showAddressModal.value = true
     return
   }
 
-  // 2. Check Balance
   if (isBalanceInsufficient.value) {
     toast.error('餘額不足，請先儲值')
     showTopUpModal.value = true
@@ -235,25 +187,18 @@ async function checkout () {
   try {
     await api.post('/orders', {
       coupon_code: appliedCoupon.value ? appliedCoupon.value.code : null,
-      // Provide shipping details; backend will fallback to user profile if omitted
       shipping_address: userAddress.value || undefined,
       shipping_name: userName.value || undefined,
       shipping_phone: userPhone.value || undefined
     })
     toast.success('訂單支付成功！')
     
-    // Refresh items from store (should be empty now)
     await cartStore.fetchCart()
     
     discountAmount.value = 0
     appliedCoupon.value = null
     selectedCouponId.value = ''
-<<<<<<< HEAD
-    // window.dispatchEvent(new CustomEvent('cart:updated')) // REMOVED
     
-=======
-    window.dispatchEvent(new Event('cart:updated'))
->>>>>>> e98904a (Add cart count refresh and event sync across views)
     router.push('/profile')
   } catch (error) {
     console.error('Checkout error:', error)
@@ -272,15 +217,12 @@ async function checkout () {
 
 function handleTopUpSuccess (data) {
   userBalance.value = data.balance
-  // Auto-close handled by component emit usually, but here we just update data
   toast.success('儲值成功，您可以繼續結帳了')
 }
 
 function handleAddressSuccess (newAddress) {
   userAddress.value = newAddress
   toast.success('地址已設定，請再次點擊結帳')
-  // We could auto-trigger checkout here, but let's let user confirm.
-  // checkout() // Potentially risky if user wants to review.
 }
 </script>
 
