@@ -134,11 +134,11 @@ export default {
     },
     currentTab (newVal) {
       // Avoid infinite loop if prop update triggered it
-       if (newVal !== this.activeTab) {
-         this.$emit('filter-change', newVal)
-       }
-       // We don't fetch here anymore, the parent listens to 'filter-change' and fetches.
-       // But wait, the parent fetch updates 'orders' prop.
+      if (newVal !== this.activeTab) {
+        this.$emit('filter-change', newVal)
+      }
+      // We don't fetch here anymore, the parent listens to 'filter-change' and fetches.
+      // But wait, the parent fetch updates 'orders' prop.
     }
   },
   mounted () {

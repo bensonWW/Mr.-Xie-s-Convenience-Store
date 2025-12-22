@@ -157,7 +157,14 @@ async function updateQuantity (item, change) {
    // Re-validate coupon if total changed
    if (appliedCoupon.value) {
       applyCoupon()
-   }
+    }
+    window.dispatchEvent(new CustomEvent('cart:updated'))
+  } catch (error) {
+    console.error('Update quantity error (CarView):', error)
+    const status = error.response?.status
+    const backendMessage = error.response?.data?.message || error.response?.data?.error
+    toast.error(`更新數量失敗 (狀態: ${status ?? '未知'})${backendMessage ? '：' + backendMessage : ''}`)
+  }
 }
 
 async function checkout () {

@@ -2,7 +2,6 @@
   <div class="py-8">
     <!-- 未登入：登入 / 註冊區 -->
     <AuthOverlay v-if="!isLoggedIn" />
-    
     <!-- 已登入：會員中心 -->
     <div v-else class="container mx-auto px-4 pb-12 grid grid-cols-1 md:grid-cols-4 gap-6">
 
@@ -142,18 +141,17 @@ export default {
     // user watcher will handle data fetching.
   },
   methods: {
-    ...mapActions(['logout']), 
-    // fetchUser removed as we use Vuex state
+    ...mapActions(['logout']),
     async fetchOrders (status = 'all') {
       if (!this.user) return
       try {
         const params = {}
         if (status && status !== 'all') {
-             if (status === 'refunded') {
-                 params.status = 'cancelled'
-             } else {
-                 params.status = status
-             }
+          if (status === 'refunded') {
+            params.status = 'cancelled'
+          } else {
+            params.status = status
+          }
         }
         const response = await api.get('/orders', { params })
         this.orders = response.data
@@ -162,20 +160,14 @@ export default {
       }
     },
     handleOrderFilterChange (status) {
-       this.activeOrderTab = status
-       // No need to fetch here, OrderHistory watcher will typically handle it, 
-       // OR if OrderHistory relies on parent to fetch, we do it here.
-       // The existing OrderHistory invokes parent via @filter-change usually?
-       // Wait, existing OrderHistory called fetchOrders internally then emitted data?
-       // No, my analysis of OrderHistory showed it emits 'filter-change'.
-       // Let's ensure alignment.
-       this.fetchOrders(status)
+      this.activeOrderTab = status
+      this.fetchOrders(status)
     },
     handleDashboardFilter (status) {
-       this.activeOrderTab = status
-       // Scroll to order history or ensure it's visible?
-       // It is visible in dashboard view.
-       this.fetchOrders(status)
+      this.activeOrderTab = status
+      // Scroll to order history or ensure it's visible?
+      // It is visible in dashboard view.
+      this.fetchOrders(status)
     },
     async fetchCoupons () {
       try {

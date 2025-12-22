@@ -10,8 +10,8 @@
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-      <div 
-        v-for="product in products" 
+      <div
+        v-for="product in products"
         :key="product.id"
         class="bg-white rounded-lg shadow hover:shadow-lg transition group cursor-pointer"
         @click="goToProduct(product.id)"
