@@ -81,7 +81,13 @@ class UserController extends Controller
         }
         if ($request->has('phone')) $user->phone = $request->phone;
         if ($request->has('status')) $user->status = $request->status;
-        if ($request->has('member_level')) $user->member_level = $request->member_level;
+        if ($request->has('member_level')) {
+            // Set member_level_id via MemberLevel model lookup
+            $level = \App\Models\MemberLevel::where('slug', $request->member_level)->first();
+            if ($level) {
+                $user->member_level_id = $level->id;
+            }
+        }
         if ($request->has('is_level_locked')) $user->is_level_locked = $request->boolean('is_level_locked');
 
         $user->save();

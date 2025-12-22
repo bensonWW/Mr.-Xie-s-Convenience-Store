@@ -17,13 +17,12 @@ class MemberLevelService
      */
     public function calculateDiscount(User $user, int $subtotal): int
     {
-        // Get discount from the normalized MemberLevel model
-        $level = $user->memberLevelModel;
+        // Get discount from the normalized MemberLevel relationship
+        $level = $user->memberLevel;
 
         if (!$level) {
-            // Fallback: try to find by slug (backward compatibility)
-            $slug = $user->member_level ?? 'normal';
-            $level = MemberLevel::findBySlug($slug);
+            // Fallback: get default normal level
+            $level = MemberLevel::findBySlug('normal');
         }
 
         if (!$level || $level->discount <= 0) {
@@ -72,7 +71,6 @@ class MemberLevelService
         // Update if level changed
         if ($newLevel && $user->member_level_id !== $newLevel->id) {
             $user->member_level_id = $newLevel->id;
-            $user->member_level = $newLevel->slug; // Keep for SQLite compatibility
             $user->save();
         }
     }

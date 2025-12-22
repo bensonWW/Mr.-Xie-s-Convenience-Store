@@ -20,11 +20,7 @@ class ProductFactory extends Factory
             'price' => $this->faker->numberBetween(1000, 10000), // In cents
             'stock' => $this->faker->numberBetween(0, 100),
             'image' => $this->faker->imageUrl(),
-            // For normalized schema: use category_id
             'category_id' => Category::factory(),
-            // For SQLite test compatibility: also provide category string
-            // (This column exists in SQLite as dropColumn doesn't work)
-            'category' => $this->faker->word,
             'store_id' => \App\Models\Store::factory(),
         ];
     }

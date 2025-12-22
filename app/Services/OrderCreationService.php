@@ -100,7 +100,7 @@ class OrderCreationService
             OrderSnapshot::create([
                 'order_id' => $order->id,
                 'buyer_email' => $user->email,
-                'member_level_name' => $user->member_level ?? 'normal',
+                'member_level_name' => $user->memberLevel?->slug ?? 'normal',
                 'user_name' => $user->name,
             ]);
 

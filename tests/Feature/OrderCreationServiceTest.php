@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\MemberLevel;
 use App\Models\Product;
 use App\Models\Store;
 use App\Models\User;
@@ -25,11 +26,40 @@ class OrderCreationServiceTest extends TestCase
         $this->service = app(OrderCreationService::class);
     }
 
+    protected function getMemberLevel(string $slug): MemberLevel
+    {
+        return MemberLevel::firstOrCreate(
+            ['slug' => $slug],
+            [
+                'name' => ucfirst($slug) . ' 會員',
+                'threshold' => match ($slug) {
+                    'normal' => 0,
+                    'vip' => 1000,
+                    'gold' => 3000,
+                    'platinum' => 5000,
+                    'diamond' => 10000,
+                    default => 0,
+                },
+                'discount' => match ($slug) {
+                    'normal' => 0.00,
+                    'vip' => 0.05,
+                    'gold' => 0.08,
+                    'platinum' => 0.10,
+                    'diamond' => 0.15,
+                    default => 0.00,
+                },
+            ]
+        );
+    }
+
     public function test_it_creates_order_successfully()
     {
         // 1. User & Wallet
-        // Balance 200000 cents ($2000)
-        $user = User::factory()->create(['balance' => 200000, 'member_level' => 'gold']);
+        $goldLevel = $this->getMemberLevel('gold');
+        $user = User::factory()->create([
+            'balance' => 200000,
+            'member_level_id' => $goldLevel->id,
+        ]);
         $store = Store::create([
             'user_id' => $user->id,
             'name' => 'Test Store 123',
@@ -39,7 +69,7 @@ class OrderCreationServiceTest extends TestCase
         ]);
         $product = Product::factory()->create([
             'store_id' => $store->id,
-            'price' => 10000, // $100
+            'price' => 10000,
             'stock' => 10
         ]);
 
@@ -61,10 +91,10 @@ class OrderCreationServiceTest extends TestCase
         // Verify Address Table
         $this->assertDatabaseHas('order_addresses', [
             'order_id' => $order->id,
-            'name' => $user->name, // Default fallback
+            'name' => $user->name,
         ]);
 
-        // Verify Snapshot Table (using atomic columns)
+        // Verify Snapshot Table
         $this->assertDatabaseHas('order_snapshots', [
             'order_id' => $order->id,
             'buyer_email' => $user->email,
@@ -84,7 +114,13 @@ class OrderCreationServiceTest extends TestCase
 
     public function test_snapshot_member_level_is_persisted()
     {
-        $user = User::factory()->create(['balance' => 200000, 'member_level' => 'diamond']);
+        $diamondLevel = $this->getMemberLevel('diamond');
+        $normalLevel = $this->getMemberLevel('normal');
+
+        $user = User::factory()->create([
+            'balance' => 200000,
+            'member_level_id' => $diamondLevel->id,
+        ]);
         $store = Store::create([
             'user_id' => $user->id,
             'name' => 'Snapshot Store',
@@ -104,7 +140,7 @@ class OrderCreationServiceTest extends TestCase
         $this->assertEquals('diamond', $order->snapshot->member_level_name);
 
         // Change user level
-        $user->update(['member_level' => 'normal']);
+        $user->update(['member_level_id' => $normalLevel->id]);
 
         // Order shouldn't follow
         $this->assertEquals('diamond', $order->fresh()->snapshot->member_level_name);

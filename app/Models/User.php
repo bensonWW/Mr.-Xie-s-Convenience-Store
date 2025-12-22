@@ -21,13 +21,14 @@ use Laravel\Sanctum\HasApiTokens;
  * @property int|null $store_id
  * @property int|null $member_level_id
  * @property string $status
+ * @property int $balance
+ * @property bool $is_level_locked
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Order[] $orders
  * @property-read \App\Models\Cart|null $cart
  * @property-read \App\Models\Store|null $store
  * @property-read \App\Models\MemberLevel|null $memberLevel
- * @property-read string $member_level  Virtual accessor for backward compatibility
  * @mixin \Illuminate\Database\Eloquent\Builder
  */
 class User extends Authenticatable
@@ -51,8 +52,7 @@ class User extends Authenticatable
         'store_id',
         'status',
         'balance',
-        'member_level',      // Keep for SQLite compatibility during migration
-        'member_level_id',   // New normalized FK
+        'member_level_id',
         'is_level_locked',
     ];
 
@@ -83,54 +83,47 @@ class User extends Authenticatable
 
     /**
      * Get the member level relationship.
-     * Named memberLevelModel to avoid conflict with member_level accessor.
      */
-    public function memberLevelModel()
+    public function memberLevel()
     {
         return $this->belongsTo(MemberLevel::class, 'member_level_id');
     }
 
     /**
-     * Alias for memberLevelModel() - cleaner access.
+     * Alias for memberLevel() - cleaner access.
      */
     public function level()
     {
-        return $this->memberLevelModel();
+        return $this->memberLevel();
     }
 
     /**
      * Get the member level slug (backward compatibility accessor).
      * This allows existing code using $user->member_level to continue working.
      */
-    public function getMemberLevelAttribute($value): string
+    public function getMemberLevelAttribute(): string
     {
-        // If the old column still exists (SQLite), use it
-        if ($value !== null) {
-            return $value;
-        }
-
-        // Otherwise, get from relationship (use method call to avoid infinite loop)
-        return $this->memberLevelModel?->slug ?? 'normal';
+        return $this->memberLevel?->slug ?? 'normal';
     }
 
     /**
-     * Set the member level by slug (backward compatibility mutator).
-     * Simplified: always try to set both for compatibility.
+     * Set member level by slug (backward compatibility for tests).
+     * Converts slug to member_level_id.
      */
-    public function setMemberLevelAttribute($value): void
+    public function setMemberLevelAttribute(?string $value): void
     {
-        // Always set the old column for SQLite/backward compatibility
-        $this->attributes['member_level'] = $value;
+        if ($value === null) {
+            return;
+        }
 
-        // Try to set member_level_id if MemberLevel model exists
-        // Use simple try-catch instead of expensive Schema::hasTable check
+        // Try to find the level by slug and set member_level_id
         try {
             $level = MemberLevel::where('slug', $value)->first();
             if ($level) {
                 $this->attributes['member_level_id'] = $level->id;
             }
         } catch (\Exception $e) {
-            // Silently ignore - FK will be resolved by migration or seeder
+            // Ignore - MemberLevel table might not exist yet
         }
     }
 

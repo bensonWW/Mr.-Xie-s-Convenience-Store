@@ -33,7 +33,6 @@ class Product extends Model
         'information',
         'image',
         'category_id',
-        'category', // Kept for SQLite test compatibility (column exists as NOT NULL)
         'status',
         'stock',
         'store_id'
