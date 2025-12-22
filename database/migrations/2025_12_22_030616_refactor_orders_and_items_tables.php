@@ -12,15 +12,25 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->string('buyer_email')->nullable()->after('user_id');
-            // We'll rename it or drop it. Let's make it nullable first to be safe, then drop it if needed.
-            // Plan said DROP. Let's DROP it to show commitment to the roast.
-            $table->dropColumn('snapshot_data');
+            if (!Schema::hasColumn('orders', 'buyer_email')) {
+                $table->string('buyer_email')->nullable()->after('user_id');
+            }
         });
 
+        // Drop snapshot_data if it exists (it may not exist on fresh install)
+        if (Schema::hasColumn('orders', 'snapshot_data')) {
+            Schema::table('orders', function (Blueprint $table) {
+                $table->dropColumn('snapshot_data');
+            });
+        }
+
         Schema::table('order_items', function (Blueprint $table) {
-            $table->string('product_name')->nullable()->after('product_id');
-            $table->json('options')->nullable()->after('product_name');
+            if (!Schema::hasColumn('order_items', 'product_name')) {
+                $table->string('product_name')->nullable()->after('product_id');
+            }
+            if (!Schema::hasColumn('order_items', 'options')) {
+                $table->json('options')->nullable()->after('product_name');
+            }
         });
     }
 
@@ -29,13 +39,19 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('order_items', function (Blueprint $table) {
-            $table->dropColumn(['product_name', 'options']);
-        });
+        if (Schema::hasColumn('order_items', 'product_name')) {
+            Schema::table('order_items', function (Blueprint $table) {
+                $table->dropColumn(['product_name', 'options']);
+            });
+        }
 
         Schema::table('orders', function (Blueprint $table) {
-            $table->json('snapshot_data')->nullable(); // Restore
-            $table->dropColumn('buyer_email');
+            if (!Schema::hasColumn('orders', 'snapshot_data')) {
+                $table->json('snapshot_data')->nullable();
+            }
+            if (Schema::hasColumn('orders', 'buyer_email')) {
+                $table->dropColumn('buyer_email');
+            }
         });
     }
 };

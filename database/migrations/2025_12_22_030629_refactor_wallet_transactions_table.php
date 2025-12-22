@@ -12,8 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('wallet_transactions', function (Blueprint $table) {
-            $table->foreignId('order_id')->nullable()->after('reference_id')->constrained('orders')->nullOnDelete();
-            $table->foreignId('refund_id')->nullable()->after('order_id')->constrained('orders')->nullOnDelete();
+            // Don't use after() to avoid dependency on reference_id column
+            if (!Schema::hasColumn('wallet_transactions', 'order_id')) {
+                $table->foreignId('order_id')->nullable()->constrained('orders')->nullOnDelete();
+            }
+            if (!Schema::hasColumn('wallet_transactions', 'refund_id')) {
+                $table->foreignId('refund_id')->nullable()->constrained('orders')->nullOnDelete();
+            }
         });
     }
 
@@ -23,9 +28,14 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('wallet_transactions', function (Blueprint $table) {
-            $table->dropForeign(['order_id']);
-            $table->dropForeign(['refund_id']);
-            $table->dropColumn(['order_id', 'refund_id']);
+            if (Schema::hasColumn('wallet_transactions', 'order_id')) {
+                $table->dropForeign(['order_id']);
+                $table->dropColumn('order_id');
+            }
+            if (Schema::hasColumn('wallet_transactions', 'refund_id')) {
+                $table->dropForeign(['refund_id']);
+                $table->dropColumn('refund_id');
+            }
         });
     }
 };
