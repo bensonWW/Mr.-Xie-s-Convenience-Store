@@ -153,9 +153,10 @@ async function removeItem (id) {
 async function updateQuantity (item, change) {
   const newQty = item.quantity + change
   if (newQty < 1) return
-  await cartStore.updateItem(item.id, newQty) 
-   // Re-validate coupon if total changed
-   if (appliedCoupon.value) {
+  try {
+    await cartStore.updateItem(item.id, newQty)
+    // Re-validate coupon if total changed
+    if (appliedCoupon.value) {
       applyCoupon()
     }
     window.dispatchEvent(new CustomEvent('cart:updated'))
