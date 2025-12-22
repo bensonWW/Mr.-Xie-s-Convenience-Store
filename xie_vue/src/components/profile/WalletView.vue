@@ -89,14 +89,14 @@ export default {
     },
     handleTopUpSuccess (data) {
       if (data && data.balance !== undefined) {
-         this.balance = data.balance
-         if (data.transaction) {
-            this.transactions.unshift(data.transaction)
-         }
-         this.$toast.success('儲值成功！')
+        this.balance = data.balance
+        if (data.transaction) {
+          this.transactions.unshift(data.transaction)
+        }
+        this.$toast.success('儲值成功！')
       } else {
-         // Fallback re-fetch if data is incomplete
-         this.fetchWallet()
+        // Fallback re-fetch if data is incomplete
+        this.fetchWallet()
       }
     },
     formatDate (dateString) {

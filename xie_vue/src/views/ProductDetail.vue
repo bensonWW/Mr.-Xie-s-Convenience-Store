@@ -219,8 +219,10 @@ export default {
         window.dispatchEvent(new CustomEvent('cart:updated'))
         // this.$store.dispatch('cart/fetchCount') // Replaced by event listener mechanism
       } catch (error) {
-        console.error('Add to cart error:', error)
-        this.$toast.error('加入購物車失敗')
+        console.error('Add to cart error (ProductDetail):', error)
+        const status = error.response?.status
+        const backendMessage = error.response?.data?.message || error.response?.data?.error
+        this.$toast.error(`加入購物車失敗 (狀態: ${status ?? '未知'})${backendMessage ? '：' + backendMessage : ''}`)
       }
     },
     buyNow () {
@@ -272,6 +274,7 @@ export default {
     },
     formatCategory (cat) {
       if (Array.isArray(cat)) return cat.join('、')
+      if (cat && typeof cat === 'object') return cat.name || ''
       return cat
     }
   }

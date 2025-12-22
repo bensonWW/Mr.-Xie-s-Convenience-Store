@@ -166,8 +166,10 @@ async function removeItem (id) {
     window.dispatchEvent(new CustomEvent('cart:updated'))
     toast.info('已刪除商品')
   } catch (error) {
-    console.error('Remove item error:', error)
-    toast.error('刪除失敗')
+    console.error('Remove item error (CarView):', error)
+    const status = error.response?.status
+    const backendMessage = error.response?.data?.message || error.response?.data?.error
+    toast.error(`刪除失敗 (狀態: ${status ?? '未知'})${backendMessage ? '：' + backendMessage : ''}`)
   }
 }
 
@@ -184,8 +186,10 @@ async function updateQuantity (item, change) {
     }
     window.dispatchEvent(new CustomEvent('cart:updated'))
   } catch (error) {
-    console.error('Update quantity error:', error)
-    toast.error('更新數量失敗')
+    console.error('Update quantity error (CarView):', error)
+    const status = error.response?.status
+    const backendMessage = error.response?.data?.message || error.response?.data?.error
+    toast.error(`更新數量失敗 (狀態: ${status ?? '未知'})${backendMessage ? '：' + backendMessage : ''}`)
   }
 }
 

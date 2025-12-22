@@ -141,19 +141,18 @@ export default {
           // If user has structured address in addresses relation (need to fetch or assume user object has it loaded)
           // For now, checks if user.addresses exists (populated by load('addresses') in controller)
           const defaultAddress = newVal.addresses && newVal.addresses.find(a => a.is_default)
-          
           if (defaultAddress) {
-             this.form = { ...defaultAddress }
+            this.form = { ...defaultAddress }
           } else {
-             // Fallback or empty
-             this.form = {
-                recipient_name: newVal.name,
-                phone: newVal.phone,
-                city: '',
-                district: '',
-                zip_code: '',
-                detail_address: ''
-             }
+            // Fallback or empty
+            this.form = {
+              recipient_name: newVal.name,
+              phone: newVal.phone,
+              city: '',
+              district: '',
+              zip_code: '',
+              detail_address: ''
+            }
           }
         }
       },
@@ -161,27 +160,27 @@ export default {
       deep: true
     },
     'form.city' (newVal) {
-       // Reset district when city changes if district doesn't belong to new city
-       // But careful not to reset on initial load if valid
-       const cityData = this.taiwanDistricts.find(c => c.city === newVal)
-       if (cityData) {
-          const validDistricts = cityData.districts.map(d => d.name)
-          if (!validDistricts.includes(this.form.district)) {
-             this.form.district = ''
-             this.form.zip_code = ''
-          }
-       }
+      // Reset district when city changes if district doesn't belong to new city
+      // But careful not to reset on initial load if valid
+      const cityData = this.taiwanDistricts.find(c => c.city === newVal)
+      if (cityData) {
+        const validDistricts = cityData.districts.map(d => d.name)
+        if (!validDistricts.includes(this.form.district)) {
+          this.form.district = ''
+          this.form.zip_code = ''
+        }
+      }
     },
     'form.district' (newVal) {
-       if (newVal && this.form.city) {
-          const cityData = this.taiwanDistricts.find(c => c.city === this.form.city)
-          if (cityData) {
-             const districtData = cityData.districts.find(d => d.name === newVal)
-             if (districtData) {
-                this.form.zip_code = districtData.zip
-             }
+      if (newVal && this.form.city) {
+        const cityData = this.taiwanDistricts.find(c => c.city === this.form.city)
+        if (cityData) {
+          const districtData = cityData.districts.find(d => d.name === newVal)
+          if (districtData) {
+            this.form.zip_code = districtData.zip
           }
-       }
+        }
+      }
     }
   },
   methods: {
@@ -197,7 +196,7 @@ export default {
       this.loading = true
       try {
         const response = await api.put('/profile', {
-            ...this.form
+          ...this.form
         })
 
         this.toast.success('地址更新成功')

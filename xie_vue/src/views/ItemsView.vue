@@ -10,11 +10,11 @@
         <ul class="text-sm text-gray-700 divide-y divide-gray-100 font-medium">
           <li
             v-for="cat in categories"
-            :key="cat"
+            :key="cat.id || cat.name || cat"
             @click="selectCategory(cat)"
-            :class="['px-4 py-3 border-l-4 cursor-pointer transition', selectedCategory === cat ? 'bg-orange-50 text-xieOrange border-xieOrange' : 'hover:bg-gray-50 hover:text-xieOrange border-transparent']"
+            :class="['px-4 py-3 border-l-4 cursor-pointer transition', selectedCategory === getCategoryName(cat) ? 'bg-orange-50 text-xieOrange border-xieOrange' : 'hover:bg-gray-50 hover:text-xieOrange border-transparent']"
           >
-            {{ cat }}
+            {{ getCategoryName(cat) }}
           </li>
         </ul>
       </div>
@@ -46,7 +46,7 @@
       <div v-if="filteredItems.length === 0" class="col-span-12 text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
           <i class="fas fa-box-open text-4xl mb-4 text-gray-300"></i>
           <p>找不到相關商品</p>
-          <button @click="selectCategory('All')" class="mt-4 text-xieOrange underline text-sm">瀏覽所有商品</button>
+          <button @click="showAll" class="mt-4 text-xieOrange underline text-sm">瀏覽所有商品</button>
       </div>
 
       <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -125,7 +125,7 @@ export default {
     return {
       categories: [],
       items: [],
-      selectedCategory: '',
+      selectedCategory: '', // 只存 slug
       pagination: {
         current_page: 1,
         last_page: 1,
@@ -145,7 +145,8 @@ export default {
       if (this.$route.query.search) {
         return `搜尋: "${this.$route.query.search}"`
       }
-      return `${this.selectedCategory}商品`
+      const cat = this.categories.find(c => this.getCategoryName(c) === this.selectedCategory)
+      return cat ? `${this.getCategoryName(cat)}商品` : '所有商品'
     },
     // We no longer filter client side because we have pagination.
     // The items in `this.items` are already filtered by the server.
@@ -169,8 +170,10 @@ export default {
         this.toast.success(`已將 ${item.name} 加入購物車`)
         this.$store.dispatch('cart/fetchCount')
       } catch (error) {
-        console.error('Add to cart error:', error)
-        this.toast.error('加入購物車失敗')
+        console.error('Add to cart error (ItemsView):', error)
+        const status = error.response?.status
+        const backendMessage = error.response?.data?.message || error.response?.data?.error
+        this.toast.error(`加入購物車失敗 (狀態: ${status ?? '未知'})${backendMessage ? '：' + backendMessage : ''}`)
       }
     },
     async fetchCategories () {
@@ -179,7 +182,7 @@ export default {
         this.categories = response.data
         if (this.categories.length > 0 && !this.selectedCategory && !this.$route.query.search) {
           // If no category selected and no search, select first
-          this.selectedCategory = this.categories[0]
+          this.selectedCategory = this.getCategoryName(this.categories[0])
           // Force fetch products with this new category
           this.fetchProducts(1)
         }
@@ -191,7 +194,7 @@ export default {
       try {
         const params = {
           page: page,
-          category: this.selectedCategory !== 'All' ? this.selectedCategory : undefined,
+          category: this.selectedCategory || undefined,
           search: this.$route.query.search
         }
 
@@ -202,7 +205,6 @@ export default {
         const response = await api.get('/products', { params })
 
         let productsData = []
-        
         // Defensive handling for different API response structures
         if (Array.isArray(response.data)) {
           // Direct array response (no pagination)
@@ -213,7 +215,6 @@ export default {
           if (Array.isArray(response.data.data)) {
             // Standard Laravel Pagination resource or paginate() response
             productsData = response.data.data
-            
             // Defensively update pagination if meta/links exist or root properties exist
             this.pagination = {
               current_page: response.data.current_page || response.data.meta?.current_page || 1,
@@ -222,7 +223,7 @@ export default {
             }
           } else {
             // Fallback: maybe the object itself is the data or some other format
-            // If it has no 'data' array, assume empty or check other fields? 
+            // If it has no 'data' array, assume empty or check other fields?
             // For now, let's assume if it's not array and doesn't have data.data, it might be empty or error.
             console.warn('Unexpected API response structure', response.data)
             productsData = []
@@ -251,20 +252,25 @@ export default {
       }
     },
     selectCategory (cat) {
-      this.selectedCategory = cat
-      if (this.$route.query.search) {
-        // If searching, clear search to show category
-        this.$router.push({ path: '/items', query: { category: cat } })
-      } else {
-        // Update URL to keep state
-        this.$router.push({ path: '/items', query: { category: cat } })
-      }
+      const name = this.getCategoryName(cat)
+      this.selectedCategory = name
+      this.$router.push({ path: '/items', query: { category: name } })
       this.fetchProducts(1) // Reset to page 1
+    },
+    showAll () {
+      this.selectedCategory = ''
+      this.$router.push({ path: '/items' })
+      this.fetchProducts(1)
     },
     changePage (page) {
       if (page < 1 || page > this.pagination.last_page) return
       this.fetchProducts(page)
       window.scrollTo({ top: 0, behavior: 'smooth' })
+    },
+    getCategoryName (cat) {
+      if (!cat) return ''
+      if (typeof cat === 'string') return cat
+      return cat.name || cat.slug || ''
     }
   },
   watch: {
