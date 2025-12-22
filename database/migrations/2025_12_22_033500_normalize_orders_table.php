@@ -16,9 +16,9 @@ return new class extends Migration
             // Address
             DB::table('order_addresses')->insert([
                 'order_id' => $order->id,
-                'shipping_name' => $order->shipping_name ?? null,
-                'shipping_phone' => $order->shipping_phone ?? null,
-                'shipping_address' => $order->shipping_address ?? null,
+                'name' => $order->shipping_name ?? null,
+                'phone' => $order->shipping_phone ?? null,
+                'address' => $order->shipping_address ?? null,
                 'created_at' => $order->created_at,
                 'updated_at' => $order->updated_at,
             ]);
@@ -69,9 +69,9 @@ return new class extends Migration
             $update = [];
             if (isset($addresses[$order->id])) {
                 $addr = $addresses[$order->id];
-                $update['shipping_name'] = $addr->shipping_name;
-                $update['shipping_phone'] = $addr->shipping_phone;
-                $update['shipping_address'] = $addr->shipping_address;
+                $update['shipping_name'] = $addr->name;
+                $update['shipping_phone'] = $addr->phone;
+                $update['shipping_address'] = $addr->address;
             }
             if (isset($snapshots[$order->id])) {
                 $snap = $snapshots[$order->id];
