@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laravel-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: laravel-backend
+  template:
+    metadata:
+      labels:
+        app: laravel-backend
+    spec:
+      containers:
+      - name: laravel
+        image: laravel-backend:latest
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - configMapRef:
+            name: laravel-env
+        - secretRef:
+            name: laravel-secret
+        ports:
+        - containerPort: 9000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laravel-backend
+spec:
+  selector:
+    app: laravel-backend
+  ports:
+    - protocol: TCP
+      port: 9000
+      targetPort: 9000

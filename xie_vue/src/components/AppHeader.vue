@@ -47,14 +47,15 @@
         </div>
 
         <div class="flex items-center space-x-6 text-xieBlue">
-          <router-link to="/profile" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
+          <router-link to="/profile?tab=wishlist" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
             <i class="far fa-heart text-xl"></i>
             <span class="text-xs mt-1">收藏</span>
           </router-link>
 
-          <router-link v-if="isLoggedIn" to="/car" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
+          <router-link to="/car" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
             <i class="fas fa-shopping-cart text-xl relative">
-              <span v-if="cartCount > 0" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-4 h-4 px-1 flex items-center justify-center">{{ cartCount }}</span>
+              <span v-if="isLoggedIn && cartLoading" class="absolute -top-2 -right-2 bg-gray-400 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center animate-pulse">...</span>
+              <span v-else-if="isLoggedIn && cartCount > 0" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">{{ cartCount }}</span>
             </i>
             <span class="text-xs mt-1">購物車</span>
           </router-link>
@@ -89,69 +90,57 @@
 </template>
 
 <script>
-import api from '../services/api'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'AppHeader',
   data () {
     return {
       search: '',
-      cartCount: 0
+      cartLoading: false
     }
   },
   computed: {
     isLoggedIn () {
-      return !!localStorage.getItem('token')
+      return !!this.$store.getters.isLoggedIn
     },
     isAdmin () {
-      const token = localStorage.getItem('token')
-      const role = localStorage.getItem('user_role')
-      return token && (role === 'admin' || role === 'staff')
+      return this.$store.getters.isAdmin
+    },
+    cartCount () {
+      return this.$store.getters['cart/count']
     }
   },
   methods: {
+    ...mapActions('cart', ['fetchCount']),
+    ...mapActions(['logout']),
     doSearch () {
       if (this.search.trim()) {
         this.$router.push({ path: '/items', query: { search: this.search.trim() } })
       }
     },
-    async refreshCartCount () {
-      // 未登入顯示 0
-      if (!localStorage.getItem('token')) {
-        this.cartCount = 0
-        return
-      }
-      try {
-        const res = await api.get('/cart')
-        const data = res.data
-        if (Array.isArray(data)) {
-          this.cartCount = data.length
-        } else if (Array.isArray(data?.items)) {
-          this.cartCount = data.items.length
-        } else if (typeof data?.count === 'number') {
-          this.cartCount = data.count
-        } else {
-          this.cartCount = 0
-        }
-      } catch (e) {
-        // 失敗（例如 401），顯示 0
-        this.cartCount = 0
-      }
+    handleLogout () {
+      this.logout()
     },
-    logout () {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user_role')
-      this.$router.push('/profile').then(() => {
-        window.location.reload()
-      })
+    async refreshCart () {
+      if (this.isLoggedIn) {
+        this.cartLoading = true
+        try {
+          await this.fetchCount()
+        } finally {
+          this.cartLoading = false
+        }
+      }
     }
   },
-  created () {
-    this.refreshCartCount()
-    window.addEventListener('cart:updated', this.refreshCartCount)
+  mounted () {
+    if (this.isLoggedIn) {
+      this.refreshCart()
+    }
+    window.addEventListener('cart:updated', this.refreshCart)
   },
-  beforeUnmount () {
-    window.removeEventListener('cart:updated', this.refreshCartCount)
+  unmounted () {
+    window.removeEventListener('cart:updated', this.refreshCart)
   }
 }
 </script>

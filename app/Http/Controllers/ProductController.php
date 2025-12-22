@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller
@@ -11,6 +12,16 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $query = Product::query();
+
+        // If filtering, do NOT cache (too many variations). 
+        // Only cache the default "landing" page 1 with no params.
+        if (empty($request->all()) || (count($request->all()) == 1 && $request->has('page'))) {
+            $page = $request->input('page', 1);
+            // Cache key based on page
+            return \Illuminate\Support\Facades\Cache::remember("products_active_page_{$page}", 300, function () {
+                return Product::where('status', 'active')->paginate(20);
+            });
+        }
 
         if ($request->has('category')) {
             $query->where('category', $request->category);
@@ -20,7 +31,12 @@ class ProductController extends Controller
             $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        return $query->where('status', 'active')->get();
+        return $query->where('status', 'active')->paginate(20);
+    }
+
+    public function adminIndex()
+    {
+        return Product::latest()->paginate(20);
     }
 
     public function show($id)
@@ -40,39 +56,31 @@ class ProductController extends Controller
 
         $data = $request->all();
 
-        // Default store_id if not provided (e.g. for single store setup)
+        // Default store_id if not provided
+        // Only allow if user belongs to a store, or explicit admin override
         if (!isset($data['store_id'])) {
-            $store = \App\Models\Store::first();
-            $data['store_id'] = $store ? $store->id : 1;
+            $user = $request->user();
+            if ($user && $user->store_id) {
+                $data['store_id'] = $user->store_id;
+            } else {
+                // Fallback to store 1 default
+                $data['store_id'] = 1;
+            }
         }
 
         if ($request->hasFile('image')) {
-            $imageName = time() . '.' . $request->image->extension();
-            $request->image->move(public_path('images'), $imageName);
-            // Frontend expects image path relative to assets or public URL
-            // Here we save just filename, frontend needs to handle it
-            // Or we can save full URL if we use Storage
-            // For now, let's save filename and assume we serve from public/images
-            $data['image'] = $imageName;
+            $path = $request->file('image')->store('images', 'public');
+            $data['image'] = $path;
         }
 
         $product = Product::create($data);
+        Cache::forget('categories');
         return response()->json($product, 201);
     }
 
     public function update(Request $request, $id)
     {
         $product = Product::findOrFail($id);
-
-        \Log::info('Product Update Request:', $request->all());
-        if ($request->hasFile('image')) {
-            \Log::info('Image File:', [
-                'isValid' => $request->file('image')->isValid(),
-                'mime' => $request->file('image')->getMimeType(),
-                'size' => $request->file('image')->getSize(),
-                'error' => $request->file('image')->getError(),
-            ]);
-        }
 
         $request->validate([
             'name' => 'string',
@@ -85,26 +93,31 @@ class ProductController extends Controller
         $data = $request->all();
 
         if ($request->hasFile('image')) {
-            $imageName = time() . '.' . $request->image->extension();
-            $request->image->move(public_path('images'), $imageName);
-            $data['image'] = $imageName;
+            // Delete old image if exists
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
+                Storage::disk('public')->delete($product->image);
+            }
+
+            $path = $request->file('image')->store('images', 'public');
+            $data['image'] = $path;
         }
 
         $product->update($data);
+        Cache::forget('categories');
         return response()->json($product);
     }
 
     public function destroy($id)
     {
         Product::destroy($id);
+        Cache::forget('categories');
         return response()->json(['message' => 'Product deleted']);
     }
 
     public function categories()
     {
-        $categories = Cache::remember('api:categories', 600, function () {
+        return Cache::remember('categories', 3600, function () {
             return Product::distinct()->pluck('category');
         });
-        return response()->json($categories);
     }
 }

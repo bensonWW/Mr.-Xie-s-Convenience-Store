@@ -57,3 +57,41 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Kubernetes Deployment
+
+This project includes configuration for deploying to a Kubernetes cluster.
+
+### Prerequisites
+- Docker
+- Kubernetes Cluster (Minikube, Docker Desktop, or Cloud)
+- `kubectl` CLI
+
+### Steps
+
+1. **Build Docker Images**
+   ```bash
+   # Build Backend
+   docker build -t laravel-backend:latest .
+
+   # Build Frontend
+   docker build -t vue-frontend:latest ./xie_vue
+   ```
+
+2. **Generate Secrets**
+   Edit `k8s/02-secret.yaml` and set your `APP_KEY` (base64 encoded) and `DB_PASSWORD` (base64 encoded).
+
+3. **Apply Manifests**
+   ```bash
+   kubectl apply -f k8s/
+   ```
+
+4. **Access Application**
+   - The Frontend is exposed via a LoadBalancer service on port 80.
+   - The Backend is internal but can be accessed by the frontend service via DNS `laravel-backend`.
+
+### Component Overview
+- **MySQL**: Persistent database storage.
+- **Backend**: Scalable Laravel API pods.
+- **Frontend**: Nginx serving Vue.js static files.
+- **Migration Job**: Automatically runs database migrations on deploy.

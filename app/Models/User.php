@@ -9,6 +9,24 @@ use Illuminate\Notifications\Notifiable;
 
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string $password
+ * @property string|null $phone
+ * @property string $role
+ * @property string|null $address
+ * @property string|null $birthday
+ * @property int|null $store_id
+ * @property string $status
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Order[] $orders
+ * @property-read \App\Models\Cart|null $cart
+ * @property-read \App\Models\Store|null $store
+ * @mixin \Illuminate\Database\Eloquent\Builder
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -28,6 +46,10 @@ class User extends Authenticatable
         'address',
         'birthday',
         'store_id',
+        'status',
+        'balance',
+        'member_level',
+        'is_level_locked',
     ];
 
     /**
@@ -51,6 +73,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'birthday' => 'date',
+            'balance' => 'decimal:2',
+            'is_level_locked' => 'boolean',
         ];
     }
 
@@ -67,5 +91,20 @@ class User extends Authenticatable
     public function store()
     {
         return $this->belongsTo(Store::class);
+    }
+
+    public function walletTransactions()
+    {
+        return $this->hasMany(WalletTransaction::class);
+    }
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
     }
 }

@@ -1,0 +1,37 @@
+# Git
+.git
+.gitignore
+
+# Composer
+/vendor
+
+# NPM
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/public/mix-manifest.json
+
+# Environment
+.env
+.env.backup
+.env.production
+
+# Docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Editor
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Frontend
+xie_vue/node_modules
+xie_vue/dist

@@ -1,192 +1,124 @@
 <template>
-  <div class="admin-dashboard">
-    <div class="admin-header">
-      <h2>後台管理系統</h2>
-      <div class="tabs">
-        <button :class="{ active: activeTab === 'dashboard' }" @click="activeTab = 'dashboard'">儀表板</button>
-        <button :class="{ active: activeTab === 'products' }" @click="activeTab = 'products'">商品管理</button>
-        <button :class="{ active: activeTab === 'orders' }" @click="activeTab = 'orders'">訂單管理</button>
-        <button :class="{ active: activeTab === 'coupons' }" @click="activeTab = 'coupons'">優惠卷管理</button>
-      </div>
-    </div>
-
-    <!-- Dashboard Tab -->
-    <div v-if="activeTab === 'dashboard'" class="tab-content">
-      <div class="stats-grid">
-        <div class="stat-card">
-          <h3>總銷售額</h3>
-          <p class="stat-value">${{ stats.total_sales }}</p>
+  <div class="flex h-screen overflow-hidden bg-gray-100 font-sans text-gray-700">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white shadow-md flex-shrink-0 hidden md:flex flex-col z-20">
+        <div class="h-16 flex items-center justify-center border-b border-gray-100 bg-xieBlue text-white font-bold text-xl tracking-wider">
+            MR. XIE ADMIN
         </div>
-        <div class="stat-card">
-          <h3>總訂單數</h3>
-          <p class="stat-value">{{ stats.order_count }}</p>
-        </div>
-        <div class="stat-card">
-          <h3>會員人數</h3>
-          <p class="stat-value">{{ stats.user_count }}</p>
-        </div>
-      </div>
 
-      <div class="dashboard-row">
-        <div class="card">
-          <h3>低庫存商品警示</h3>
-          <ul v-if="stats.low_stock_products && stats.low_stock_products.length > 0">
-            <li v-for="prod in stats.low_stock_products" :key="prod.id">
-              {{ prod.name }} (剩餘: {{ prod.stock }})
-            </li>
-          </ul>
-          <p v-else>目前無低庫存商品</p>
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <li>
+                    <router-link to="/admin/dashboard" class="flex items-center px-6 py-3 transition"
+                       :class="$route.name === 'admin-dashboard' ? 'text-xieOrange bg-orange-50 border-r-4 border-xieOrange' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'">
+                        <i class="fas fa-chart-pie w-6"></i>
+                        <span class="font-bold">總覽儀表板</span>
+                    </router-link>
+                </li>
+
+                <li class="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider mt-4">商店管理</li>
+                <li>
+                    <router-link to="/admin/products" class="flex items-center px-6 py-3 transition"
+                       :class="$route.name === 'admin-products' ? 'text-xieOrange bg-orange-50 border-r-4 border-xieOrange' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'">
+                        <i class="fas fa-box w-6"></i>
+                        <span>商品管理</span>
+                    </router-link>
+                </li>
+                <li>
+                    <router-link to="/admin/orders" class="flex items-center px-6 py-3 transition"
+                       :class="$route.name && $route.name.includes('admin-order') ? 'text-xieOrange bg-orange-50 border-r-4 border-xieOrange' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'">
+                        <i class="fas fa-file-invoice-dollar w-6"></i>
+                        <span>訂單管理</span>
+                    </router-link>
+                </li>
+                 <li>
+                    <router-link to="/admin/coupons" class="flex items-center px-6 py-3 transition"
+                       :class="$route.name === 'admin-coupons' ? 'text-xieOrange bg-orange-50 border-r-4 border-xieOrange' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'">
+                        <i class="fas fa-ticket-alt w-6"></i>
+                        <span>優惠券管理</span>
+                    </router-link>
+                </li>
+
+                <li class="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider mt-4">顧客與數據</li>
+                <li>
+                    <router-link to="/admin/users" class="flex items-center px-6 py-3 transition"
+                       :class="$route.name === 'admin-users' ? 'text-xieOrange bg-orange-50 border-r-4 border-xieOrange' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'">
+                        <i class="fas fa-users w-6"></i>
+                        <span>會員管理</span>
+                    </router-link>
+                </li>
+                <li>
+                    <router-link to="/admin/analytics" class="flex items-center px-6 py-3 transition"
+                       :class="$route.name === 'admin-analytics' ? 'text-xieOrange bg-orange-50 border-r-4 border-xieOrange' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'">
+                        <i class="fas fa-chart-line w-6"></i>
+                        <span>銷售分析</span>
+                    </router-link>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="p-4 border-t border-gray-100">
+            <a href="#" class="flex items-center gap-3 text-sm text-gray-500 hover:text-red-500 transition" @click.prevent="logout">
+                <i class="fas fa-sign-out-alt"></i> 登出管理後台
+            </a>
         </div>
-        <div class="card">
-          <h3>近期訂單</h3>
-          <ul class="recent-orders">
-            <li v-for="order in stats.recent_orders" :key="order.id">
-              #{{ order.id }} - {{ order.user.name }} - ${{ order.total_amount }} ({{ order.status }})
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
+    </aside>
 
-    <!-- Products Tab -->
-    <div v-if="activeTab === 'products'" class="tab-content">
-      <div class="actions-bar">
-        <button class="primary-btn" @click="$router.push('/admin/products/new')">新增商品</button>
-      </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>名稱</th>
-            <th>價格</th>
-            <th>分類</th>
-            <th>庫存</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <li v-if="products.length === 0">暫無商品</li>
-          <tr v-for="prod in products" :key="prod.id">
-            <td>{{ prod.id }}</td>
-            <td>{{ prod.name }}</td>
-            <td>{{ prod.price }}</td>
-            <td>{{ prod.category }}</td>
-            <td>{{ prod.stock }}</td>
-            <td>
-              <button class="sm-btn" @click="$router.push(`/admin/products/${prod.id}/edit`)">編輯</button>
-              <button class="sm-btn danger" @click="deleteProduct(prod.id)">刪除</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <div class="flex-1 flex flex-col h-screen overflow-hidden">
 
-    <!-- Orders Tab -->
-    <div v-if="activeTab === 'orders'" class="tab-content">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>會員</th>
-            <th>金額</th>
-            <th>狀態</th>
-            <th>日期</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="order in orders" :key="order.id">
-            <td>{{ order.id }}</td>
-            <td>{{ order.user ? order.user.name : 'Unknown' }}</td>
-            <td>{{ order.total_amount }}</td>
-            <td>
-              <span :class="'status-badge ' + order.status">{{ order.status }}</span>
-            </td>
-            <td>{{ new Date(order.created_at).toLocaleDateString() }}</td>
-            <td>
-              <select @change="updateOrderStatus(order.id, $event.target.value)" :value="order.status">
-                <option value="pending_payment">Pending Payment</option>
-                <option value="processing">Processing</option>
-                <option value="shipped">Shipped</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+        <!-- Header -->
+        <header class="h-16 bg-white shadow-sm flex items-center justify-between px-6 z-10">
+            <button class="md:hidden text-gray-500"><i class="fas fa-bars text-xl"></i></button>
+            <div class="text-lg font-bold text-gray-800">{{ getPageTitle }}</div>
+            <div class="flex items-center gap-4">
+                <button class="relative text-gray-400 hover:text-xieOrange transition">
+                    <i class="fas fa-bell"></i>
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                </button>
+                <div class="flex items-center gap-2">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="w-8 h-8 rounded-full border">
+                    <span class="text-sm font-bold text-gray-700">Admin</span>
+                </div>
+            </div>
+        </header>
 
-    <!-- Coupons Tab -->
-    <div v-if="activeTab === 'coupons'" class="tab-content">
-      <AdminCoupon />
+        <!-- Main Content -->
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+            <router-view></router-view>
+        </main>
     </div>
   </div>
 </template>
 
 <script>
 import api from '../services/api'
-import AdminCoupon from './AdminCoupon.vue'
 
 export default {
   name: 'AdminView',
-  components: {
-    AdminCoupon
-  },
-  data () {
-    return {
-      activeTab: 'dashboard',
-      stats: {},
-      products: [],
-      orders: []
+  computed: {
+    getPageTitle () {
+      const map = {
+        'admin-dashboard': '儀表板',
+        'admin-products': '商品管理',
+        'admin-orders': '訂單管理',
+        'admin-order-detail': '訂單詳情',
+        'admin-coupons': '優惠券管理',
+        'admin-users': '會員管理',
+        'admin-analytics': '銷售分析'
+      }
+      return map[this.$route.name] || '後台管理'
     }
   },
-  created () {
-    this.fetchStats()
-    this.fetchProducts()
-    this.fetchOrders()
-  },
   methods: {
-    async fetchStats () {
+    async logout () {
       try {
-        const res = await api.get('/admin/stats')
-        this.stats = res.data
-      } catch (e) {
-        console.error(e)
-      }
-    },
-    async fetchProducts () {
-      try {
-        const res = await api.get('/products')
-        this.products = res.data
-      } catch (e) {
-        console.error(e)
-      }
-    },
-    async fetchOrders () {
-      try {
-        const res = await api.get('/admin/orders')
-        this.orders = res.data
-      } catch (e) {
-        console.error(e)
-      }
-    },
-    async deleteProduct (id) {
-      if (!confirm('確定刪除？')) return
-      try {
-        await api.delete(`/admin/products/${id}`)
-        this.fetchProducts()
-      } catch (e) {
-        alert('刪除失敗')
-      }
-    },
-    async updateOrderStatus (id, status) {
-      try {
-        await api.put(`/admin/orders/${id}/status`, { status })
-        alert('狀態更新成功')
-        this.fetchStats() // Refresh stats
-      } catch (e) {
-        alert('更新失敗')
+        await api.post('/logout')
+      } catch (error) {
+        console.error('Logout error:', error)
+      } finally {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user_role')
+        this.$router.push('/')
       }
     }
   }
@@ -194,105 +126,5 @@ export default {
 </script>
 
 <style scoped>
-.admin-dashboard {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-.tabs button {
-  padding: 0.5rem 1rem;
-  margin-left: 0.5rem;
-  background: #eee;
-  border: none;
-  cursor: pointer;
-}
-.tabs button.active {
-  background: #e67e22;
-  color: white;
-}
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-.stat-card {
-  background: #2c3e50;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  text-align: center;
-  color: white;
-}
-.stat-card h3 {
-  color: #ecf0f1;
-}
-.stat-value {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #e67e22;
-}
-.dashboard-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-.card {
-  background: #2c3e50;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  color: white;
-}
-.card h3 {
-  color: #ecf0f1;
-  margin-bottom: 1rem;
-}
-.recent-orders {
-  list-style: none;
-  padding: 0;
-}
-.recent-orders li {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #465c71;
-}
-.recent-orders li:last-child {
-  border-bottom: none;
-}
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #2c3e50;
-  color: white;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-.data-table th {
-  background-color: #34495e;
-  color: #ecf0f1;
-  font-weight: bold;
-}
-.data-table th, .data-table td {
-  padding: 1rem;
-  text-align: left;
-  border-bottom: 1px solid #465c71;
-}
-.data-table tr:hover {
-  background-color: #3b5062;
-}
-.status-badge {
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-}
-.status-badge.pending_payment { background: #f1c40f; color: #fff; }
-.status-badge.processing { background: #3498db; color: #fff; }
-.status-badge.shipped { background: #9b59b6; color: #fff; }
-.status-badge.completed { background: #2ecc71; color: #fff; }
-.status-badge.cancelled { background: #e74c3c; color: #fff; }
+/* Tailwind CSS is used for styling */
 </style>

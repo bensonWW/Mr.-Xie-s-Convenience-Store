@@ -43,7 +43,13 @@
       </div>
 
       <!-- Product Grid -->
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      <div v-if="filteredItems.length === 0" class="col-span-12 text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
+          <i class="fas fa-box-open text-4xl mb-4 text-gray-300"></i>
+          <p>找不到相關商品</p>
+          <button @click="selectCategory('All')" class="mt-4 text-xieOrange underline text-sm">瀏覽所有商品</button>
+      </div>
+
+      <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         <div
           v-for="item in filteredItems"
           :key="item.id"
@@ -60,8 +66,11 @@
               <router-link :to="`/items/${item.id}`">{{ item.name }}</router-link>
             </h3>
             <div class="flex items-end justify-between">
-              <div class="text-xieOrange font-bold text-lg leading-none">NT$ {{ item.price.toLocaleString() }}</div>
-              <button class="bg-xieOrange text-white p-2 rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md hover:bg-orange-600">
+              <div>
+                 <div v-if="item.original_price" class="text-xs text-gray-400 line-through">NT$ {{ Number(item.original_price).toLocaleString() }}</div>
+                 <div class="text-xieOrange font-bold text-lg leading-none">NT$ {{ Number(item.price).toLocaleString() }}</div>
+              </div>
+              <button @click.prevent="addToCart(item)" class="bg-xieOrange text-white p-2 rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md hover:bg-orange-600">
                 <i class="fas fa-cart-plus"></i>
               </button>
             </div>
@@ -70,11 +79,32 @@
       </div>
 
       <!-- Pagination -->
-      <div class="mt-8 flex justify-center space-x-2">
-        <a href="#" class="px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded hover:bg-gray-100"><i class="fas fa-chevron-left"></i></a>
-        <a href="#" class="px-3 py-2 bg-xieOrange border border-xieOrange text-white rounded font-bold">1</a>
-        <a href="#" class="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-100 hover:text-xieOrange">2</a>
-        <a href="#" class="px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded hover:bg-gray-100"><i class="fas fa-chevron-right"></i></a>
+      <!-- Pagination -->
+      <div class="mt-8 flex justify-center space-x-2" v-if="pagination.last_page > 1">
+        <button
+          @click="changePage(pagination.current_page - 1)"
+          :disabled="pagination.current_page <= 1"
+          class="px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded hover:bg-gray-100 disabled:opacity-50"
+        >
+          <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <button
+          v-for="page in pagination.last_page"
+          :key="page"
+          @click="changePage(page)"
+          :class="['px-3 py-2 border rounded font-bold', page === pagination.current_page ? 'bg-xieOrange border-xieOrange text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-xieOrange']"
+        >
+          {{ page }}
+        </button>
+
+        <button
+          @click="changePage(pagination.current_page + 1)"
+          :disabled="pagination.current_page >= pagination.last_page"
+          class="px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded hover:bg-gray-100 disabled:opacity-50"
+        >
+          <i class="fas fa-chevron-right"></i>
+        </button>
       </div>
 
     </main>
@@ -83,17 +113,30 @@
 
 <script>
 import api from '../services/api'
+import { useToast } from 'vue-toastification'
 
 export default {
   name: 'ItemsView',
+  setup () {
+    const toast = useToast()
+    return { toast }
+  },
   data () {
     return {
       categories: [],
       items: [],
-      selectedCategory: 'Fruit'
+      selectedCategory: '',
+      pagination: {
+        current_page: 1,
+        last_page: 1,
+        total: 0
+      }
     }
   },
   created () {
+    if (this.$route.query.category) {
+      this.selectedCategory = this.$route.query.category
+    }
     this.fetchCategories()
     this.fetchProducts()
   },
@@ -104,38 +147,89 @@ export default {
       }
       return `${this.selectedCategory}商品`
     },
+    // We no longer filter client side because we have pagination.
+    // The items in `this.items` are already filtered by the server.
     filteredItems () {
-      const search = this.$route.query.search
-      if (search) {
-        const q = search.toLowerCase()
-        return this.items.filter(item => item.name.toLowerCase().includes(q))
-      }
-      return this.items.filter(item => item.category === this.selectedCategory)
+      return this.items
     }
   },
   methods: {
+    async addToCart (item) {
+      if (!localStorage.getItem('token')) {
+        this.toast.warning('請先登入')
+        this.$router.push('/profile')
+        return
+      }
+
+      try {
+        await api.post('/cart/items', {
+          product_id: item.id,
+          quantity: 1
+        })
+        this.toast.success(`已將 ${item.name} 加入購物車`)
+        this.$store.dispatch('cart/fetchCount')
+      } catch (error) {
+        console.error('Add to cart error:', error)
+        this.toast.error('加入購物車失敗')
+      }
+    },
     async fetchCategories () {
       try {
         const response = await api.get('/categories')
         this.categories = response.data
-        if (this.categories.length > 0 && !this.categories.includes(this.selectedCategory) && !this.$route.query.search) {
+        if (this.categories.length > 0 && !this.selectedCategory && !this.$route.query.search) {
+          // If no category selected and no search, select first
           this.selectedCategory = this.categories[0]
+          // Force fetch products with this new category
+          this.fetchProducts(1)
         }
       } catch (error) {
         console.error('Error fetching categories:', error)
       }
     },
-    async fetchProducts () {
+    async fetchProducts (page = 1) {
       try {
-        const response = await api.get('/products')
-        const raw = response.data
-        const list = Array.isArray(raw)
-          ? raw
-          : Array.isArray(raw?.data)
-            ? raw.data
-            : []
+        const params = {
+          page: page,
+          category: this.selectedCategory !== 'All' ? this.selectedCategory : undefined,
+          search: this.$route.query.search
+        }
 
-        this.items = list.map(item => {
+        if (this.selectedCategory && !this.$route.query.search) {
+          params.category = this.selectedCategory
+        }
+
+        const response = await api.get('/products', { params })
+
+        let productsData = []
+        
+        // Defensive handling for different API response structures
+        if (Array.isArray(response.data)) {
+          // Direct array response (no pagination)
+          productsData = response.data
+          this.pagination = { current_page: 1, last_page: 1, total: productsData.length }
+        } else if (response.data && typeof response.data === 'object') {
+          // Object response (likely paginated)
+          if (Array.isArray(response.data.data)) {
+            // Standard Laravel Pagination resource or paginate() response
+            productsData = response.data.data
+            
+            // Defensively update pagination if meta/links exist or root properties exist
+            this.pagination = {
+              current_page: response.data.current_page || response.data.meta?.current_page || 1,
+              last_page: response.data.last_page || response.data.meta?.last_page || 1,
+              total: response.data.total || response.data.meta?.total || 0
+            }
+          } else {
+            // Fallback: maybe the object itself is the data or some other format
+            // If it has no 'data' array, assume empty or check other fields? 
+            // For now, let's assume if it's not array and doesn't have data.data, it might be empty or error.
+            console.warn('Unexpected API response structure', response.data)
+            productsData = []
+          }
+        }
+
+        this.items = productsData.map(item => {
           let imgUrl = ''
           if (item.image) {
             if (item.image.startsWith('http')) {
@@ -152,18 +246,25 @@ export default {
         })
       } catch (error) {
         console.error('Error fetching products:', error)
-      } finally {
-        const queryCategory = this.$route.query.category
-        if (queryCategory) {
-          this.selectedCategory = queryCategory
-        }
+        this.items = []
+        this.toast.error('無法載入商品資料')
       }
     },
     selectCategory (cat) {
       this.selectedCategory = cat
       if (this.$route.query.search) {
-        this.$router.push({ path: '/items' })
+        // If searching, clear search to show category
+        this.$router.push({ path: '/items', query: { category: cat } })
+      } else {
+        // Update URL to keep state
+        this.$router.push({ path: '/items', query: { category: cat } })
       }
+      this.fetchProducts(1) // Reset to page 1
+    },
+    changePage (page) {
+      if (page < 1 || page > this.pagination.last_page) return
+      this.fetchProducts(page)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   },
   watch: {

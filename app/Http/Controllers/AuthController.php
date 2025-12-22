@@ -16,14 +16,14 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'string|in:customer,staff,store_member', // Admin should be created manually or via seeder
+            // 'role' => 'string|in:customer,staff,store_member', // Removed for security. Admin/Staff must be seeded.
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => $request->role ?? 'customer',
+            'role' => 'customer', // Always default to customer for public registration
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -43,7 +43,16 @@ class AuthController extends Controller
             ]);
         }
 
+
+
         $user = User::where('email', $request->email)->firstOrFail();
+
+        if ($user->status === 'banned') {
+            throw ValidationException::withMessages([
+                'email' => ['Your account has been suspended.'],
+            ]);
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

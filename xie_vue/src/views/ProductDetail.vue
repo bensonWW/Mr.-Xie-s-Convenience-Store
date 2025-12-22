@@ -17,8 +17,8 @@
                 <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200 p-8 relative overflow-hidden group">
                     <img v-if="imgUrl" :src="imgUrl" :alt="item.name" class="w-full h-full object-contain">
                     <i v-else class="fas fa-image text-9xl text-gray-300"></i>
-                    <button class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition p-2 bg-white rounded-full shadow-sm">
-                        <i class="far fa-heart text-xl"></i>
+                    <button class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition p-2 bg-white rounded-full shadow-sm" @click="toggleWishlist">
+                        <i :class="isFavorited ? 'fas fa-heart text-red-500' : 'far fa-heart'" class="text-xl"></i>
                     </button>
                 </div>
                 <!-- Mock Thumbnails -->
@@ -41,9 +41,10 @@
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">{{ item.name }}</h1>
                 <div class="text-sm text-gray-500 mb-4">商品編號：{{ item.id }} | 分類：{{ formatCategory(item.category) }}</div>
 
-                <div class="bg-orange-50 p-4 rounded-lg mb-6 flex items-baseline gap-3">
-                    <span class="text-xs text-gray-500">特價</span>
+                <div class="bg-orange-50 p-4 rounded-lg mb-6 flex items-end gap-3">
+                    <span class="text-xs text-gray-500 mb-1">特價</span>
                     <div class="text-4xl font-bold text-xieOrange">NT$ {{ item.price ? item.price.toLocaleString() : 0 }}</div>
+                    <div v-if="item.original_price" class="text-sm text-gray-400 line-through mb-1">NT$ {{ Number(item.original_price).toLocaleString() }}</div>
                 </div>
 
                 <ul class="space-y-2 text-gray-600 mb-6 text-sm">
@@ -56,7 +57,7 @@
 
                 <div class="space-y-6">
                     <div class="flex justify-between items-center text-sm">
-                        <div class="text-gray-600">庫存狀況：<span class="text-green-600 font-bold">現貨充足 (剩餘 {{ item.amount || 0 }} 件)</span></div>
+                        <div class="text-gray-600">庫存狀況：<span class="text-green-600 font-bold">現貨充足 (剩餘 {{ item.stock || 0 }} 件)</span></div>
                         <div class="font-bold text-gray-800">總計：<span class="text-xieOrange text-xl ml-2">NT$ {{ totalPrice.toLocaleString() }}</span></div>
                     </div>
 
@@ -127,18 +128,60 @@ export default {
       qty: 1,
       maxQty: 1,
       totalPrice: 0,
-      activeTab: 'details'
+      activeTab: 'details',
+      isFavorited: false
     }
   },
   created () {
     this.loadItemFromRoute()
+    if (localStorage.getItem('token')) {
+      this.checkWishlistStatus()
+    }
   },
   watch: {
     '$route.params.id' (newId) {
       this.loadItemFromRoute(newId)
+      if (localStorage.getItem('token')) {
+        this.checkWishlistStatus()
+      }
     }
   },
   methods: {
+    toggleWishlist () {
+      if (!localStorage.getItem('token')) {
+        this.$toast.warning('請先登入')
+        return
+      }
+
+      if (this.isFavorited) {
+        // Remove
+        api.delete(`/favorites/${this.item.id}`)
+          .then(() => {
+            this.isFavorited = false
+            this.$toast.info('已取消收藏')
+          })
+      } else {
+        // Add
+        api.post('/favorites', { product_id: this.item.id })
+          .then(() => {
+            this.isFavorited = true
+            this.$toast.success('已加入收藏')
+          })
+      }
+    },
+    async checkWishlistStatus () {
+      try {
+        // Optimally we would check just this ID, but our API is list-based.
+        // For now fetching list is okay unless user has thousands.
+        // If performance issue, adds GET /favorites/check/{id} endpoint later.
+        const res = await api.get('/favorites')
+        const favorites = res.data
+        // Assuming favorites returns list of products
+        this.isFavorited = favorites.some(f => f.id === this.item.id)
+      } catch (e) {
+        console.error('Check wishlist error', e)
+      }
+    },
     preventInputArrows (e) {
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         e.preventDefault()
@@ -162,7 +205,7 @@ export default {
     },
     async addToCart () {
       if (!localStorage.getItem('token')) {
-        alert('請先登入')
+        this.$toast.warning('請先登入')
         this.$router.push('/profile')
         return
       }
@@ -172,16 +215,17 @@ export default {
           product_id: this.item.id,
           quantity: this.qty
         })
-        alert('已加入購物車')
-        window.dispatchEvent(new Event('cart:updated'))
+        this.$toast.success('已加入購物車')
+        window.dispatchEvent(new CustomEvent('cart:updated'))
+        // this.$store.dispatch('cart/fetchCount') // Replaced by event listener mechanism
       } catch (error) {
         console.error('Add to cart error:', error)
-        alert('加入購物車失敗')
+        this.$toast.error('加入購物車失敗')
       }
     },
     buyNow () {
       if (!localStorage.getItem('token')) {
-        alert('請先登入')
+        this.$toast.warning('請先登入')
         this.$router.push('/profile')
         return
       }
@@ -190,11 +234,10 @@ export default {
         product_id: this.item.id,
         quantity: this.qty
       }).then(() => {
-        window.dispatchEvent(new Event('cart:updated'))
         this.$router.push('/car')
       }).catch(error => {
         console.error('Buy now error:', error)
-        alert('購買失敗')
+        this.$toast.error('購買失敗')
       })
     },
     async loadItemFromRoute (idParam) {
@@ -214,10 +257,14 @@ export default {
           this.imgUrl = ''
         }
 
-        const stock = Number(this.item.amount || 0)
+        const stock = Number(this.item.stock || 0)
         this.maxQty = stock > 0 ? stock : 1
         this.qty = 1
         this.updateTotalPrice()
+
+        // Check wish status again now that item is loaded?
+        // No, checkWishlistStatus uses this.item.id, so check it only after item is loaded OR use route param.
+        if (localStorage.getItem('token')) this.checkWishlistStatus()
       } catch (error) {
         console.error('Fetch product error:', error)
         this.item = null
