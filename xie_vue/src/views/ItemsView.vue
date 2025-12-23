@@ -188,13 +188,13 @@ export default {
         this.$router.push('/profile')
         return
       }
-
-      await this.cartStore.addToCart(item.id, 1)
-      // Toast is handled in store, or we can add extra logic here.
-      // Store success toast: '已加入購物車'
-      // Maybe we want to mention item name? Store might not know item name.
-      // The store toast is generic. We can suppress store toast or just let it consistantly show.
-      // Current store impl shows toast. Success.
+      try {
+        await this.cartStore.addToCart(item.id, 1)
+        // store shows success toast; keep optional contextual message if desired
+      } catch (error) {
+        console.error('Add to cart error (ItemsView):', error)
+        // store already shows detailed error toast
+      }
     },
     async fetchCategories () {
       try {

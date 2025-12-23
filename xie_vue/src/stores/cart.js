@@ -47,12 +47,18 @@ export const useCartStore = defineStore('cart', {
                     product_id: productId,
                     quantity: quantity
                 })
+                // Optimistically bump the count immediately for snappy UX
+                this.count = (this.count || 0) + quantity
                 toast.success('已加入購物車')
-                await this.fetchCart() // Refresh state
+                // Sync with server in the background (no await to keep UI instant)
+                this.fetchCart()
             } catch (e) {
-                console.error(e)
-                const msg = e.response?.data?.message || '加入失敗'
+                console.error('addToCart error:', e)
+                const status = e.response?.status
+                const backendMessage = e.response?.data?.message || e.response?.data?.error
+                const msg = `加入失敗${status ? ` (狀態: ${status})` : ''}${backendMessage ? `：${backendMessage}` : ''}`
                 toast.error(msg)
+                throw e
             }
         },
 
