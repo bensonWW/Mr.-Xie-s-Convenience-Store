@@ -166,19 +166,12 @@ export default {
         this.$router.push('/profile')
         return
       }
-
       try {
-        await api.post('/cart/items', {
-          product_id: item.id,
-          quantity: 1
-        })
-        this.toast.success(`已將 ${item.name} 加入購物車`)
-        this.$store.dispatch('cart/fetchCount')
+        await this.cartStore.addToCart(item.id, 1)
+        // store shows success toast; keep optional contextual message if desired
       } catch (error) {
         console.error('Add to cart error (ItemsView):', error)
-        const status = error.response?.status
-        const backendMessage = error.response?.data?.message || error.response?.data?.error
-        this.toast.error(`加入購物車失敗 (狀態: ${status ?? '未知'})${backendMessage ? '：' + backendMessage : ''}`)
+        // store already shows detailed error toast
       }
     },
     async fetchCategories () {

@@ -119,9 +119,16 @@
 <script>
 import api from '../services/api'
 import { formatPrice } from '../utils/currency'
+import { useToast } from 'vue-toastification'
+import { useCartStore } from '../stores/cart'
 
 export default {
   name: 'ProductDetail',
+  setup () {
+    const toast = useToast()
+    const cartStore = useCartStore()
+    return { toast, cartStore }
+  },
   data () {
     return {
       item: null,
@@ -151,7 +158,7 @@ export default {
     formatPrice,
     toggleWishlist () {
       if (!localStorage.getItem('token')) {
-        this.$toast.warning('請先登入')
+        this.toast.warning('請先登入')
         return
       }
 
@@ -160,14 +167,14 @@ export default {
         api.delete(`/favorites/${this.item.id}`)
           .then(() => {
             this.isFavorited = false
-            this.$toast.info('已取消收藏')
+            this.toast.info('已取消收藏')
           })
       } else {
         // Add
         api.post('/favorites', { product_id: this.item.id })
           .then(() => {
             this.isFavorited = true
-            this.$toast.success('已加入收藏')
+            this.toast.success('已加入收藏')
           })
       }
     },
@@ -207,29 +214,26 @@ export default {
     },
     async addToCart () {
       if (!localStorage.getItem('token')) {
-        this.$toast.warning('請先登入')
+        this.toast.warning('請先登入')
         this.$router.push('/profile')
         return
       }
 
       try {
-        await api.post('/cart/items', {
-          product_id: this.item.id,
-          quantity: this.qty
-        })
-        this.$toast.success('已加入購物車')
-        window.dispatchEvent(new CustomEvent('cart:updated'))
-        // this.$store.dispatch('cart/fetchCount') // Replaced by event listener mechanism
+        await this.cartStore.addToCart(this.item.id, this.qty)
       } catch (error) {
         console.error('Add to cart error (ProductDetail):', error)
+        // Error toast handled in store; keep a fallback just in case
         const status = error.response?.status
         const backendMessage = error.response?.data?.message || error.response?.data?.error
-        this.$toast.error(`加入購物車失敗 (狀態: ${status ?? '未知'})${backendMessage ? '：' + backendMessage : ''}`)
+        if (!backendMessage) {
+          this.toast.error(`加入購物車失敗${status ? ` (狀態: ${status})` : ''}`)
+        }
       }
     },
     buyNow () {
       if (!localStorage.getItem('token')) {
-        this.$toast.warning('請先登入')
+        this.toast.warning('請先登入')
         this.$router.push('/profile')
         return
       }
@@ -241,7 +245,7 @@ export default {
         this.$router.push('/car')
       }).catch(error => {
         console.error('Buy now error:', error)
-        this.$toast.error('購買失敗')
+        this.toast.error('購買失敗')
       })
     },
     async loadItemFromRoute (idParam) {

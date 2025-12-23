@@ -26,6 +26,8 @@ const freeShippingThreshold = ref(1000)
 const userBalance = ref(0)
 const userLevel = ref('normal')
 const userAddress = ref('')
+const userName = ref('')
+const userPhone = ref('')
 const showTopUpModal = ref(false)
 const showAddressModal = ref(false)
 const isProcessing = ref(false)
@@ -43,6 +45,8 @@ async function fetchUserProfile () {
     const res = await api.get('/user')
     userAddress.value = res.data.address || ''
     userLevel.value = res.data.member_level || 'normal'
+    userName.value = res.data.name || ''
+    userPhone.value = res.data.phone || ''
   } catch (error) {
     console.error('Fetch user profile error:', error)
   }
@@ -169,7 +173,12 @@ async function updateQuantity (item, change) {
 }
 
 async function checkout () {
-  if (cartItems.value.length === 0) return
+  // Ensure server-side cart is in sync before proceeding
+  await cartStore.fetchCart()
+  if (cartItems.value.length === 0) {
+    toast.error('購物車是空的，請先加入商品')
+    return
+  }
 
   // 1. Check Address
   if (!userAddress.value) {
@@ -189,7 +198,11 @@ async function checkout () {
   isProcessing.value = true
   try {
     await api.post('/orders', {
-      coupon_code: appliedCoupon.value ? appliedCoupon.value.code : null
+      coupon_code: appliedCoupon.value ? appliedCoupon.value.code : null,
+      // Provide shipping details; backend will fallback to user profile if omitted
+      shipping_address: userAddress.value || undefined,
+      shipping_name: userName.value || undefined,
+      shipping_phone: userPhone.value || undefined
     })
     toast.success('訂單支付成功！')
     
@@ -208,7 +221,9 @@ async function checkout () {
       toast.error('餘額不足，請先儲值')
       showTopUpModal.value = true
     } else {
-      toast.error(error.response?.data?.message || '結帳失敗')
+      const status = error.response?.status
+      const backendMessage = error.response?.data?.message || error.response?.data?.error
+      toast.error(`結帳失敗${status ? ` (狀態: ${status})` : ''}${backendMessage ? '：' + backendMessage : ''}`)
     }
   } finally {
     isProcessing.value = false
