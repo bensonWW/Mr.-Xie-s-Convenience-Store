@@ -84,6 +84,15 @@ export default {
           email: this.loginEmail,
           password: this.loginPassword
         })
+        // 取得最新使用者資訊
+        const user = this.$store.getters.currentUser
+
+        // 若需重新驗證或尚未驗證，導向驗證頁
+        if (!user?.email_verified_at) {
+          this.toast.info('已為您寄出驗證信，請至信箱完成驗證')
+          this.$router.replace('/verify-email')
+          return
+        }
 
         // 成功後停留本頁，不做全頁跳轉/重整
         this.toast.success('登入成功！')
@@ -123,8 +132,9 @@ export default {
         // 再保險一次請求用戶資料（若後端在註冊回傳無完整 user）
         this.$store.dispatch('checkAuth').catch(() => {})
 
-        this.toast.success('註冊成功！')
-        // 視圖會因為 isLoggedIn 變為 true 而自動切到會員中心
+        this.toast.success('註冊成功！已寄出驗證信，請至信箱查收')
+        // 導向信箱驗證頁面以引導使用者完成驗證
+        this.$router.replace('/verify-email')
       } catch (error) {
         console.error('Register error:', error)
         if (error.response && error.response.data) {
