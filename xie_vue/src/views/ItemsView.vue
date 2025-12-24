@@ -9,12 +9,12 @@
         </div>
         <ul class="text-sm text-gray-700 divide-y divide-gray-100 font-medium">
           <li
-            v-for="cat in categories"
-            :key="cat.id || cat"
+            v-for="cat in validCategories"
+            :key="cat.id"
             @click="selectCategory(cat)"
-            :class="['px-4 py-3 border-l-4 cursor-pointer transition', selectedCategoryName === (cat.name || cat) ? 'bg-orange-50 text-xieOrange border-xieOrange' : 'hover:bg-gray-50 hover:text-xieOrange border-transparent']"
+            :class="['px-4 py-3 border-l-4 cursor-pointer transition', selectedCategoryName === cat.displayName ? 'bg-orange-50 text-xieOrange border-xieOrange' : 'hover:bg-gray-50 hover:text-xieOrange border-transparent']"
           >
-            {{ cat.name || cat }}
+            {{ cat.displayName }}
           </li>
         </ul>
       </div>
@@ -153,9 +153,26 @@ export default {
     },
     selectedCategoryName () {
       if (typeof this.selectedCategory === 'object' && this.selectedCategory !== null) {
-        return this.selectedCategory.name || ''
+        return this.selectedCategory.displayName || this.selectedCategory.name || ''
       }
       return this.selectedCategory || ''
+    },
+    validCategories () {
+      return this.categories
+        .map((cat, index) => {
+          if (typeof cat === 'string') {
+            return { id: index, name: cat, displayName: cat }
+          }
+          let displayName = cat.name
+          if (typeof displayName === 'object' && displayName !== null) {
+            displayName = displayName.name || displayName.label || ''
+          }
+          return {
+            ...cat,
+            displayName: displayName || `Category ${cat.id}`
+          }
+        })
+        .filter(cat => cat.displayName && typeof cat.displayName === 'string' && !cat.displayName.includes('[object'))
     },
     // We no longer filter client side because we have pagination.
     // The items in `this.items` are already filtered by the server.
@@ -183,10 +200,9 @@ export default {
       try {
         const response = await api.get('/categories')
         this.categories = response.data
-        if (this.categories.length > 0 && !this.selectedCategory && !this.$route.query.search) {
-          // If no category selected and no search, select first
-          this.selectedCategory = this.categories[0]
-          // Force fetch products with this new category
+        // Use validCategories for initial selection
+        if (this.validCategories.length > 0 && !this.selectedCategory && !this.$route.query.search) {
+          this.selectedCategory = this.validCategories[0]
           this.fetchProducts(1)
         }
       } catch (error) {
