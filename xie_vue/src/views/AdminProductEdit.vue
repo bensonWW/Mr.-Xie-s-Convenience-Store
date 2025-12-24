@@ -285,8 +285,8 @@ export default {
         const prod = res.data
         this.form = {
           name: prod.name,
-          price: prod.price,  // Already integer, no conversion needed
-          original_price: prod.original_price || null,  // Already integer
+          price: prod.price, // Already integer, no conversion needed
+          original_price: prod.original_price || null, // Already integer
           stock: prod.stock,
           category: prod.category,
           information: prod.information,
