@@ -8,6 +8,7 @@ use App\Http\Controllers\StoreController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WalletController;
+use App\Http\Controllers\VerificationController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes (with rate limiting for auth)
@@ -31,6 +32,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/user/profile', [AuthController::class, 'updateProfile']);
 
     // Wallet (with stricter rate limiting for financial operations)
+        // Email Verification (code-based)
+        Route::post('/email/verification-notification', [VerificationController::class, 'send']);
+        Route::post('/email/verify-code', [VerificationController::class, 'verifyCode']);
+
     Route::middleware('throttle:60,1')->group(function () {
         Route::get('/user/wallet', [WalletController::class, 'show']);
         Route::post('/user/wallet/deposit', [WalletController::class, 'deposit']);
@@ -89,3 +94,5 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/stores/{id}', [StoreController::class, 'update']);
     });
 });
+
+// Remove signed URL route (switched to code-based verification)

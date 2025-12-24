@@ -43,8 +43,6 @@ class AuthController extends Controller
             ]);
         }
 
-
-
         $user = User::where('email', $request->email)->firstOrFail();
 
         if ($user->status === 'banned') {
@@ -53,12 +51,35 @@ class AuthController extends Controller
             ]);
         }
 
+        // Check last login and enforce re-verification if gap >= 2 days
+        $previousLogin = $user->last_login_at;
+        $user->last_login_at = now();
+        $needsVerification = false;
+
+        if ($previousLogin && $user->last_login_at->diffInDays($previousLogin) >= 2) {
+            // Force re-verification by clearing verification timestamp
+            $user->email_verified_at = null;
+            $needsVerification = true;
+        }
+
+        $user->save();
+
+        if ($needsVerification) {
+            try {
+                app(\App\Services\EmailVerificationService::class)->generateCode($user);
+                app(\App\Services\EmailVerificationService::class)->sendCode($user);
+            } catch (\Throwable $e) {
+                // Ignore mailing failures here; frontend can retry via API
+            }
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
             'user' => $user,
+            'needs_verification' => $needsVerification,
         ]);
     }
 

@@ -84,6 +84,15 @@ export default {
           email: this.loginEmail,
           password: this.loginPassword
         })
+        // 取得最新使用者資訊
+        const user = this.$store.getters.currentUser
+
+        // 若需重新驗證或尚未驗證，導向驗證頁
+        if (!user?.email_verified_at) {
+          this.toast.info('已為您寄出驗證信，請至信箱完成驗證')
+          this.$router.replace('/verify-email')
+          return
+        }
 
         // Notify parent or reload
         this.toast.success('登入成功！')
@@ -120,9 +129,9 @@ export default {
         const { access_token: accessToken } = response.data
         localStorage.setItem('token', accessToken)
 
-        // Notify parent or reload
-        this.toast.success('註冊成功！')
-        setTimeout(() => window.location.reload(), 1000)
+        this.toast.success('註冊成功！已寄出驗證信，請至信箱查收')
+        // 導向信箱驗證頁面以引導使用者完成驗證
+        this.$router.replace('/verify-email')
       } catch (error) {
         console.error('Register error:', error)
         if (error.response && error.response.data) {

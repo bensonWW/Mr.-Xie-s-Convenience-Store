@@ -6,6 +6,15 @@
     <!-- 已登入：會員中心 -->
     <div v-else class="container mx-auto px-4 pb-12 grid grid-cols-1 md:grid-cols-4 gap-6">
 
+        <!-- Email 未驗證提醒 -->
+        <div v-if="user && !user.email_verified_at" class="md:col-span-4 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>您的信箱尚未驗證，完成驗證即可正常使用所有功能。</span>
+          </div>
+          <router-link to="/verify-email" class="underline text-sm hover:text-xieOrange">前往驗證 &rarr;</router-link>
+        </div>
+
         <UserSidebar
           :user="user"
           :current-view="currentView"
@@ -146,6 +155,7 @@ export default {
     // fetchUser removed as we use Vuex state
     async fetchOrders (status = 'all') {
       if (!this.user) return
+      // 若未驗證，仍可顯示資料，但避免某些操作；此處保留查詢
       try {
         const params = {}
         if (status && status !== 'all') {

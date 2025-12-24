@@ -4,6 +4,7 @@ import ItemsView from '../views/ItemsView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import CarView from '../views/CarView.vue'
 import ProductDetail from '../views/ProductDetail.vue'
+import EmailVerifyView from '../views/EmailVerifyView.vue'
 const routes = [
   {
     path: '/',
@@ -25,6 +26,11 @@ const routes = [
     path: '/profile',
     name: 'profile',
     component: ProfileView
+  },
+  {
+    path: '/verify-email',
+    name: 'verify-email',
+    component: EmailVerifyView
   },
   {
     path: '/car',
