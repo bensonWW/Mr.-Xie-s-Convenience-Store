@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Cart;
+use App\Models\MemberLevel;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Setting;
@@ -20,6 +21,16 @@ class ShippingFeeTest extends TestCase
         // Seed settings
         Setting::create(['key' => 'free_shipping_threshold', 'value' => 1000]);
         Setting::create(['key' => 'shipping_fee', 'value' => 60]);
+
+        // Seed member levels
+        MemberLevel::firstOrCreate(
+            ['slug' => 'normal'],
+            ['name' => 'Normal', 'threshold' => 0, 'discount' => 0.00]
+        );
+        MemberLevel::firstOrCreate(
+            ['slug' => 'vip'],
+            ['name' => 'VIP', 'threshold' => 1000, 'discount' => 0.05]
+        );
     }
 
     public function test_shipping_fee_applied_below_threshold()
@@ -70,12 +81,23 @@ class ShippingFeeTest extends TestCase
     public function test_shipping_fee_with_member_discount()
     {
         // VIP User (5% off)
-        $user = User::factory()->create(['balance' => 5000, 'member_level' => 'vip']);
+        $vipLevel = MemberLevel::where('slug', 'vip')->first();
+        $this->assertNotNull($vipLevel, 'VIP level should exist');
+        $this->assertEquals(0.05, $vipLevel->discount);
+
+        $user = User::factory()->create(['balance' => 5000, 'member_level_id' => $vipLevel->id]);
+        $this->assertEquals($vipLevel->id, $user->member_level_id);
+
+        // Reload user to get fresh relationship
+        $user->refresh();
+        $this->assertNotNull($user->memberLevel, 'User should have member level loaded');
+        $this->assertEquals(0.05, $user->memberLevel->discount);
+
         // Product price 1000. 
-        // Discount 50. Net 950.
+        // Discount 50 (5%). Net 950.
         // Threshold 1000.
         // Net 950 < 1000 -> Should add shipping fee 60.
-        // Total = 950 + 60 = 1010.
+        // Total = 950 + 60 = 1010
 
         $product = Product::factory()->create(['price' => 1000, 'stock' => 10]);
 
@@ -87,15 +109,9 @@ class ShippingFeeTest extends TestCase
         $response->assertStatus(201);
 
         $order = $response->json();
-        // Calculation check
-        // Subtotal: 1000
-        // Discount: 50 (5%)
-        // Net: 950
-        // Shipping: 60 (since 950 < 1000)
-        // Final: 1010
 
-        $this->assertEquals(1010, $order['total_amount']);
-        $this->assertEquals(60, $order['shipping_fee']);
-        $this->assertEquals(50, $order['discount_amount']);
+        $this->assertEquals(1010, $order['total_amount'], 'Total: subtotal 1000 - discount 50 + shipping 60 = 1010');
+        $this->assertEquals(60, $order['shipping_fee'], 'Shipping fee should be 60 since net < threshold');
+        $this->assertEquals(50, $order['discount_amount'], 'Discount should be 5% of 1000 = 50');
     }
 }

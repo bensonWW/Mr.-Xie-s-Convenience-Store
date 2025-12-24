@@ -1,0 +1,435 @@
+// 謝先生便利店 (Mr. Xie's Convenience Store)
+// 資料庫 Schema 定義 (DBML 格式)
+// 版本：1.0.0
+// 最後更新：2025-12-22
+// 此文檔定義了系統完整的資料庫結構（符合 3NF 正規化）
+
+// ========================================
+// 核心會員系統 (User System)
+// ========================================
+
+// 會員等級表 (normalized from users.member_level)
+Table member_levels {
+  id bigint [pk, increment]
+  slug varchar(50) [unique, note: '等級代碼: normal, vip, platinum']
+  name varchar(100) [note: '等級名稱: 一般會員, VIP 會員, 白金會員']
+  threshold int [default: 0, note: '升級門檻 (單位: cents)']
+  discount decimal(5,4) [default: 0.0000, note: '折扣率: 0.05 = 5%']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// 使用者表
+Table users {
+  id bigint [pk, increment]
+  name varchar(255)
+  email varchar(255) [unique]
+  email_verified_at timestamp [null]
+  password varchar(255)
+  remember_token varchar(100) [null]
+  role varchar(255) [default: 'customer']
+  phone varchar(255) [null]
+  birthday date [null]
+  status varchar(255) [default: 'active']
+  balance int [default: 0, note: '錢包餘額 (單位: cents)']
+  is_level_locked boolean [default: false, note: '等級是否鎖定']
+  member_level_id bigint [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  indexes {
+    email [unique, name: 'users_email_unique']
+  }
+}
+
+// 密碼重設 tokens
+Table password_reset_tokens {
+  email varchar(255) [pk]
+  token varchar(255)
+  created_at timestamp [null]
+}
+
+// Sessions
+Table sessions {
+  id varchar(255) [pk]
+  user_id bigint [null]
+  ip_address varchar(45) [null]
+  user_agent text [null]
+  payload longtext
+  last_activity int
+
+  indexes {
+    user_id [name: 'sessions_user_id_index']
+    last_activity [name: 'sessions_last_activity_index']
+  }
+}
+
+// ========================================
+// 商店與產品系統 (Store & Product System)
+// ========================================
+
+// 商店表
+Table stores {
+  id bigint [pk, increment]
+  name varchar(255)
+  email varchar(255) [unique]
+  address text
+  phone varchar(255)
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// 商品分類表 (normalized from products.category)
+Table categories {
+  id bigint [pk, increment]
+  name varchar(255) [unique]
+  slug varchar(255) [unique]
+  description text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// 商品表
+Table products {
+  id bigint [pk, increment]
+  name varchar(255)
+  price int [note: '價格 (單位: cents)']
+  original_price int [null, note: '原價 (單位: cents)']
+  information text [null, note: '商品描述']
+  image varchar(255) [null]
+  status varchar(255) [default: 'active', note: '商品狀態: active, inactive']
+  stock int [default: 0]
+  store_id bigint
+  category_id bigint [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  indexes {
+    store_id [name: 'products_store_id_index']
+    category_id [name: 'products_category_id_index']
+    status [name: 'products_status_index']
+  }
+}
+
+// ========================================
+// 購物車系統 (Cart System)
+// ========================================
+
+// 購物車表
+Table carts {
+  id bigint [pk, increment]
+  user_id bigint
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// 購物車項目表
+Table cart_items {
+  id bigint [pk, increment]
+  cart_id bigint
+  product_id bigint
+  quantity int [default: 1]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// ========================================
+// 訂單系統 (Order System)
+// ========================================
+
+// 序號產生器
+Table sequences {
+  name varchar(255) [pk, note: '序號名稱: order_logistics_YYYYMMDD']
+  current_value bigint [default: 0]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// 優惠券表 (前置定義，供 orders 引用)
+Table coupons {
+  id bigint [pk, increment]
+  code varchar(255) [unique]
+  discount_amount int [note: '折扣金額 (單位: cents)']
+  limit_price int [null, note: '使用門檻 (單位: cents)']
+  type varchar(255) [default: 'fixed', note: '折扣類型: fixed, percentage']
+  starts_at timestamp [null]
+  ends_at timestamp [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  indexes {
+    code [unique, name: 'coupons_code_unique']
+  }
+}
+
+// 訂單表
+Table orders {
+  id bigint [pk, increment]
+  user_id bigint
+  status varchar(255) [default: 'pending_payment', note: '訂單狀態: pending_payment, processing, shipped, delivered, completed, cancelled, returned']
+  total_amount int [note: '總金額 (單位: cents)']
+  discount_amount int [default: 0, note: '會員折扣金額 (單位: cents)']
+  coupon_discount int [default: 0, note: '優惠券折扣金額 (單位: cents)']
+  shipping_fee int [default: 0, note: '運費 (單位: cents)']
+  logistics_number varchar(255) [null, note: '物流編號']
+  payment_method varchar(255) [null, default: 'wallet', note: '付款方式']
+  coupon_id bigint [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  indexes {
+    user_id [name: 'orders_user_id_index']
+    status [name: 'orders_status_index']
+    created_at [name: 'orders_created_at_index']
+    (user_id, status) [name: 'orders_user_status_index']
+  }
+}
+
+// 訂單項目表
+Table order_items {
+  id bigint [pk, increment]
+  order_id bigint
+  product_id bigint
+  product_name varchar(255) [null, note: '商品名稱快照']
+  quantity int
+  price int [note: '單價 (單位: cents)']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  indexes {
+    order_id [name: 'order_items_order_id_index']
+    (order_id, product_id) [name: 'order_items_order_product_idx']
+  }
+}
+
+// 訂單項目選項表 (normalized from order_items.options JSON)
+Table order_item_options {
+  id bigint [pk, increment]
+  order_item_id bigint
+  option_name varchar(255) [note: '選項名稱: size, color, flavor']
+  option_value varchar(255) [note: '選項值: large, red, vanilla']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  indexes {
+    (order_item_id, option_name) [name: 'order_item_options_item_name_index']
+  }
+}
+
+// 訂單地址表 (normalized shipping info)
+Table order_addresses {
+  id bigint [pk, increment]
+  order_id bigint
+  name varchar(255) [null, note: '收件人姓名']
+  phone varchar(255) [null, note: '收件人電話']
+  address varchar(255) [null, note: '收件地址']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// 訂單快照表 (denormalized snapshot data for historical preservation)
+Table order_snapshots {
+  id bigint [pk, increment]
+  order_id bigint
+  buyer_email varchar(255) [null, note: '快照時購買者 email']
+  member_level_name varchar(255) [null, note: '快照時會員等級名稱 (slug)']
+  user_name varchar(255) [null, note: '快照時使用者名稱']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// ========================================
+// 優惠系統 (Coupon & Event System)
+// ========================================
+
+// 特殊活動表
+Table special_events {
+  id bigint [pk, increment]
+  name varchar(255)
+  discount_rate decimal(5,2) [note: '折扣率: 0.10 = 10% off']
+  starts_at timestamp [null]
+  ends_at timestamp [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// ========================================
+// 錢包系統 (Wallet System)
+// ========================================
+
+// 錢包交易紀錄表
+Table wallet_transactions {
+  id bigint [pk, increment]
+  user_id bigint
+  type varchar(255) [note: '交易類型: deposit, withdrawal, payment, refund']
+  amount int [note: '交易金額 (單位: cents)']
+  order_id bigint [null, note: '關聯訂單 ID']
+  description varchar(255) [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  indexes {
+    user_id [name: 'wallet_transactions_user_id_index']
+    order_id [name: 'wallet_transactions_order_id_index']
+    (user_id, type) [name: 'wallet_transactions_user_type_idx']
+  }
+}
+
+// ========================================
+// 使用者相關功能 (User Features)
+// ========================================
+
+// 收藏清單表
+Table favorites {
+  id bigint [pk, increment]
+  user_id bigint
+  product_id bigint
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  indexes {
+    (user_id, product_id) [unique, name: 'favorites_user_product_unique']
+  }
+}
+
+// 地址簿表
+Table addresses {
+  id bigint [pk, increment]
+  user_id bigint
+  recipient_name varchar(255)
+  phone varchar(255)
+  city varchar(255)
+  district varchar(255)
+  zip_code varchar(255)
+  detail_address varchar(255)
+  is_default boolean [default: false]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  deleted_at timestamp [null]
+}
+
+// ========================================
+// 系統表 (System Tables)
+// ========================================
+
+// 系統設定表
+Table settings {
+  id bigint [pk, increment]
+  key varchar(255) [unique]
+  value text [null]
+  description varchar(255) [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// API Token 表 (Laravel Sanctum)
+Table personal_access_tokens {
+  id bigint [pk, increment]
+  tokenable_type varchar(255)
+  tokenable_id bigint
+  name text
+  token varchar(64) [unique]
+  abilities text [null]
+  last_used_at timestamp [null]
+  expires_at timestamp [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  indexes {
+    (tokenable_type, tokenable_id) [name: 'personal_access_tokens_tokenable_type_tokenable_id_index']
+    expires_at [name: 'personal_access_tokens_expires_at_index']
+  }
+}
+
+// ========================================
+// 快取與佇列表 (Cache & Queue Tables)
+// ========================================
+
+// 快取表
+Table cache {
+  key varchar(255) [pk]
+  value mediumtext
+  expiration int
+}
+
+// 快取鎖定表
+Table cache_locks {
+  key varchar(255) [pk]
+  owner varchar(255)
+  expiration int
+}
+
+// 佇列工作表
+Table jobs {
+  id bigint [pk, increment]
+  queue varchar(255)
+  payload longtext
+  attempts tinyint
+  reserved_at int [null]
+  available_at int
+  created_at int
+
+  indexes {
+    queue [name: 'jobs_queue_index']
+  }
+}
+
+// 失敗工作表
+Table failed_jobs {
+  id bigint [pk, increment]
+  uuid varchar(255) [unique]
+  connection text
+  queue text
+  payload longtext
+  exception longtext
+  failed_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+// 批次工作表
+Table job_batches {
+  id varchar(255) [pk]
+  name varchar(255)
+  total_jobs int
+  pending_jobs int
+  failed_jobs int
+  failed_job_ids longtext
+  options mediumtext [null]
+  cancelled_at int [null]
+  created_at int
+  finished_at int [null]
+}
+
+// ========================================
+// 表關聯定義 (Relationships)
+// ========================================
+
+// 會員系統關聯
+Ref: users.member_level_id > member_levels.id
+Ref: sessions.user_id > users.id
+
+// 商品系統關聯
+Ref: products.store_id > stores.id
+Ref: products.category_id > categories.id
+
+// 購物車系統關聯
+Ref: carts.user_id > users.id
+Ref: cart_items.cart_id > carts.id
+Ref: cart_items.product_id > products.id
+
+// 訂單系統關聯
+Ref: orders.user_id > users.id
+Ref: orders.coupon_id > coupons.id
+Ref: order_items.order_id > orders.id
+Ref: order_items.product_id > products.id
+Ref: order_item_options.order_item_id > order_items.id
+Ref: order_addresses.order_id > orders.id
+Ref: order_snapshots.order_id > orders.id
+
+// 錢包系統關聯
+Ref: wallet_transactions.user_id > users.id
+Ref: wallet_transactions.order_id > orders.id
+
+// 使用者功能關聯
+Ref: favorites.user_id > users.id
+Ref: favorites.product_id > products.id
+Ref: addresses.user_id > users.id

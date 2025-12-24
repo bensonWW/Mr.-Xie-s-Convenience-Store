@@ -61,7 +61,8 @@ class ProductController extends Controller
     {
         $request->validate([
             'name' => 'required|string',
-            'price' => 'required|numeric',
+            'price' => 'required|integer|min:0',
+            'original_price' => 'nullable|integer|min:0',
             'category' => 'required|string', // Can be category name or ID
             'stock' => 'required|integer',
             'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:10240',
@@ -104,12 +105,13 @@ class ProductController extends Controller
             $data['image'] = $path;
         }
 
-        // Convert Price to Cents
+        // Price is already in integer format from frontend, no conversion needed
+        // Just ensure they are integers
         if (isset($data['price'])) {
-            $data['price'] = (int) round($data['price'] * 100);
+            $data['price'] = (int) $data['price'];
         }
         if (isset($data['original_price'])) {
-            $data['original_price'] = (int) round($data['original_price'] * 100);
+            $data['original_price'] = (int) $data['original_price'];
         }
 
         $product = Product::create($data);
@@ -123,7 +125,8 @@ class ProductController extends Controller
 
         $request->validate([
             'name' => 'string',
-            'price' => 'numeric',
+            'price' => 'integer|min:0',
+            'original_price' => 'nullable|integer|min:0',
             'category' => 'string', // Can be category name or ID
             'stock' => 'integer',
             'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:10240',
@@ -158,12 +161,12 @@ class ProductController extends Controller
             $data['image'] = $path;
         }
 
-        // Convert Price to Cents
+        // Price is already in integer format from frontend, no conversion needed
         if (isset($data['price'])) {
-            $data['price'] = (int) round($data['price'] * 100);
+            $data['price'] = (int) $data['price'];
         }
         if (isset($data['original_price'])) {
-            $data['original_price'] = (int) round($data['original_price'] * 100);
+            $data['original_price'] = (int) $data['original_price'];
         }
 
         $product->update($data);

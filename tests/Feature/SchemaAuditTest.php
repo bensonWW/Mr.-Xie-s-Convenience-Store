@@ -18,10 +18,10 @@ class SchemaAuditTest extends TestCase
         // Schema::getIndexes returns an array of arrays with 'name' key.
         $indexNames = collect($indexes)->pluck('name');
 
-        // Assert Indexes exist on Products
+        // Assert Indexes exist on Products (category_id FK creates an index)
         $this->assertTrue(
-            $indexNames->contains('products_category_index'),
-            'Products table missing index on category. Found: ' . $indexNames->implode(', ')
+            $indexNames->contains('products_category_id_foreign') || $indexNames->contains('products_category_id_index'),
+            'Products table missing index on category_id. Found: ' . $indexNames->implode(', ')
         );
 
         // Assert Indexes exist on Orders

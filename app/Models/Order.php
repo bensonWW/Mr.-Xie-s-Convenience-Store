@@ -59,4 +59,9 @@ class Order extends Model
     {
         return $this->hasOne(OrderSnapshot::class);
     }
+
+    public function coupon()
+    {
+        return $this->belongsTo(Coupon::class);
+    }
 }

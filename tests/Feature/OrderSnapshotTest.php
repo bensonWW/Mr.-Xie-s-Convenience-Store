@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\MemberLevel;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
@@ -12,6 +13,17 @@ use Tests\TestCase;
 class OrderSnapshotTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Seed normal level for MemberLevelService fallback
+        MemberLevel::firstOrCreate(
+            ['slug' => 'normal'],
+            ['name' => 'Normal', 'threshold' => 0, 'discount' => 0.00]
+        );
+    }
 
     public function test_order_preserves_user_data_in_snapshot()
     {

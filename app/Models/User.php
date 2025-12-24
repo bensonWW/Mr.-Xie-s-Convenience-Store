@@ -99,9 +99,9 @@ class User extends Authenticatable
 
     /**
      * Get the member level slug (backward compatibility accessor).
-     * This allows existing code using $user->member_level to continue working.
+     * Access via $user->member_level_slug
      */
-    public function getMemberLevelAttribute(): string
+    public function getMemberLevelSlugAttribute(): string
     {
         return $this->memberLevel?->slug ?? 'normal';
     }
@@ -109,8 +109,9 @@ class User extends Authenticatable
     /**
      * Set member level by slug (backward compatibility for tests).
      * Converts slug to member_level_id.
+     * Usage: $user->member_level_slug = 'vip';
      */
-    public function setMemberLevelAttribute(?string $value): void
+    public function setMemberLevelSlugAttribute(?string $value): void
     {
         if ($value === null) {
             return;

@@ -24,6 +24,9 @@ class OrderCreationServiceTest extends TestCase
     {
         parent::setUp();
         $this->service = app(OrderCreationService::class);
+
+        // Ensure 'normal' level exists for MemberLevelService fallback
+        $this->getMemberLevel('normal');
     }
 
     protected function getMemberLevel(string $slug): MemberLevel

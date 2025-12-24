@@ -123,17 +123,17 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                   <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">銷售價格 (Price)</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">銷售價格 (整數)</label>
                     <div class="relative">
                       <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
-                      <input v-model="form.price" type="number" placeholder="0.00" class="w-full pl-7 border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
+                      <input v-model.number="form.price" type="number" step="1" min="0" placeholder="0" @keydown="preventDecimal" class="w-full pl-7 border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                     </div>
                   </div>
                   <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">原價 (Compare at price)</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">原價 (整數)</label>
                     <div class="relative">
                       <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
-                      <input v-model="form.original_price" type="number" placeholder="0.00" class="w-full pl-7 border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
+                      <input v-model.number="form.original_price" type="number" step="1" min="0" placeholder="0" @keydown="preventDecimal" class="w-full pl-7 border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                     </div>
                     <p class="text-xs text-gray-400 mt-1">若填寫此欄位，前台將顯示刪除線價格</p>
                   </div>
@@ -285,8 +285,8 @@ export default {
         const prod = res.data
         this.form = {
           name: prod.name,
-          price: prod.price / 100,
-          original_price: prod.original_price ? prod.original_price / 100 : null,
+          price: prod.price,  // Already integer, no conversion needed
+          original_price: prod.original_price || null,  // Already integer
           stock: prod.stock,
           category: prod.category,
           information: prod.information,
@@ -346,6 +346,12 @@ export default {
     },
     removeTag (index) {
       this.form.tags.splice(index, 1)
+    },
+    preventDecimal (e) {
+      // Block decimal point and comma input
+      if (e.key === '.' || e.key === ',') {
+        e.preventDefault()
+      }
     },
     logout () {
       localStorage.removeItem('token')

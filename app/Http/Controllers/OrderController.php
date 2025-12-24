@@ -42,7 +42,8 @@ class OrderController extends Controller
 
             return response()->json($order, 201);
         } catch (\App\Exceptions\InsufficientBalanceException $e) {
-            throw $e;
+            // Let the global exception handler deal with this appropriately
+            return response()->json(['message' => $e->getMessage()], 400);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 400);
         }

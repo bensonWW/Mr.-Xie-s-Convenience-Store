@@ -80,6 +80,16 @@ frontend-dev:
 db-shell:
 	docker exec -it mr-xies-db mysql -u laravel -p
 
+db-reset-password:
+	@echo "Resetting MySQL password and creating test database..."
+	docker exec mr-xies-db mysql -u root -proot -e "ALTER USER 'laravel'@'%' IDENTIFIED BY 'root'; CREATE DATABASE IF NOT EXISTS laravel_testing; GRANT ALL PRIVILEGES ON laravel_testing.* TO 'laravel'@'%'; FLUSH PRIVILEGES;"
+	@echo "Done! Run 'make migrate' to apply migrations."
+
+db-setup-test:
+	@echo "Creating test database..."
+	docker exec mr-xies-db mysql -u root -proot -e "CREATE DATABASE IF NOT EXISTS laravel_testing; GRANT ALL PRIVILEGES ON laravel_testing.* TO 'laravel'@'%'; FLUSH PRIVILEGES;"
+	@echo "Test database ready!"
+
 # Health check
 health:
 	@echo "Checking services..."
