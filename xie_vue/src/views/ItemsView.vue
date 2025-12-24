@@ -10,11 +10,11 @@
         <ul class="text-sm text-gray-700 divide-y divide-gray-100 font-medium">
           <li
             v-for="cat in categories"
-            :key="cat"
+            :key="cat.id || cat"
             @click="selectCategory(cat)"
-            :class="['px-4 py-3 border-l-4 cursor-pointer transition', selectedCategory === cat ? 'bg-orange-50 text-xieOrange border-xieOrange' : 'hover:bg-gray-50 hover:text-xieOrange border-transparent']"
+            :class="['px-4 py-3 border-l-4 cursor-pointer transition', selectedCategoryName === (cat.name || cat) ? 'bg-orange-50 text-xieOrange border-xieOrange' : 'hover:bg-gray-50 hover:text-xieOrange border-transparent']"
           >
-            {{ cat }}
+            {{ cat.name || cat }}
           </li>
         </ul>
       </div>
@@ -149,7 +149,13 @@ export default {
       if (this.$route.query.search) {
         return `搜尋: "${this.$route.query.search}"`
       }
-      return `${this.selectedCategory}商品`
+      return `${this.selectedCategoryName}商品`
+    },
+    selectedCategoryName () {
+      if (typeof this.selectedCategory === 'object' && this.selectedCategory !== null) {
+        return this.selectedCategory.name || ''
+      }
+      return this.selectedCategory || ''
     },
     // We no longer filter client side because we have pagination.
     // The items in `this.items` are already filtered by the server.
@@ -191,7 +197,7 @@ export default {
       try {
         const params = {
           page: page,
-          category: this.selectedCategory !== 'All' ? this.selectedCategory : undefined,
+          category: this.selectedCategoryName !== 'All' ? this.selectedCategoryName : undefined,
           search: this.$route.query.search
         }
 
@@ -220,12 +226,13 @@ export default {
     },
     selectCategory (cat) {
       this.selectedCategory = cat
+      const categoryName = cat.name || cat
       if (this.$route.query.search) {
         // If searching, clear search to show category
-        this.$router.push({ path: '/items', query: { category: cat } })
+        this.$router.push({ path: '/items', query: { category: categoryName } })
       } else {
         // Update URL to keep state
-        this.$router.push({ path: '/items', query: { category: cat } })
+        this.$router.push({ path: '/items', query: { category: categoryName } })
       }
       this.fetchProducts(1) // Reset to page 1
     },

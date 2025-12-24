@@ -6,11 +6,11 @@
     <ul class="text-sm text-gray-700 divide-y divide-gray-100">
       <li
         v-for="cat in categories"
-        :key="cat"
+        :key="cat.id || cat"
         class="hover:bg-orange-50 hover:text-xieOrange cursor-pointer px-4 py-3 flex justify-between group"
         @click="$emit('select-category', cat)"
       >
-        <span><i class="fas fa-tag w-6 text-center text-gray-400 group-hover:text-xieOrange"></i> {{ cat }}</span>
+        <span><i class="fas fa-tag w-6 text-center text-gray-400 group-hover:text-xieOrange"></i> {{ cat.name || cat }}</span>
         <i class="fas fa-chevron-right text-xs mt-1"></i>
       </li>
     </ul>

@@ -80,7 +80,8 @@ export default {
       }
     },
     goToCategory (cat) {
-      this.$router.push({ path: '/items', query: { category: cat } })
+      const categoryName = cat.name || cat
+      this.$router.push({ path: '/items', query: { category: categoryName } })
     }
   }
 }
