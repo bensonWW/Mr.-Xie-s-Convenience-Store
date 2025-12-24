@@ -183,15 +183,7 @@
                   <label class="block text-sm font-bold text-gray-700 mb-2">商品分類</label>
                   <select v-model="form.category" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                     <option value="">選擇分類...</option>
-                    <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
-                    <!-- Fallback hardcoded if empty -->
-                    <option value="手機">手機</option>
-                    <option value="家電">家電</option>
-                    <option value="美妝">美妝</option>
-                    <option value="食品">食品</option>
-                    <option value="日用品">日用品</option>
-                    <option value="書籍">書籍</option>
-                    <option value="服飾">服飾</option>
+                    <option v-for="cat in validCategories" :key="cat.id" :value="cat.name">{{ cat.name }}</option>
                   </select>
                 </div>
 
@@ -261,6 +253,20 @@ export default {
   computed: {
     isEdit () {
       return !!this.$route.params.id
+    },
+    validCategories () {
+      return this.categories
+        .map((cat, index) => {
+          if (typeof cat === 'string') {
+            return { id: index, name: cat }
+          }
+          let name = cat.name
+          if (typeof name === 'object' && name !== null) {
+            name = name.name || name.label || ''
+          }
+          return { id: cat.id || index, name: name || '' }
+        })
+        .filter(cat => cat.name && typeof cat.name === 'string' && !cat.name.includes('[object'))
     }
   },
   created () {
@@ -273,8 +279,7 @@ export default {
     async fetchCategories () {
       try {
         const res = await api.get('/categories')
-        // Filter duplicates if any
-        this.categories = [...new Set(res.data)]
+        this.categories = res.data
       } catch (e) {
         console.error(e)
       }
