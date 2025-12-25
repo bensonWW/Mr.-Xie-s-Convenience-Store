@@ -70,6 +70,11 @@ clear:
 	docker exec mr-xies-app php artisan view:clear
 	docker exec mr-xies-app php artisan cache:clear
 
+# Security
+audit:
+	docker exec mr-xies-app composer audit
+	cd xie_vue && npm audit
+
 # Documentation
 docs:
 	docker exec mr-xies-app php artisan scribe:generate

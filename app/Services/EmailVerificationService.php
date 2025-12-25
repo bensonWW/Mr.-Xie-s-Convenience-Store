@@ -10,7 +10,7 @@ class EmailVerificationService
     /**
      * Generate a 4-character lowercase alphanumeric code and set expiry.
      */
-    public function generateCode(User $user, int $ttlMinutes = 30): string
+    public function generateCode(User $user, int $ttlMinutes = 15): string
     {
         $chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
         $code = '';

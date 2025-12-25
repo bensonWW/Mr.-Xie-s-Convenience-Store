@@ -90,13 +90,13 @@
 - [x] 敏感資料脫敏（密碼、Token）
 
 ### 13.5 Verification Enhancement (P2)
-- [ ] 驗證碼 60 秒重發限制
-- [ ] 驗證碼 15 分鐘有效期確認
+- [x] 驗證碼 60 秒重發限制 (RateLimiter)
+- [x] 驗證碼 15 分鐘有效期確認 (Service TTL)
 
 ### 13.6 CI/CD Security (P2)
-- [ ] 整合 `composer audit`
-- [ ] 整合 `npm audit`
-- [ ] 自動化掃描流程
+- [x] 整合 `composer audit` (Makefile)
+- [x] 整合 `npm audit` (Makefile)
+- [x] 自動化掃描流程 (Github Actions)
 
 ---
 
