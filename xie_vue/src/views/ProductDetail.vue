@@ -220,16 +220,7 @@ export default {
       }
 
       try {
-<<<<<<< HEAD
         await this.cartStore.addToCart(this.item.id, this.qty)
-=======
-        await api.post('/cart/items', {
-          product_id: this.item.id,
-          quantity: this.qty
-        })
-        alert('已加入購物車')
-        window.dispatchEvent(new Event('cart:updated'))
->>>>>>> e98904a (Add cart count refresh and event sync across views)
       } catch (error) {
         console.error('Add to cart error (ProductDetail):', error)
         const status = error.response?.status
