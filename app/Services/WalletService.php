@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\WalletTransaction;
+use App\Models\WalletLog;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Exception;
 
 class WalletService
@@ -71,6 +73,7 @@ class WalletService
 
     /**
      * Process a wallet transaction with pessimistic locking.
+     * Now includes audit logging (ADR-008)
      */
     protected function processTransaction(
         User $user,
@@ -87,6 +90,9 @@ class WalletService
             // Pessimistic Lock
             $lockedUser = User::where('id', $user->id)->lockForUpdate()->first();
 
+            // Record balance before transaction
+            $balanceBefore = $lockedUser->balance;
+
             // Check sufficient funds for processing negative amounts (withdrawals/payments)
             if ($amount < 0 && $lockedUser->balance < abs($amount)) {
                 throw new \App\Exceptions\InsufficientBalanceException("Insufficient balance.");
@@ -95,15 +101,73 @@ class WalletService
             $lockedUser->balance += $amount;
             $lockedUser->save();
 
-            return WalletTransaction::create([
+            $transaction = WalletTransaction::create([
                 'user_id' => $user->id,
                 'type' => $type,
                 'amount' => $amount,
                 'description' => $description,
                 'order_id' => $orderId,
-                // reference_id and refund_id removed - using only order_id for all order-related transactions
             ]);
+
+            // Create audit log entry (ADR-008)
+            $this->createAuditLog(
+                $transaction,
+                $user,
+                $type,
+                $amount,
+                $balanceBefore,
+                $lockedUser->balance,
+                $description
+            );
+
+            return $transaction;
         });
+    }
+
+    /**
+     * Create audit log entry for wallet transaction
+     */
+    protected function createAuditLog(
+        WalletTransaction $transaction,
+        User $user,
+        string $action,
+        int $amount,
+        int $balanceBefore,
+        int $balanceAfter,
+        ?string $reason = null
+    ): void {
+        /** @var \App\Models\User|null $operator */
+        $operator = Auth::user();
+        $operatorType = 'user';
+
+        if ($operator && $operator->id !== $user->id) {
+            $operatorType = $operator->isAdmin() ? 'admin' : 'user';
+        } elseif (!$operator) {
+            $operatorType = 'system';
+        }
+
+        $checksum = WalletLog::generateChecksum(
+            $transaction->id,
+            $amount,
+            $balanceBefore,
+            $balanceAfter
+        );
+
+        WalletLog::create([
+            'wallet_transaction_id' => $transaction->id,
+            'user_id' => $user->id,
+            'operator_id' => $operator?->id,
+            'operator_type' => $operatorType,
+            'action' => $action,
+            'amount' => $amount,
+            'balance_before' => $balanceBefore,
+            'balance_after' => $balanceAfter,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'reason' => $reason,
+            'checksum' => $checksum,
+            'created_at' => now(),
+        ]);
     }
 
     /**

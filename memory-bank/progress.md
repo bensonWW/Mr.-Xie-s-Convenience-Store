@@ -84,6 +84,22 @@
 - [x] 10 individual ADR files created
 - [x] OpenAPI/Scribe 整合（ADR-010）
 
+### Phase 13: Security Hardening (Partially Complete)
+- [x] 13.1 Wallet Audit System (P0)
+  - Created `wallet_logs` migration
+  - Created `WalletLog` model with checksum verification
+  - Integrated audit logging into `WalletService`
+  - Created `WalletAuditTest` (7 tests passing)
+- [/] 13.2 Authentication Enhancement (P1)
+  - Token Expiration set to 24h (ADR-007)
+  - Implemented Sliding Expiration via `RefreshTokenExpiration` middleware
+  - *HttpOnly Cookie migration deferred to Phase 14*
+- [x] 13.3 Admin Protection (P1)
+  - Implemented `throttle:admin` (60 req/min)
+- [x] 13.4 Log Sanitization (P1)
+  - Created `SanitizeLogProcessor` to redact sensitive fields
+  - Configured `logging.php` to use sanitizer on `single` and `daily` channels
+
 ---
 
 ## Recent Changes (2025-12-25)

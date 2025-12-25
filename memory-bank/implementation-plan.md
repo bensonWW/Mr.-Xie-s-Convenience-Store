@@ -67,27 +67,27 @@
 > **Goal**: 強化金融交易安全性與合規性
 
 ### 13.1 Wallet Audit System (P0)
-- [ ] 建立 `wallet_logs` 表
+- [x] 建立 `wallet_logs` 表
   - `operator_id` - 操作人員
   - `ip_address` - 請求 IP
   - `balance_before` / `balance_after`
   - `reason` - 交易備註
-- [ ] 整合至 `WalletService`
-- [ ] 建立測試案例
+- [x] 整合至 `WalletService`
+- [x] 建立測試案例
 
 ### 13.2 Authentication Enhancement (P1)
-- [ ] Token TTL 設定 24 小時
-- [ ] 實作 Sliding Expiration
-- [ ] 遷移至 HttpOnly Cookie
+- [x] Token TTL 設定 24 小時
+- [x] 實作 Sliding Expiration
+- [ ] 遷移至 HttpOnly Cookie (Deferred to Phase 14)
 
 ### 13.3 Admin Protection (P1)
-- [ ] 實作 API Rate Limiting (Token Bucket)
-- [ ] Admin 路由 Rate Limiting
+- [x] 實作 API Rate Limiting (Token Bucket)
+- [x] Admin 路由 Rate Limiting
 - [ ] IP 白名單（選配）
 
 ### 13.4 Log Sanitization (P1)
-- [ ] 實作 Laravel Log Sanitizer
-- [ ] 敏感資料脫敏（密碼、餘額）
+- [x] 實作 Laravel Log Sanitizer
+- [x] 敏感資料脫敏（密碼、Token）
 
 ### 13.5 Verification Enhancement (P2)
 - [ ] 驗證碼 60 秒重發限制

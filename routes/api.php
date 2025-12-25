@@ -26,15 +26,15 @@ Route::get('/stores/{id}', [StoreController::class, 'show']);
 Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'index']);
 
 // Protected routes
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'refresh_token'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
     Route::put('/user/profile', [AuthController::class, 'updateProfile']);
 
     // Wallet (with stricter rate limiting for financial operations)
-        // Email Verification (code-based)
-        Route::post('/email/verification-notification', [VerificationController::class, 'send']);
-        Route::post('/email/verify-code', [VerificationController::class, 'verifyCode']);
+    // Email Verification (code-based)
+    Route::post('/email/verification-notification', [VerificationController::class, 'send']);
+    Route::post('/email/verify-code', [VerificationController::class, 'verifyCode']);
 
     Route::middleware('throttle:60,1')->group(function () {
         Route::get('/user/wallet', [WalletController::class, 'show']);
@@ -67,7 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/favorites/{productId}', [App\Http\Controllers\FavoriteController::class, 'destroy']);
 
     // Staff/Admin routes
-    Route::middleware('is_admin')->prefix('admin')->group(function () {
+    Route::middleware(['is_admin', 'throttle:admin'])->prefix('admin')->group(function () {
         Route::apiResource('coupons', CouponController::class);
         Route::get('/stats', [App\Http\Controllers\AdminController::class, 'stats']);
 
