@@ -17,6 +17,7 @@ help:
 	@echo "  make fresh      - Fresh database with seeds"
 	@echo "  make test       - Run PHP tests"
 	@echo "  make optimize   - Optimize Laravel for production"
+	@echo "  make docs       - Generate API documentation (Scribe)"
 
 # Development
 build:
@@ -68,6 +69,11 @@ clear:
 	docker exec mr-xies-app php artisan route:clear
 	docker exec mr-xies-app php artisan view:clear
 	docker exec mr-xies-app php artisan cache:clear
+
+# Documentation
+docs:
+	docker exec mr-xies-app php artisan scribe:generate
+	@echo "API docs available at: http://localhost:8000/docs"
 
 # Frontend
 frontend-build:
