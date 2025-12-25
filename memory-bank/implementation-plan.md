@@ -100,35 +100,32 @@
 
 ---
 
-## Phase 14: Testing Enhancement (Planned)
+## Phase 14: Testing & Architecture Refinement (Planned)
 
 > **Priority**: P1-P2
-> **Goal**: 提升測試覆蓋率與品質保證
+> **Goal**: 提升系統架構安全性、代碼品質與測試覆蓋率
 
-### 14.1 Backend Unit Tests (P1)
-- [ ] `PriceCalculator` 單元測試
-- [ ] `MemberLevelService` 單元測試
-- [ ] `OrderSequenceGenerator` 邊界測試
+### 14.1 HttpOnly Cookie Migration (P0)
+- [x] Backend: Configure Sanctum for Stateful (Cookie-based) Auth
+- [x] Backend: Configure CORS & Session Domain
+- [x] Frontend: Enable `withCredentials` in Axios
+- [x] Frontend: Remove Bearer Token logic & LocalStorage usage
+- [x] Frontend: Update AuthStore for strictly cookie-based flow (Pinia)
 
-### 14.2 Concurrency Tests (P1)
-- [ ] 錢包並發交易測試
-- [ ] 庫存並發扣減測試
-- [ ] 訂單並發建立測試
+### 14.2 Technical Debt Cleanup (P2)
+- [x] TD-017: Migrate Auth Vuex module to Pinia
+- [x] Remove unused Vuex store files
 
-### 14.3 Frontend Tests (P2)
-- [ ] 引入 Vitest
-- [ ] Cart Store 單元測試
-- [ ] Auth Store 單元測試
+### 14.3 Backend Test Expansion (P1)
+- [x] `MemberLevelService` 單元測試
+- [x] `OrderSequenceGenerator` 邊界測試
+- [x] 錢包並發交易測試 (WalletConcurrencyTest)
+- [x] 庫存並發扣減測試 (InventoryConcurrencyTest)
 
-### 14.4 E2E Tests (P2)
-- [ ] 引入 Playwright
-- [ ] 關鍵購物流程測試
-- [ ] Admin 操作流程測試
-
-### 14.5 CI Integration (P2)
-- [ ] GitHub Actions 設定
-- [ ] 測試覆蓋率報告
-- [ ] PR 自動測試
+### 14.4 Frontend & E2E Tests (P2)
+- [x] 引入 Vitest & Cart Store Test
+- [ ] Playwright Browser Tests (可選，需要更多設置時間)
+- [ ] CI Integration (GitHub Actions)
 
 ---
 
@@ -138,40 +135,40 @@
 > **Goal**: 功能擴展與使用者體驗提升
 
 ### 15.1 Transaction Type Enhancement (P2)
-- [ ] 新增 `adjustment` 交易類型
-- [ ] Admin 手動調整餘額 UI
-- [ ] 調整原因記錄
+- [x] 新增 `adjustment` 交易類型
+- [x] Admin 手動調整餘額 API (支援 adjustment type)
+- [x] 調整原因記錄
 
 ### 15.2 Order State Machine (P2)
-- [ ] 定義正式狀態轉換圖
-- [ ] **Processing → Cancelled 自動觸發退款**
-- [ ] 實作 State Machine Library
-- [ ] 非法轉換阻擋
+- [x] 定義正式狀態轉換圖 (OrderStatus enum)
+- [x] **Processing → Cancelled 自動觸發退款**
+- [x] 實作 State Machine (Enum-based)
+- [x] 非法轉換阻擋 (canTransitionTo validation)
 
 ### 15.3 Shipping Enhancement (P2)
-- [ ] 區域運費配置
-- [ ] 階梯運費計算
-- [ ] 3 縣市配送區域設定
+- [x] 區域運費配置 (config/shipping.php)
+- [x] 階梯運費計算 (ShippingService)
+- [x] 縣市配送區域設定 (5 zones)
 
 ### 15.4 Inventory Features (P2)
-- [ ] 庫存預警機制
-- [ ] 低庫存通知
-- [ ] 庫存報表
+- [x] 庫存預警機制 (LOW_STOCK_THRESHOLD, scopeLowStock)
+- [x] 低庫存查詢 API (inventoryReport)
+- [x] 庫存報表 API (summary + product lists)
 
 ### 15.5 Wishlist Enhancement (P3)
-- [ ] 商品降價通知
-- [ ] 庫存補足通知
-- [ ] 精準行銷基礎
+- [x] 商品降價通知 (hasPriceDropped, price_at_add)
+- [x] 庫存補足通知 (notify_back_in_stock)
+- [x] 精準行銷基礎 (Favorite model scopes)
 
 ### 15.6 Error Monitoring (P2)
-- [ ] Sentry 整合
-- [ ] Error-level Only 配置
-- [ ] 即時警報設定
+- [x] Sentry 整合 (config/sentry.php)
+- [x] Error-level Only 配置 (traces_sample_rate: 0)
+- [x] 忽略例外清單 (ignore_exceptions)
 
 ### 15.7 Database Maintenance (P3)
-- [ ] 資料保留策略定義
-- [ ] Soft Delete 清理排程
-- [ ] 備份策略建立
+- [x] 資料保留策略定義 (config/retention.php)
+- [x] Soft Delete 清理排程 (CleanupSoftDeletes command)
+- [x] 備份策略配置 (retention.php backup section)
 
 ---
 

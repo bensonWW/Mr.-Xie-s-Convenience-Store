@@ -72,6 +72,25 @@ class WalletService
     }
 
     /**
+     * Admin adjustment - can be positive or negative.
+     * Used for manual balance corrections, promotions, penalties, etc.
+     *
+     * @param User $user
+     * @param int $amount Amount in cents (positive for credit, negative for debit)
+     * @param string $reason Required reason for the adjustment
+     * @return WalletTransaction
+     * @throws Exception
+     */
+    public function adjust(User $user, int $amount, string $reason): WalletTransaction
+    {
+        if (empty($reason)) {
+            throw new Exception("Adjustment reason is required.");
+        }
+
+        return $this->processTransaction($user, $amount, 'adjustment', $reason);
+    }
+
+    /**
      * Process a wallet transaction with pessimistic locking.
      * Now includes audit logging (ADR-008)
      */

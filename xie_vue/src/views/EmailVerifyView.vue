@@ -38,13 +38,14 @@
 <script>
 import api from '../services/api'
 import { useToast } from 'vue-toastification'
-import { mapGetters } from 'vuex'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'EmailVerifyView',
   setup () {
     const toast = useToast()
-    return { toast }
+    const authStore = useAuthStore()
+    return { toast, authStore }
   },
   data () {
     return {
@@ -54,7 +55,9 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['currentUser']),
+    currentUser () {
+      return this.authStore.currentUser
+    },
     userEmail () {
       return this.currentUser?.email || ''
     },

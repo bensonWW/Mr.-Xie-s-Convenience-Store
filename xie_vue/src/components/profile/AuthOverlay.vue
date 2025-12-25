@@ -57,14 +57,15 @@
 
 <script>
 import api from '../../services/api'
-import { mapActions } from 'vuex'
+import { useAuthStore } from '../../stores/auth'
 import { useToast } from 'vue-toastification'
 
 export default {
   name: 'AuthOverlay',
   setup () {
     const toast = useToast()
-    return { toast }
+    const authStore = useAuthStore()
+    return { toast, authStore }
   },
   data () {
     return {
@@ -77,34 +78,26 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['login']),
     async handleLogin () {
       try {
-        await this.login({
+        await this.authStore.login({
           email: this.loginEmail,
           password: this.loginPassword
         })
-        // 取得最新使用者資訊
-        const user = this.$store.getters.currentUser
+        
+        const user = this.authStore.currentUser
 
-        // 若需重新驗證或尚未驗證，導向驗證頁
         if (!user?.email_verified_at) {
           this.toast.info('已為您寄出驗證信，請至信箱完成驗證')
           this.$router.replace('/verify-email')
           return
         }
 
-        // 成功後停留本頁，不做全頁跳轉/重整
         this.toast.success('登入成功！')
-        // 視圖會因為 isLoggedIn 變為 true 而自動切到會員中心
-        // 若一定需要導回特定頁面，使用 SPA 導航即可保留 Toast：
-        // const redirect = this.$route.query.redirect
-        // if (redirect && typeof redirect === 'string' && redirect.startsWith('/')) {
-        //   this.$router.replace(redirect)
-        // }
       } catch (error) {
         console.error('Login error:', error)
-        this.toast.error('登入失敗，請檢查帳號密碼。')
+        const msg = this.authStore.error || '登入失敗，請檢查帳號密碼。'
+        this.toast.error(msg)
       }
     },
     async handleRegister () {
@@ -118,22 +111,21 @@ export default {
       }
 
       try {
-        const response = await api.post('/register', {
+        await api.get('/sanctum/csrf-cookie') // Ensure CSRF token for register
+        await api.post('/register', {
           name: this.registerName,
           email: this.registerEmail,
           password: this.registerPassword,
           password_confirmation: this.registerPasswordConfirm
         })
-        const { access_token: accessToken, user } = response.data
-
-        // 不重整，直接更新 Vuex 狀態並觸發登入態
-        this.$store.commit('SET_TOKEN', accessToken)
-        if (user) this.$store.commit('SET_USER', user)
-        // 再保險一次請求用戶資料（若後端在註冊回傳無完整 user）
-        this.$store.dispatch('checkAuth').catch(() => {})
+        
+        // Registration successful, now auto-login to set cookie (HttpOnly)
+        await this.authStore.login({
+            email: this.registerEmail,
+            password: this.registerPassword
+        })
 
         this.toast.success('註冊成功！已寄出驗證信，請至信箱查收')
-        // 導向信箱驗證頁面以引導使用者完成驗證
         this.$router.replace('/verify-email')
       } catch (error) {
         console.error('Register error:', error)

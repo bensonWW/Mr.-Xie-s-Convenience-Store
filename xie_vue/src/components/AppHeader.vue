@@ -90,14 +90,15 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
 import { useCartStore } from '../stores/cart'
+import { useAuthStore } from '../stores/auth'
 
 export default {
   name: 'AppHeader',
   setup () {
     const cartStore = useCartStore()
-    return { cartStore }
+    const authStore = useAuthStore()
+    return { cartStore, authStore }
   },
   data () {
     return {
@@ -106,10 +107,10 @@ export default {
   },
   computed: {
     isLoggedIn () {
-      return !!this.$store.getters.isLoggedIn
+      return this.authStore.isLoggedIn
     },
     isAdmin () {
-      return this.$store.getters.isAdmin
+      return this.authStore.isAdmin
     },
     cartCount () {
       return this.cartStore.cartCount
@@ -119,20 +120,29 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['logout']),
     doSearch () {
       if (this.search.trim()) {
         this.$router.push({ path: '/items', query: { search: this.search.trim() } })
       }
     },
-    handleLogout () {
-      this.logout()
+    async handleLogout () {
+      await this.authStore.logout()
+      this.$router.push('/profile')
+      // Reset cart?
+      this.cartStore.clearCart() // Assuming method exists or just fetchCart(0)
     }
   },
   mounted () {
-    if (this.isLoggedIn) {
-      this.cartStore.fetchCart()
-    }
+    // Watch for login state changes to fetch cart
+    this.$watch(
+      () => this.authStore.isLoggedIn,
+      (loggedIn) => {
+        if (loggedIn) {
+          this.cartStore.fetchCart()
+        }
+      },
+      { immediate: true }
+    )
   }
 }
 </script>

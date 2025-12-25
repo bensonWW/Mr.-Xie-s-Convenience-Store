@@ -62,4 +62,44 @@ class Product extends Model
                 ->orWhere('slug', $categoryIdentifier);
         });
     }
+
+    /**
+     * Default low stock threshold.
+     * Products with stock below this are considered low.
+     */
+    public const LOW_STOCK_THRESHOLD = 10;
+
+    /**
+     * Check if product has low stock.
+     */
+    public function isLowStock(?int $threshold = null): bool
+    {
+        $threshold = $threshold ?? self::LOW_STOCK_THRESHOLD;
+        return $this->stock <= $threshold;
+    }
+
+    /**
+     * Check if product is out of stock.
+     */
+    public function isOutOfStock(): bool
+    {
+        return $this->stock <= 0;
+    }
+
+    /**
+     * Scope to get products with low stock.
+     */
+    public function scopeLowStock($query, ?int $threshold = null)
+    {
+        $threshold = $threshold ?? self::LOW_STOCK_THRESHOLD;
+        return $query->where('stock', '<=', $threshold)->where('stock', '>', 0);
+    }
+
+    /**
+     * Scope to get products that are out of stock.
+     */
+    public function scopeOutOfStock($query)
+    {
+        return $query->where('stock', '<=', 0);
+    }
 }

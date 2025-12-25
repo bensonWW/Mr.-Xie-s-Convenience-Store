@@ -24,6 +24,23 @@ class WalletTransaction extends Model
 {
     use HasFactory;
 
+    /**
+     * Valid transaction types
+     */
+    public const TYPE_DEPOSIT = 'deposit';
+    public const TYPE_WITHDRAWAL = 'withdrawal';
+    public const TYPE_PAYMENT = 'payment';
+    public const TYPE_REFUND = 'refund';
+    public const TYPE_ADJUSTMENT = 'adjustment';
+
+    public const VALID_TYPES = [
+        self::TYPE_DEPOSIT,
+        self::TYPE_WITHDRAWAL,
+        self::TYPE_PAYMENT,
+        self::TYPE_REFUND,
+        self::TYPE_ADJUSTMENT,
+    ];
+
     protected $fillable = [
         'user_id',
         'type',

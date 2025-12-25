@@ -9,6 +9,7 @@
 <script>
 import AppHeader from './components/AppHeader.vue'
 import AppFooter from './components/AppFooter.vue'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   components: { AppHeader, AppFooter },
@@ -28,7 +29,8 @@ export default {
     }
   },
   created () {
-    this.$store.dispatch('checkAuth')
+    const authStore = useAuthStore()
+    authStore.fetchUser() // Initialize session from HttpOnly cookie
   }
 }
 </script>

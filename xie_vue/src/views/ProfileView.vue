@@ -80,7 +80,8 @@
 
 <script>
 import api from '../services/api'
-import { mapActions, mapGetters } from 'vuex'
+import { useAuthStore } from '@/stores/auth'
+import { useCartStore } from '@/stores/cart'
 import AuthOverlay from '../components/profile/AuthOverlay.vue'
 import UserSidebar from '../components/profile/UserSidebar.vue'
 import DashboardStats from '../components/profile/DashboardStats.vue'
@@ -90,6 +91,7 @@ import WishlistGrid from '../components/profile/WishlistGrid.vue'
 import ProfileEdit from '../components/profile/ProfileEdit.vue'
 import WalletView from '../components/profile/WalletView.vue'
 import AddressManager from '../components/profile/AddressManager.vue'
+import { useToast } from 'vue-toastification'
 
 export default {
   name: 'ProfileView',
@@ -104,6 +106,12 @@ export default {
     WalletView,
     AddressManager
   },
+  setup() {
+      const authStore = useAuthStore()
+      const cartStore = useCartStore()
+      const toast = useToast()
+      return { authStore, cartStore, toast }
+  },
   data () {
     return {
       avatarUrl: 'https://img.icons8.com/color/96/000000/user-male-circle--v2.png',
@@ -115,7 +123,12 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['currentUser', 'isLoggedIn']),
+    isLoggedIn () {
+        return this.authStore.isLoggedIn
+    },
+    currentUser () {
+        return this.authStore.currentUser
+    },
     user () {
       return this.currentUser
     }
@@ -150,7 +163,6 @@ export default {
     // user watcher will handle data fetching.
   },
   methods: {
-    ...mapActions(['logout']),
     async fetchOrders (status = 'all') {
       if (!this.user) return
       // 若未驗證，仍可顯示資料，但避免某些操作；此處保留查詢
@@ -204,11 +216,10 @@ export default {
         console.error('Fetch wishlist error:', error)
       }
     },
-    handleLogout () {
-      this.logout().then(() => {
-        this.$toast.info('已登出')
-        // No reload needed, reactivity handles switch to AuthOverlay
-      })
+    async handleLogout () {
+      await this.authStore.logout()
+      this.toast.info('已登出')
+      // No reload needed, reactivity handles switch to AuthOverlay
     },
     handleProfileUpdated (updatedUser) {
       this.user = updatedUser
@@ -234,8 +245,8 @@ export default {
           product_id: item.id,
           quantity: 1
         })
-        this.$toast.success(`已將 ${item.name} 加入購物車`)
-        this.$store.dispatch('cart/fetchCount')
+        this.toast.success(`已將 ${item.name} 加入購物車`)
+        this.cartStore.fetchCart()
       } catch (error) {
         console.error('Add to cart error:', error)
         this.$toast.error('加入購物車失敗')

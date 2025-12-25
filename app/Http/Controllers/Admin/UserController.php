@@ -98,33 +98,51 @@ class UserController extends Controller
     public function walletTransaction(Request $request, $id, WalletService $walletService)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:0.01',
-            'type' => 'required|in:deposit,withdraw',
+            'amount' => 'required|numeric',
+            'type' => 'required|in:deposit,withdraw,adjustment',
             'description' => 'required|string|max:255',
         ]);
 
         $user = User::findOrFail($id);
 
-        $amountInCents = (int) round($request->amount * 100);
+        // For adjustments, amount can be negative (debit) or positive (credit)
+        // For deposit/withdraw, amount must be positive
+        $amount = $request->amount;
+        if ($request->type !== 'adjustment' && $amount <= 0) {
+            return response()->json(['message' => 'Amount must be greater than 0 for deposit/withdraw'], 422);
+        }
+
+        $amountInCents = (int) round($amount * 100);
 
         try {
-            // Admin wallet transactions don't have an associated order_id
             if ($request->type === 'deposit') {
                 $walletService->deposit(
                     $user,
                     $amountInCents,
                     $request->description
-                    // No order_id for admin operations
                 );
-            } else {
+            } elseif ($request->type === 'withdraw') {
                 $walletService->withdraw(
                     $user,
-                    $amountInCents,
+                    abs($amountInCents), // Ensure positive for withdraw method
                     $request->description
-                    // No order_id for admin operations
+                );
+            } elseif ($request->type === 'adjustment') {
+                $walletService->adjust(
+                    $user,
+                    $amountInCents, // Can be positive or negative
+                    $request->description
                 );
             }
-            return response()->json(['message' => 'Wallet updated successfully', 'balance' => $user->balance]);
+
+            $user->refresh();
+            return response()->json([
+                'message' => 'Wallet updated successfully',
+                'balance' => $user->balance,
+                'type' => $request->type
+            ]);
+        } catch (\App\Exceptions\InsufficientBalanceException $e) {
+            return response()->json(['message' => '餘額不足'], 400);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 400);
         }

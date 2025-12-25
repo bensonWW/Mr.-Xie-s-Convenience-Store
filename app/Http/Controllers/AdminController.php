@@ -89,4 +89,42 @@ class AdminController extends Controller
             ];
         });
     }
+
+    /**
+     * Get detailed inventory report with stock alerts.
+     */
+    public function inventoryReport(Request $request)
+    {
+        $threshold = $request->get('threshold', Product::LOW_STOCK_THRESHOLD);
+
+        // Out of stock products
+        $outOfStock = Product::outOfStock()
+            ->with('category')
+            ->orderBy('name')
+            ->get();
+
+        // Low stock products (above 0 but below threshold)
+        $lowStock = Product::lowStock($threshold)
+            ->with('category')
+            ->orderBy('stock', 'asc')
+            ->get();
+
+        // Summary statistics
+        $totalProducts = Product::count();
+        $outOfStockCount = $outOfStock->count();
+        $lowStockCount = $lowStock->count();
+        $healthyStockCount = $totalProducts - $outOfStockCount - $lowStockCount;
+
+        return response()->json([
+            'summary' => [
+                'total_products' => $totalProducts,
+                'out_of_stock' => $outOfStockCount,
+                'low_stock' => $lowStockCount,
+                'healthy_stock' => $healthyStockCount,
+                'threshold' => $threshold,
+            ],
+            'out_of_stock_products' => $outOfStock,
+            'low_stock_products' => $lowStock,
+        ]);
+    }
 }

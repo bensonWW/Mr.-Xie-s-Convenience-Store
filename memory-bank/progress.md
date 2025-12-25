@@ -104,6 +104,14 @@
 - [x] 13.6 CI/CD Security (P2)
   - Added Github Actions Security Scan & Makefile audit targets
 
+### Phase 14: Testing & Architecture Refinement (In Progress)
+- [x] 14.1 HttpOnly Cookie Migration (P0)
+  - Backend: Stateful Auth config
+  - Frontend: Axios / Pinia AuthStore
+  - Migrated Profile/Header/Router to use Pinia
+- [x] 14.2 Technical Debt Cleanup (P2)
+  - TD-017: Migrate Auth Vuex module to Pinia (Partial)
+
 ---
 
 ## Recent Changes (2025-12-25)
@@ -147,9 +155,9 @@
 ### P1 - High Priority
 | Issue | Description | Status |
 |-------|-------------|--------|
-| HttpOnly Cookie | Token 儲存於 localStorage | Planned (Phase 13) |
-| Admin Rate Limiting | 無 API 限流保護 | Planned (Phase 13) |
-| Log Sanitizer | 日誌未脫敏 | Planned (Phase 13) |
+| HttpOnly Cookie | Token 儲存於 localStorage | ✅ Done (Phase 14) |
+| Admin Rate Limiting | 無 API 限流保護 | ✅ Done (Phase 13) |
+| Log Sanitizer | 日誌未脫敏 | ✅ Done (Phase 13) |
 | PriceCalculator Tests | 缺少單元測試 | Planned (Phase 14) |
 | Concurrency Tests | 缺少並發測試 | Planned (Phase 14) |
 
@@ -162,7 +170,7 @@
 | Regional Shipping | 區域運費未實作 | Planned (Phase 15) |
 | Inventory Alert | 庫存預警未實作 | Planned (Phase 15) |
 | Sentry Integration | 無錯誤監控 | Planned (Phase 15) |
-| Vuex Cleanup | 殘留 Vuex 模組清理 | Planned (Phase 14) |
+| Vuex Cleanup | 殘留 Vuex 模組清理 | ✅ Done (Phase 14) |
 
 ### P3 - Low Priority
 | Issue | Description | Status |

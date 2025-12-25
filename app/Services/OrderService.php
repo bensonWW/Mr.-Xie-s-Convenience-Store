@@ -49,33 +49,60 @@ class OrderService
 
     /**
      * Check if status transition is valid.
+     * Delegates to OrderStatus enum's state machine.
      */
     public function canTransition(Order $order, OrderStatus $newStatus): bool
     {
-        // Define transitions map
-        // Using string values for keys just to be safe with array keys
-        $transitions = [
-            OrderStatus::PENDING_PAYMENT->value => [OrderStatus::PROCESSING, OrderStatus::CANCELLED],
-            OrderStatus::PROCESSING->value => [OrderStatus::SHIPPED, OrderStatus::CANCELLED],
-            OrderStatus::SHIPPED->value => [OrderStatus::DELIVERED, OrderStatus::RETURNED],
-            OrderStatus::DELIVERED->value => [OrderStatus::COMPLETED, OrderStatus::RETURNED],
-            OrderStatus::COMPLETED->value => [],
-            OrderStatus::CANCELLED->value => [],
-            OrderStatus::RETURNED->value => [],
-        ];
+        $currentStatus = $order->status instanceof OrderStatus
+            ? $order->status
+            : OrderStatus::from($order->status);
 
-        $currentStatusVal = $order->status instanceof OrderStatus ? $order->status->value : $order->status;
+        return $currentStatus->canTransitionTo($newStatus);
+    }
 
-        // Find allowed statuses (array of Enums)
-        $allowed = $transitions[$currentStatusVal] ?? [];
+    /**
+     * Transition order to a new status with validation and auto-refund.
+     * 
+     * @throws Exception When transition is not allowed
+     */
+    public function transitionStatus(Order $order, OrderStatus $newStatus): Order
+    {
+        return DB::transaction(function () use ($order, $newStatus) {
+            // Lock order for update
+            $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->first();
 
-        // Check if newStatus is in allowed
-        foreach ($allowed as $allowedStatus) {
-            if ($allowedStatus === $newStatus) {
-                return true;
+            $currentStatus = $lockedOrder->status instanceof OrderStatus
+                ? $lockedOrder->status
+                : OrderStatus::from($lockedOrder->status);
+
+            // Validate transition
+            if (!$currentStatus->canTransitionTo($newStatus)) {
+                throw new Exception(
+                    "Cannot transition order from {$currentStatus->label()} to {$newStatus->label()}"
+                );
             }
-        }
-        return false;
+
+            // Auto-refund when cancelling a paid order
+            if ($newStatus === OrderStatus::CANCELLED && $currentStatus->requiresRefundOnCancel()) {
+                $this->walletService->refund(
+                    $lockedOrder->user,
+                    $lockedOrder->total_amount,
+                    "Auto-refund for cancelled Order #{$lockedOrder->id}",
+                    $lockedOrder->id
+                );
+
+                // Restore inventory
+                foreach ($lockedOrder->items as $item) {
+                    $item->product->increment('stock', $item->quantity);
+                }
+            }
+
+            // Update status
+            $lockedOrder->status = $newStatus;
+            $lockedOrder->save();
+
+            return $lockedOrder;
+        });
     }
 
     /**

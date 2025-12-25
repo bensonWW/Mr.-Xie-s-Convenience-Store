@@ -70,6 +70,7 @@ Route::middleware(['auth:sanctum', 'refresh_token'])->group(function () {
     Route::middleware(['is_admin', 'throttle:admin'])->prefix('admin')->group(function () {
         Route::apiResource('coupons', CouponController::class);
         Route::get('/stats', [App\Http\Controllers\AdminController::class, 'stats']);
+        Route::get('/inventory-report', [App\Http\Controllers\AdminController::class, 'inventoryReport']);
 
         // Admin User Management
         Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index']);
