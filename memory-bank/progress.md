@@ -84,7 +84,7 @@
 - [x] 10 individual ADR files created
 - [x] OpenAPI/Scribe 整合（ADR-010）
 
-### Phase 13: Security Hardening (Partially Complete)
+### Phase 13: Security Hardening (Complete)
 - [x] 13.1 Wallet Audit System (P0)
   - Created `wallet_logs` migration
   - Created `WalletLog` model with checksum verification
@@ -99,6 +99,10 @@
 - [x] 13.4 Log Sanitization (P1)
   - Created `SanitizeLogProcessor` to redact sensitive fields
   - Configured `logging.php` to use sanitizer on `single` and `daily` channels
+- [x] 13.5 Verification Enhancement (P2)
+  - 60s Resend Limit & 15-min TTL
+- [x] 13.6 CI/CD Security (P2)
+  - Added Github Actions Security Scan & Makefile audit targets
 
 ---
 
