@@ -12,7 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->statefulApi();
+        // Note: statefulApi() removed for pure token-based cross-domain auth
+        // If you need cookie-based SPA auth, add it back and configure SANCTUM_STATEFUL_DOMAINS
         $middleware->alias([
             'is_admin' => \App\Http\Middleware\IsAdmin::class,
             'refresh_token' => \App\Http\Middleware\RefreshTokenExpiration::class,
