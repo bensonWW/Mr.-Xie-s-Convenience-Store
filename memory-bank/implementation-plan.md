@@ -178,16 +178,19 @@
 > **Goal**: 效能優化與可擴展性
 
 ### 16.1 High-Concurrency Inventory
-- [ ] Redis Lua Script 庫存扣減
-- [ ] 效能測試 (>500 TPS)
+- [x] Redis Lua Script 庫存扣減 (RedisInventoryService)
+- [x] 原子性批量操作 (batchReserveStock)
+- [x] 配置檔 (config/inventory.php)
 
 ### 16.2 Caching Strategy
-- [ ] Settings Write-through Cache
-- [ ] 產品列表 Cache
+- [x] Settings Write-through Cache (CacheService)
+- [x] 產品列表 Read-through Cache
+- [x] Cache warm-up 功能
 
 ### 16.3 Multi-tenant Preparation
-- [ ] `stores` 表完整實作
-- [ ] 資料隔離策略
+- [x] `stores` 表擴展 (slug, settings, status)
+- [x] BelongsToStore Trait (資料隔離)
+- [x] Store settings 功能
 
 ---
 
