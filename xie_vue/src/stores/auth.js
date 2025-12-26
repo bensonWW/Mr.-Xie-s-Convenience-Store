@@ -34,8 +34,9 @@ export const useAuthStore = defineStore('auth', {
             this.loading = true
             this.error = null
             try {
-                // CSRF protection for SPA
-                await api.get('/sanctum/csrf-cookie')
+                // CSRF protection for SPA - use axios directly since /sanctum is not under /api
+                const baseUrl = process.env.VUE_APP_API_URL?.replace('/api', '') || 'https://mr-xie-s-convenience-store-main-d3awzd.laravel.cloud'
+                await api.get(baseUrl + '/sanctum/csrf-cookie', { baseURL: '' })
                 // Login matches Laravel AuthController (web guard via Sanctum)
                 await api.post('/login', credentials)
                 await this.fetchUser()
