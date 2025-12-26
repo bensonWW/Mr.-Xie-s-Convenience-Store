@@ -32,24 +32,21 @@
     "@vue/cli-service": "~5.0.0",
     "@vue/eslint-config-standard": "^6.1.0",
     "@vue/test-utils": "^2.4.6",
-    "cross-spawn": "^7.0.3",
+    "cross-spawn": "^7.0.6",
     "eslint": "^7.32.0",
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^5.1.0",
     "eslint-plugin-vue": "^7.20.0",
     "happy-dom": "^20.0.11",
-    "postcss": "^8.4.31",
+    "postcss": "^8.4.49",
     "sass": "^1.32.7",
     "sass-loader": "^12.0.0",
     "vitest": "^4.0.16",
-    "webpack-dev-server": "^4.15.1"
+    "webpack-dev-server": "^5.2.0"
   },
   "overrides": {
     "yorkie": "2.0.0",
-    "vue-loader": "17.4.2",
-    "cross-spawn": "^7.0.6",
-    "postcss": "^8.4.31",
-    "webpack-dev-server": "^4.15.1"
+    "vue-loader": "17.4.2"
   }
 }
