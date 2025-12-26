@@ -379,7 +379,7 @@ function handleAddressSuccess (newAddress) {
 
                     <button v-else class="w-full bg-xieOrange text-white font-bold py-3 rounded-lg text-lg hover:bg-orange-600 transition shadow-md mb-3 disabled:opacity-50 disabled:cursor-not-allowed" @click="checkout" :disabled="isProcessing">
                         <i v-if="isProcessing" class="fas fa-spinner fa-spin mr-2"></i>
-                        {{ isProcessing ? '處理中...' : '確認付款' }}
+                        {{ isProcessing ? '處理中...' : '確認下單' }}
                     </button>
 
                     <router-link to="/items" class="block text-center text-gray-500 text-sm hover:text-xieOrange underline">繼續購物</router-link>
