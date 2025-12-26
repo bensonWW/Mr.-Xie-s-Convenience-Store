@@ -35,7 +35,7 @@
               </td>
               <td class="p-4 font-bold text-gray-800">{{ prod.name }}</td>
               <td class="p-4 text-xieOrange font-bold">{{ formatPrice(prod.price) }}</td>
-              <td class="p-4 text-gray-600"><span class="bg-gray-100 px-2 py-1 rounded text-xs">{{ prod.category }}</span></td>
+              <td class="p-4 text-gray-600"><span class="bg-gray-100 px-2 py-1 rounded text-xs">{{ getCategoryName(prod.category) }}</span></td>
               <td class="p-4">
                 <span :class="prod.stock < 10 ? 'text-red-500 font-bold' : 'text-green-600'">{{ prod.stock }}</span>
               </td>
@@ -123,6 +123,11 @@ export default {
       if (!image) return ''
       if (image.startsWith('http')) return image
       return '/images/' + image
+    },
+    getCategoryName (cat) {
+      if (!cat) return ''
+      if (typeof cat === 'string') return cat
+      return cat.name || cat.slug || String(cat)
     }
   }
 }
