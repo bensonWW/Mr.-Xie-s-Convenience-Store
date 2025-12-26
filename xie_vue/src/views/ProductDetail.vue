@@ -213,7 +213,7 @@ export default {
       this.updateTotalPrice()
     },
     async addToCart () {
-      if (!localStorage.getItem('token')) {
+      if (!localStorage.getItem('auth_token')) {
         this.toast.warning('請先登入')
         this.$router.push('/profile')
         return
@@ -231,7 +231,7 @@ export default {
       }
     },
     buyNow () {
-      if (!localStorage.getItem('token')) {
+      if (!localStorage.getItem('auth_token')) {
         this.toast.warning('請先登入')
         this.$router.push('/profile')
         return

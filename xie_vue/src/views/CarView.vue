@@ -4,6 +4,7 @@ import api from '../services/api'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import { useCartStore } from '../stores/cart'
+import { useAuthStore } from '@/stores/auth'
 import UserTopUpModal from '../components/profile/UserTopUpModal.vue'
 import InlineAddressModal from '../components/profile/InlineAddressModal.vue'
 import { formatPrice } from '../utils/currency'
@@ -11,6 +12,7 @@ import { formatPrice } from '../utils/currency'
 const router = useRouter()
 const toast = useToast()
 const cartStore = useCartStore()
+const authStore = useAuthStore()
 
 // Use store state
 const cartItems = computed(() => cartStore.items)
@@ -181,8 +183,6 @@ async function checkout () {
     return
   }
 
-  if (!confirm('確定要使用錢包餘額結帳嗎？')) return
-
   isProcessing.value = true
   try {
     await api.post('/orders', {
@@ -194,6 +194,8 @@ async function checkout () {
     toast.success('訂單支付成功！')
     
     await cartStore.fetchCart()
+    // Refresh wallet balance on profile header
+    await authStore.fetchUser()
     
     discountAmount.value = 0
     appliedCoupon.value = null
@@ -218,6 +220,8 @@ async function checkout () {
 function handleTopUpSuccess (data) {
   userBalance.value = data.balance
   toast.success('儲值成功，您可以繼續結帳了')
+  // Keep profile wallet in sync if user navigates back
+  authStore.fetchUser()
 }
 
 function handleAddressSuccess (newAddress) {
@@ -265,14 +269,14 @@ function handleAddressSuccess (newAddress) {
                             <i class="fas fa-box-open text-3xl text-gray-300"></i>
                              </div>
                         <div>
-                            <h3 class="font-bold text-gray-800 line-clamp-2">{{ item.name }}</h3>
+                        <h3 class="font-bold text-gray-800 line-clamp-2">{{ item.product?.name }}</h3>
                             <div class="text-xs text-gray-500 mt-1">規格：預設</div>
                             <div class="text-xs text-green-600 mt-1"><i class="fas fa-check-circle"></i> 24h 到貨</div>
                         </div>
                     </div>
 
                     <div class="col-span-2 text-center text-sm text-gray-500">
-                        <span class="md:hidden mr-2">單價:</span>{{ formatPrice(item.price) }}
+                      <span class="md:hidden mr-2">單價:</span>{{ formatPrice(item.product?.price) }}
                     </div>
 
                     <div class="col-span-2 flex justify-center">
@@ -284,7 +288,7 @@ function handleAddressSuccess (newAddress) {
                     </div>
 
                     <div class="col-span-1 text-center font-bold text-xieOrange">
-                        {{ formatPrice(item.price * item.quantity) }}
+                      {{ formatPrice((item.product?.price || 0) * item.quantity) }}
                     </div>
 
                     <div class="col-span-1 text-right">

@@ -97,12 +97,19 @@
 </template>
 
 <script>
+import { useAuthStore } from '@/stores/auth'
 import api from '../../services/api'
 import { ORDER_STATUS_LABELS, LOGISTICS_STATUS_LABELS } from '../../utils/constants'
 import { formatPrice } from '../../utils/currency'
+import { useToast } from 'vue-toastification'
 
 export default {
   name: 'OrderHistory',
+  setup () {
+    const toast = useToast()
+    const authStore = useAuthStore()
+    return { toast, authStore }
+  },
   props: {
     orders: {
       type: Array,
@@ -165,22 +172,24 @@ export default {
         this.showOrderDetails = true
       } catch (error) {
         console.error('Fetch order details error:', error)
-        this.$toast.error('無法取得訂單詳情')
+        this.toast.error('無法取得訂單詳情')
       }
     },
     async payOrder () {
       if (!this.selectedOrder) return
       try {
         await api.post(`/orders/${this.selectedOrder.id}/pay`)
-        this.$toast.success('付款成功！')
+        this.toast.success('付款成功！')
+        // Refresh wallet balance in header
+        await this.authStore.fetchUser()
         this.showOrderDetails = false
         this.$emit('order-updated')
       } catch (error) {
         console.error('Payment error:', error)
         if (error.response?.data?.error_code === 'INSUFFICIENT_BALANCE') {
-             this.$toast.error('餘額不足，請前往儲值')
+             this.toast.error('餘額不足，請前往儲值')
         } else {
-             this.$toast.error(error.response?.data?.message || '付款失敗，請稍後再試。')
+             this.toast.error(error.response?.data?.message || '付款失敗，請稍後再試。')
         }
       }
     },
@@ -189,11 +198,13 @@ export default {
 
       try {
         await api.post(`/orders/${order.id}/refund`)
-        this.$toast.success('訂單已取消並退款')
+        this.toast.success('訂單已取消並退款')
+        // Refund affects wallet balance
+        await this.authStore.fetchUser()
         this.$emit('order-updated')
       } catch (error) {
         console.error('Refund error:', error)
-        this.$toast.error(error.response?.data?.message || '取消失敗')
+        this.toast.error(error.response?.data?.message || '取消失敗')
       }
     }
   }

@@ -6,7 +6,7 @@
     <div v-else class="container mx-auto px-4 pb-12 grid grid-cols-1 md:grid-cols-4 gap-6">
 
         <!-- Email 未驗證提醒 -->
-        <div v-if="user && !user.email_verified_at" class="md:col-span-4 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded flex items-center justify-between">
+        <div v-if="user && !user.email_verified_at && !isAdminUser" class="md:col-span-4 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded flex items-center justify-between">
           <div class="flex items-center gap-2">
             <i class="fas fa-exclamation-circle"></i>
             <span>您的信箱尚未驗證，完成驗證即可正常使用所有功能。</span>
@@ -131,6 +131,10 @@ export default {
     },
     user () {
       return this.currentUser
+    },
+    isAdminUser () {
+      const role = this.user?.role
+      return role === 'admin' || role === 'staff'
     }
   },
   watch: {
@@ -249,7 +253,7 @@ export default {
         this.cartStore.fetchCart()
       } catch (error) {
         console.error('Add to cart error:', error)
-        this.$toast.error('加入購物車失敗')
+        this.toast.error('加入購物車失敗')
       }
     }
   }

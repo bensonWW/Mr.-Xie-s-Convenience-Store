@@ -182,7 +182,7 @@ export default {
   methods: {
     formatPrice,
     async addToCart (item) {
-      if (!localStorage.getItem('token')) {
+      if (!localStorage.getItem('auth_token')) {
         this.toast.warning('請先登入')
         this.$router.push('/profile')
         return

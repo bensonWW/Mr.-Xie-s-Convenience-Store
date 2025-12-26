@@ -89,8 +89,7 @@ export default {
 
         if (!user?.email_verified_at) {
           this.toast.info('已為您寄出驗證信，請至信箱完成驗證')
-          this.$router.replace('/verify-email')
-          return
+          // 不自動跳轉驗證頁，停留在會員中心由提示Banner引導
         }
 
         this.toast.success('登入成功！')
@@ -126,7 +125,7 @@ export default {
         })
 
         this.toast.success('註冊成功！已寄出驗證信，請至信箱查收')
-        this.$router.replace('/verify-email')
+        // 不自動跳轉驗證頁，停留在會員中心由提示Banner引導
       } catch (error) {
         console.error('Register error:', error)
         if (error.response && error.response.data) {

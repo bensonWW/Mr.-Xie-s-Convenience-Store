@@ -38,12 +38,6 @@
               <i class="fas fa-search mr-2"></i> 搜尋
             </button>
           </div>
-          <div class="text-xs text-gray-500 mt-1 space-x-2">
-            <span class="text-xieOrange font-bold">熱搜：</span>
-            <router-link to="/items?search=Dyson" class="hover:underline">Dyson 吸塵器</router-link>
-            <router-link to="/items?search=洗衣球" class="hover:underline">洗衣球</router-link>
-            <router-link to="/items?search=氣炸鍋" class="hover:underline">氣炸鍋</router-link>
-          </div>
         </div>
 
         <div class="flex items-center space-x-6 text-xieBlue">
@@ -128,8 +122,17 @@ export default {
     async handleLogout () {
       await this.authStore.logout()
       this.$router.push('/profile')
-      // Reset cart?
-      this.cartStore.clearCart() // Assuming method exists or just fetchCart(0)
+      // Reset cart state safely (handle missing method)
+      if (typeof this.cartStore.clearCart === 'function') {
+        this.cartStore.clearCart()
+      } else if (typeof this.cartStore.$reset === 'function') {
+        this.cartStore.$reset()
+      } else {
+        // Fallback: manual reset
+        this.cartStore.items = []
+        this.cartStore.count = 0
+        this.cartStore.totalAmount = 0
+      }
     }
   },
   mounted () {
