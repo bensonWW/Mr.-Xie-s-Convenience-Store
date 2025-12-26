@@ -47,6 +47,9 @@
   },
   "overrides": {
     "yorkie": "2.0.0",
-    "vue-loader": "17.4.2"
+    "vue-loader": "17.4.2",
+    "cross-spawn": "^7.0.6",
+    "postcss": "^8.4.31",
+    "webpack-dev-server": "^4.15.1"
   }
 }
