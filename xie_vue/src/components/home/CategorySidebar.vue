@@ -31,21 +31,27 @@ export default {
     validCategories () {
       return this.categories
         .map((cat, index) => {
-          // Handle both object and string formats
+          // Handle string format (legacy)
           if (typeof cat === 'string') {
             return { id: index, name: cat, displayName: cat }
           }
-          // Extract name safely - if name is object, try to get string representation
-          let displayName = cat.name
-          if (typeof displayName === 'object' && displayName !== null) {
-            displayName = displayName.name || displayName.label || JSON.stringify(displayName)
+          
+          // Handle object format from API
+          if (typeof cat === 'object' && cat !== null) {
+            // Direct name property
+            const name = cat.name || cat.label || cat.title || ''
+            return {
+              id: cat.id || index,
+              name: name,
+              slug: cat.slug || '',
+              displayName: name
+            }
           }
-          return {
-            ...cat,
-            displayName: displayName || `Category ${cat.id}`
-          }
+          
+          // Fallback
+          return { id: index, name: String(cat), displayName: String(cat) }
         })
-        .filter(cat => cat.displayName && typeof cat.displayName === 'string' && !cat.displayName.includes('[object'))
+        .filter(cat => cat.displayName && cat.displayName.length > 0)
     }
   }
 }

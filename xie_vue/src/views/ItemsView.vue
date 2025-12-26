@@ -162,16 +162,18 @@ export default {
           if (typeof cat === 'string') {
             return { id: index, name: cat, displayName: cat }
           }
-          let displayName = cat.name
-          if (typeof displayName === 'object' && displayName !== null) {
-            displayName = displayName.name || displayName.label || ''
+          if (typeof cat === 'object' && cat !== null) {
+            const name = cat.name || cat.label || cat.title || ''
+            return {
+              id: cat.id || index,
+              name: name,
+              slug: cat.slug || '',
+              displayName: name
+            }
           }
-          return {
-            ...cat,
-            displayName: displayName || `Category ${cat.id}`
-          }
+          return { id: index, name: String(cat), displayName: String(cat) }
         })
-        .filter(cat => cat.displayName && typeof cat.displayName === 'string' && !cat.displayName.includes('[object'))
+        .filter(cat => cat.displayName && cat.displayName.length > 0)
     },
     filteredItems () {
       return this.items
