@@ -48,8 +48,18 @@ class AuthController extends Controller
             ]);
         }
 
-        // Update last login timestamp for analytics
+        // Check last login; admins/staff are exempt from email re-verification
+        $previousLogin = $user->last_login_at;
         $user->last_login_at = now();
+        $needsVerification = false;
+        $roleExempt = in_array($user->role, ['admin', 'staff'], true);
+
+        if (!$roleExempt && $previousLogin && $user->last_login_at->diffInDays($previousLogin) >= 2) {
+            // Force re-verification by clearing verification timestamp for customer roles only
+            $user->email_verified_at = null;
+            $needsVerification = true;
+        }
+
         $user->save();
 
         $token = $user->createToken('auth_token')->plainTextToken;

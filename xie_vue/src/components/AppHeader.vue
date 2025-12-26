@@ -155,7 +155,17 @@ export default {
     async handleLogout () {
       await this.authStore.logout()
       this.$router.push('/login')
-      this.cartStore.clearCart()
+      // Reset cart state safely (handle missing method)
+      if (typeof this.cartStore.clearCart === 'function') {
+        this.cartStore.clearCart()
+      } else if (typeof this.cartStore.$reset === 'function') {
+        this.cartStore.$reset()
+      } else {
+        // Fallback: manual reset
+        this.cartStore.items = []
+        this.cartStore.count = 0
+        this.cartStore.totalAmount = 0
+      }
     },
     toggleTheme () {
       toggleDarkMode()

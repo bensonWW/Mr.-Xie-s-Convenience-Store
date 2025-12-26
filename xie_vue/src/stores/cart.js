@@ -82,6 +82,13 @@ export const useCartStore = defineStore('cart', {
                 console.error(e)
                 toast.error('移除失敗')
             }
+        },
+
+        // Locally clear cart state (used on logout)
+        clearCart() {
+            this.items = []
+            this.count = 0
+            this.totalAmount = 0
         }
     }
 })
