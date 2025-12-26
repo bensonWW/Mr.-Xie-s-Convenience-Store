@@ -2,23 +2,35 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: process.env.VUE_APP_API_URL || 'https://mr-xie-s-convenience-store-main-d3awzd.laravel.cloud/api',
-  withCredentials: true, // Enable HttpOnly Cookies
+  withCredentials: false, // Token-based auth, no cookies needed
   headers: {
     Accept: 'application/json'
   }
 })
 
-// Interceptors (Token logic removed for HttpOnly migration)
+// Request interceptor - add Bearer token
+api.interceptors.request.use(
+  config => {
+    const token = localStorage.getItem('auth_token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  error => Promise.reject(error)
+)
+
+// Response interceptor - handle 401
 api.interceptors.response.use(
   response => response,
   error => {
-    // Optional: Global 401 handling
     if (error.response && error.response.status === 401) {
-      // Redirect to login or clear state?
-      // window.location.href = '/login'; // Maybe too aggressive
+      // Token expired or invalid - clear it
+      localStorage.removeItem('auth_token')
     }
     return Promise.reject(error)
   }
 )
 
 export default api
+
