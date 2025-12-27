@@ -134,6 +134,20 @@ class CategoryController extends Controller
 
         foreach ($categories as $category) {
             $newSlug = Str::slug($category->name);
+
+            // Handle Chinese names - use ID-based slug if empty
+            if (empty($newSlug)) {
+                $newSlug = 'category-' . $category->id;
+            }
+
+            // Ensure uniqueness by appending ID if slug already exists
+            $existingSlug = Category::where('slug', $newSlug)
+                ->where('id', '!=', $category->id)
+                ->exists();
+            if ($existingSlug) {
+                $newSlug = $newSlug . '-' . $category->id;
+            }
+
             if ($category->slug !== $newSlug) {
                 $category->update(['slug' => $newSlug]);
                 $fixed++;
