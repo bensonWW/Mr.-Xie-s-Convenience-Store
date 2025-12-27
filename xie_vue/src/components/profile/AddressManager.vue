@@ -20,15 +20,6 @@
               <p class="text-gray-600">{{ user.addresses[0].zip_code }} {{ user.addresses[0].city }}{{ user.addresses[0].district }}{{ user.addresses[0].detail_address }}</p>
             </div>
           </div>
-          <div v-else-if="user.address" class="flex items-start gap-4">
-            <div class="text-3xl text-gray-300">
-               <i class="fas fa-map-marker-alt"></i>
-            </div>
-            <div>
-              <h4 class="font-bold text-gray-800 mb-1">舊版地址 (請更新)</h4>
-              <p class="text-gray-600">{{ user.address }}</p>
-            </div>
-          </div>
           <div v-else class="text-center py-8 text-gray-400">
              <i class="fas fa-map-marked-alt text-4xl mb-3 block"></i>
              <p>尚未設定收貨地址</p>

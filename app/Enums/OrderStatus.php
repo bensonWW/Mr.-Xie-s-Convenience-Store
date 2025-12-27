@@ -86,13 +86,13 @@ enum OrderStatus: string
 
     /**
      * Check if this is a terminal/final state.
+     * Note: COMPLETED is not terminal because it can still transition to RETURNED.
      */
     public function isTerminal(): bool
     {
         return in_array($this, [
             self::CANCELLED,
             self::RETURNED,
-            self::COMPLETED,
         ], true);
     }
 }

@@ -112,7 +112,8 @@ class UserController extends Controller
             return response()->json(['message' => 'Amount must be greater than 0 for deposit/withdraw'], 422);
         }
 
-        $amountInCents = (int) round($amount * 100);
+        // Use bcmul for precision when converting to cents
+        $amountInCents = (int) bcmul((string) $amount, '100', 0);
 
         try {
             if ($request->type === 'deposit') {

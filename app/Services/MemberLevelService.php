@@ -36,8 +36,8 @@ class MemberLevelService
         }
 
         // Discount is a decimal e.g. 0.05 for 5% off.
-        // Result should be rounded to nearest cent.
-        return (int) round($subtotal * $discount);
+        // Use bcmul for precision, then round to nearest cent.
+        return (int) round((float) bcmul((string) $subtotal, (string) $discount, 4));
     }
 
     /**

@@ -2,26 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DepositRequest;
 use App\Services\WalletService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class WalletController extends Controller
 {
-    protected $walletService;
-
-    public function __construct(WalletService $walletService)
-    {
-        $this->walletService = $walletService;
-    }
+    public function __construct(
+        protected WalletService $walletService
+    ) {}
 
     /**
      * Get user wallet info.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function show(Request $request)
+    public function show(Request $request): JsonResponse
     {
         $user = $request->user();
         $balance = $this->walletService->getBalance($user);
@@ -40,20 +35,12 @@ class WalletController extends Controller
 
     /**
      * Deposit funds (Mock Implementation).
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function deposit(Request $request)
+    public function deposit(DepositRequest $request): JsonResponse
     {
-        $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'description' => 'nullable|string|max:255',
-        ]);
-
         $user = $request->user();
-        // Frontend sends dollars, we convert to cents
-        $amount = (int) ($request->input('amount') * 100);
+        // Frontend sends dollars, we convert to cents using bcmul for precision
+        $amount = (int) bcmul((string) $request->input('amount'), '100', 0);
         $description = $request->input('description', 'Manual Deposit');
 
         try {
@@ -64,7 +51,7 @@ class WalletController extends Controller
                 'balance' => $this->walletService->getBalance($user),
                 'transaction' => $transaction,
             ]);
-        } catch (\Exception $e) {
+        } catch (\App\Exceptions\InvalidWalletOperationException $e) {
             return response()->json(['message' => $e->getMessage()], 400);
         }
     }

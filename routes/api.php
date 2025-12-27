@@ -12,7 +12,7 @@ use App\Http\Controllers\VerificationController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes (with rate limiting for auth)
-Route::middleware('throttle:30,1')->group(function () {
+Route::middleware('throttle:auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login'])->name('login');
 });
@@ -31,12 +31,14 @@ Route::middleware(['auth:sanctum', 'refresh_token'])->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::put('/user/profile', [AuthController::class, 'updateProfile']);
 
-    // Wallet (with stricter rate limiting for financial operations)
-    // Email Verification (code-based)
-    Route::post('/email/verification-notification', [VerificationController::class, 'send']);
-    Route::post('/email/verify-code', [VerificationController::class, 'verifyCode']);
+    // Email Verification (rate limited to prevent abuse)
+    Route::middleware('throttle:email-verification')->group(function () {
+        Route::post('/email/verification-notification', [VerificationController::class, 'send']);
+        Route::post('/email/verify-code', [VerificationController::class, 'verifyCode']);
+    });
 
-    Route::middleware('throttle:60,1')->group(function () {
+    // Wallet (with rate limiting for financial operations)
+    Route::middleware('throttle:api')->group(function () {
         Route::get('/user/wallet', [WalletController::class, 'show']);
         Route::post('/user/wallet/deposit', [WalletController::class, 'deposit']);
     });
@@ -47,18 +49,19 @@ Route::middleware(['auth:sanctum', 'refresh_token'])->group(function () {
     Route::put('/cart/items/{itemId}', [CartController::class, 'updateItem']);
     Route::delete('/cart/items/{itemId}', [CartController::class, 'removeItem']);
 
-    // Orders (payment operations with rate limiting)
+    // Coupons
     Route::post('/coupons/check', [CouponController::class, 'check']);
     Route::get('/coupons', [CouponController::class, 'index']);
 
-    Route::middleware('throttle:30,1')->group(function () {
+    // Orders (payment operations with stricter rate limiting)
+    Route::middleware('throttle:financial')->group(function () {
         Route::post('/orders/{order}/pay', [OrderController::class, 'pay']);
         Route::post('/orders/{order}/refund', [OrderController::class, 'refund']);
     });
 
     Route::apiResource('orders', OrderController::class)->only(['index', 'store', 'show']);
 
-    // Profile
+    // Profile (handles structured address creation/update)
     Route::put('/profile', [ProfileController::class, 'update']);
 
     // Favorites
@@ -66,7 +69,7 @@ Route::middleware(['auth:sanctum', 'refresh_token'])->group(function () {
     Route::post('/favorites', [App\Http\Controllers\FavoriteController::class, 'store']);
     Route::delete('/favorites/{productId}', [App\Http\Controllers\FavoriteController::class, 'destroy']);
 
-    // Staff/Admin routes
+    // Admin routes (all admin order operations consolidated)
     Route::middleware(['is_admin', 'throttle:admin'])->prefix('admin')->group(function () {
         Route::apiResource('coupons', CouponController::class);
         Route::get('/stats', [App\Http\Controllers\AdminController::class, 'stats']);
@@ -79,21 +82,20 @@ Route::middleware(['auth:sanctum', 'refresh_token'])->group(function () {
         Route::put('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'update']);
         Route::post('/users/{id}/wallet/transaction', [App\Http\Controllers\Admin\UserController::class, 'walletTransaction']);
 
-        // Admin Order Management
+        // Admin Order Management (all in Admin\OrderController)
         Route::get('/orders', [App\Http\Controllers\Admin\OrderController::class, 'index']);
         Route::get('/orders/{id}', [App\Http\Controllers\Admin\OrderController::class, 'show']);
+        Route::post('/orders/{order}/refund', [App\Http\Controllers\Admin\OrderController::class, 'refund']);
+        Route::put('/orders/{order}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus']);
+        Route::put('/orders/{order}/logistics', [App\Http\Controllers\Admin\OrderController::class, 'updateLogistics']);
 
-        // Other Admin routes
-        Route::post('/orders/{order}/refund', [App\Http\Controllers\OrderController::class, 'refund']); // This seems to still use the main OrderController, which is fine if logic is shared or acceptable.
-
+        // Admin Product Management
         Route::get('/products', [ProductController::class, 'adminIndex']);
         Route::post('/products', [ProductController::class, 'store']);
         Route::put('/products/{id}', [ProductController::class, 'update']);
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
-        Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus']);
-        Route::put('/orders/{order}/logistics', [OrderController::class, 'updateLogistics']);
+
+        // Store Management
         Route::put('/stores/{id}', [StoreController::class, 'update']);
     });
 });
-
-// Remove signed URL route (switched to code-based verification)

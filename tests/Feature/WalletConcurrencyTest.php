@@ -154,7 +154,7 @@ class WalletConcurrencyTest extends TestCase
         $user = User::factory()->create(['balance' => 10000]);
 
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Transaction amount cannot be zero.');
+        $this->expectExceptionMessage('Amount must be positive.');
 
         $this->walletService->deposit($user, 0);
     }

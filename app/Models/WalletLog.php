@@ -63,7 +63,10 @@ class WalletLog extends Model
     }
 
     /**
-     * 生成防竄改校驗碼
+     * 生成防竄改校驗碼 (HMAC-SHA256)
+     * 
+     * Uses HMAC for improved security over simple hashing.
+     * The secret key is derived from config('app.wallet_hmac_key') with fallback to app key.
      */
     public static function generateChecksum(
         int $transactionId,
@@ -71,9 +74,9 @@ class WalletLog extends Model
         int $balanceBefore,
         int $balanceAfter
     ): string {
-        $secret = config('app.key');
-        $data = "{$transactionId}|{$amount}|{$balanceBefore}|{$balanceAfter}|{$secret}";
-        return hash('sha256', $data);
+        $secret = config('app.wallet_hmac_key', config('app.key'));
+        $data = "{$transactionId}|{$amount}|{$balanceBefore}|{$balanceAfter}";
+        return hash_hmac('sha256', $data, $secret);
     }
 
     /**

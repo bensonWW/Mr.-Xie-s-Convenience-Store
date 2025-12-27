@@ -20,5 +20,29 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Render generic exceptions as 400 Bad Request for API requests
+        // This maintains the expected API behavior for business logic errors
+        $exceptions->render(function (\Exception $e, \Illuminate\Http\Request $request) {
+            // Skip if exception has its own render method (like InsufficientBalanceException)
+            if (method_exists($e, 'render')) {
+                return null; // Let the exception handle itself
+            }
+
+            // For API requests, convert runtime/logic exceptions to 400 JSON responses
+            if ($request->expectsJson() && !$e instanceof \Illuminate\Validation\ValidationException) {
+                // Only for specific business logic exceptions (not framework exceptions)
+                $isBusinessException = $e instanceof \RuntimeException
+                    || $e instanceof \InvalidArgumentException
+                    || $e instanceof \DomainException
+                    || str_contains(get_class($e), 'App\\');
+
+                if ($isBusinessException) {
+                    return response()->json([
+                        'message' => $e->getMessage()
+                    ], 400);
+                }
+            }
+
+            return null; // Let framework handle other exceptions
+        });
     })->create();

@@ -5,12 +5,12 @@ namespace App\Services;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\OrderAddress; // New
-use App\Models\OrderSnapshot; // New
+use App\Models\OrderAddress;
+use App\Models\OrderSnapshot;
 use App\Models\Coupon;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Exception;
+use App\Exceptions\EmptyCartException;
 use App\Exceptions\InsufficientBalanceException;
 use App\Services\DTO\CreateOrderData;
 use App\Enums\OrderStatus;
@@ -29,7 +29,7 @@ class OrderCreationService
      * 
      * @param CreateOrderData $data
      * @return Order
-     * @throws Exception|InsufficientBalanceException
+     * @throws EmptyCartException|InsufficientBalanceException
      */
     public function execute(CreateOrderData $data): Order
     {
@@ -39,7 +39,7 @@ class OrderCreationService
         $cart = Cart::where('user_id', $user->id)->with('items')->first();
 
         if (!$cart || $cart->items->isEmpty()) {
-            throw new Exception("Cart is empty");
+            throw new EmptyCartException();
         }
 
         // Optimization: Fetch Coupon outside transaction
@@ -52,7 +52,7 @@ class OrderCreationService
             // 1. Re-fetch Cart INSIDE Lock
             $cartItems = $cart->items;
             if ($cartItems->isEmpty()) {
-                throw new Exception("Cart is empty (checked inside transaction)");
+                throw new EmptyCartException('Cart is empty (checked inside transaction)');
             }
 
             // 2. Lock & Check Stock (Pessimistic Lock)
@@ -68,13 +68,13 @@ class OrderCreationService
                 $item->setRelation('product', $lockedStock->get($item->product_id));
             }
 
-            // 5. Calculate Price
+            // 4. Calculate Price
             $priceResult = $this->priceCalculator->calculate($user, $cartItems, $coupon);
 
-            // 6. Deduct Stock
+            // 5. Deduct Stock
             $this->inventoryService->deductStock($lockedStock, $stockCheckItems);
 
-            // 7. Create Order Record
+            // 6. Create Order Record
             $logisticsNumber = $this->orderSequenceGenerator->generateLogisticsNumber();
 
             $order = Order::create([
@@ -85,18 +85,25 @@ class OrderCreationService
                 'shipping_fee' => $priceResult->shippingFee,
                 'logistics_number' => $logisticsNumber,
                 'payment_method' => $data->paymentMethod,
-                // Removed shipping info and snapshot info from here
+                'coupon_id' => $coupon?->id,
             ]);
 
-            // 7b. Create Address
+            // 6a. Increment coupon usage count if coupon was used
+            if ($coupon) {
+                $coupon->increment('usage_count');
+            }
+
+            // 6b. Create Address (use default from addresses table)
+            $defaultAddress = $user->addresses()->where('is_default', true)->first();
+
             OrderAddress::create([
                 'order_id' => $order->id,
-                'name' => $data->shippingName ?? $user->name,
-                'phone' => $data->shippingPhone ?? $user->phone,
-                'address' => $data->shippingAddress ?? $user->address,
+                'name' => $data->shippingName ?? $defaultAddress?->recipient_name ?? $user->name,
+                'phone' => $data->shippingPhone ?? $defaultAddress?->phone ?? $user->phone,
+                'address' => $data->shippingAddress ?? ($defaultAddress ? "{$defaultAddress->zip_code} {$defaultAddress->city}{$defaultAddress->district}{$defaultAddress->detail_address}" : null),
             ]);
 
-            // 7c. Create Snapshot (using atomic columns for 1NF compliance)
+            // 6c. Create Snapshot (using atomic columns for 1NF compliance)
             OrderSnapshot::create([
                 'order_id' => $order->id,
                 'buyer_email' => $user->email,
@@ -104,7 +111,7 @@ class OrderCreationService
                 'user_name' => $user->name,
             ]);
 
-            // 8. Create Order Items
+            // 7. Create Order Items
             foreach ($priceResult->itemDetails as $detail) {
                 $product = $lockedStock->get($detail['product_id']);
 
@@ -117,7 +124,7 @@ class OrderCreationService
                 ]);
             }
 
-            // 9. Clear Cart
+            // 8. Clear Cart
             $cart->items()->delete();
 
             return $order->load(['items.product', 'address', 'snapshot']);

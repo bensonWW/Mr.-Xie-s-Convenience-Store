@@ -43,10 +43,18 @@ onMounted(() => {
 async function fetchUserProfile () {
   try {
     const res = await api.get('/user')
-    userAddress.value = res.data.address || ''
+    // Use structured address from addresses relation
+    const defaultAddress = res.data.addresses?.find(a => a.is_default)
+    if (defaultAddress) {
+      userAddress.value = `${defaultAddress.zip_code} ${defaultAddress.city}${defaultAddress.district}${defaultAddress.detail_address}`
+      userName.value = defaultAddress.recipient_name || res.data.name || ''
+      userPhone.value = defaultAddress.phone || res.data.phone || ''
+    } else {
+      userAddress.value = ''
+      userName.value = res.data.name || ''
+      userPhone.value = res.data.phone || ''
+    }
     userLevel.value = res.data.member_level || 'normal'
-    userName.value = res.data.name || ''
-    userPhone.value = res.data.phone || ''
   } catch (error) {
     console.error('Fetch user profile error:', error)
   }

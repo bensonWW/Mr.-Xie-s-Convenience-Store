@@ -56,7 +56,7 @@ class Phase9Step3Test extends TestCase
 
         $response->assertStatus(200);
 
-        // Verify Address Model created
+        // Verify Address Model created in normalized addresses table
         $this->assertDatabaseHas('addresses', [
             'user_id' => $user->id,
             'city' => 'Taipei',
@@ -64,12 +64,6 @@ class Phase9Step3Test extends TestCase
             'zip_code' => '110',
             'detail_address' => '101 Tower',
             'is_default' => true
-        ]);
-
-        // Verify User Model sync (legacy column)
-        $this->assertDatabaseHas('users', [
-            'id' => $user->id,
-            'address' => '110 TaipeiXinyi101 Tower'
         ]);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\OrderService;
 use App\Services\OrderCreationService;
@@ -15,7 +16,7 @@ class OrderController extends Controller
         protected OrderService $orderService
     ) {}
 
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $query = $request->user()->orders()->with('items.product')->latest();
 
@@ -23,88 +24,61 @@ class OrderController extends Controller
             $query->where('status', $request->status);
         }
 
-        return $query->get();
+        return response()->json($query->get());
     }
 
-    public function store(\App\Http\Requests\StoreOrderRequest $request, OrderCreationService $creationService)
+    public function store(\App\Http\Requests\StoreOrderRequest $request, OrderCreationService $creationService): JsonResponse
     {
-        try {
-            // Build DTO
-            $data = new CreateOrderData(
-                user: $request->user(),
-                couponCode: $request->coupon_code,
-                shippingName: $request->input('shipping_name'),
-                shippingPhone: $request->input('shipping_phone'),
-                shippingAddress: $request->input('shipping_address')
-            );
+        // Build DTO
+        $data = new CreateOrderData(
+            user: $request->user(),
+            couponCode: $request->coupon_code,
+            shippingName: $request->input('shipping_name'),
+            shippingPhone: $request->input('shipping_phone'),
+            shippingAddress: $request->input('shipping_address')
+        );
 
-            $order = $creationService->execute($data);
+        $order = $creationService->execute($data);
 
-            return response()->json($order, 201);
-        } catch (\App\Exceptions\InsufficientBalanceException $e) {
-            // Let the global exception handler deal with this appropriately
-            return response()->json(['message' => $e->getMessage()], 400);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
-        }
+        return response()->json($order, 201);
     }
 
-    public function show(Request $request, Order $order)
+    public function show(Request $request, Order $order): JsonResponse
     {
         $this->authorize('view', $order);
-        return $order->load(['items.product', 'address', 'snapshot']);
+        return response()->json($order->load(['items.product', 'address', 'snapshot']));
     }
 
-    public function pay(Request $request, $id)
+    public function pay(Request $request, Order $order): JsonResponse
     {
-        $order = $request->user()->orders()->findOrFail($id);
-
-        try {
-            $paidOrder = $this->orderService->processPayment($order, $request->user());
-            return response()->json(['message' => 'Payment successful', 'order' => $paidOrder]);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
-        }
+        $this->authorize('pay', $order);
+        $paidOrder = $this->orderService->processPayment($order, $request->user());
+        return response()->json(['message' => 'Payment successful', 'order' => $paidOrder]);
     }
 
-    public function updateStatus(\App\Http\Requests\UpdateOrderStatusRequest $request, Order $order)
+    public function updateStatus(\App\Http\Requests\UpdateOrderStatusRequest $request, Order $order): JsonResponse
     {
-        // Validation handled by FormRequest
-
         $newStatus = OrderStatus::from($request->status);
 
-        if (!$this->orderService->canTransition($order, $newStatus)) {
-            return response()->json([
-                'message' => "Invalid status transition from {$order->status->value} to {$request->status}"
-            ], 400);
-        }
+        // Use transitionStatus which handles auto-refund and inventory restoration
+        $updatedOrder = $this->orderService->transitionStatus($order, $newStatus);
 
-        $order->update(['status' => $newStatus]);
-
-        return response()->json($order);
+        return response()->json($updatedOrder);
     }
 
-    public function updateLogistics(Request $request, $id)
+    public function updateLogistics(\App\Http\Requests\UpdateLogisticsRequest $request, Order $order): JsonResponse
     {
-        $request->validate([
-            'logistics_number' => 'nullable|string|max:255'
-        ]);
+        $this->authorize('update', $order);
 
-        $order = Order::findOrFail($id);
         $order->update(['logistics_number' => $request->logistics_number]);
 
         return response()->json($order);
     }
 
-    public function refund(Request $request, Order $order)
+    public function refund(Request $request, Order $order): JsonResponse
     {
         $this->authorize('refund', $order);
-
-        try {
-            $refundedOrder = $this->orderService->refund($order);
-            return response()->json(['message' => 'Order refunded successfully', 'order' => $refundedOrder]);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
-        }
+        $refundedOrder = $this->orderService->cancelAndRefund($order);
+        return response()->json(['message' => 'Order refunded successfully', 'order' => $refundedOrder]);
     }
 }

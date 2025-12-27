@@ -2,40 +2,31 @@
   <div v-show="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity">
     <div class="bg-white rounded-lg shadow-xl w-96 p-6 transform transition-all">
       <h3 class="text-xl font-bold text-gray-800 mb-4">
-        <i class="fas fa-map-marker-alt text-xieOrange mr-2"></i> 請填寫收貨地址
+        <i class="fas fa-map-marker-alt text-xieOrange mr-2"></i> 請設定收貨地址
       </h3>
       <p class="text-gray-500 text-sm mb-4">
-        為了順利配送您的商品，請在結帳前設定您的收貨地址。
+        為了順利配送您的商品，請先前往個人資料頁面設定您的收貨地址。
       </p>
 
-      <form @submit.prevent="saveAddress">
-        <div class="mb-4">
-          <textarea
-            v-model="address"
-            rows="3"
-            placeholder="請輸入詳細地址..."
-            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-xieOrange focus:ring-1 focus:ring-xieOrange"
-            required
-          ></textarea>
-        </div>
+      <div class="bg-orange-50 border border-orange-200 rounded p-3 mb-4 text-sm text-orange-800">
+        <i class="fas fa-info-circle mr-1"></i>
+        您需要填寫完整的結構化地址（縣市、區域、郵遞區號、詳細地址）
+      </div>
 
-        <div class="flex justify-end gap-2">
-            <button type="button" @click="$emit('close')" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded">
-                稍後再說
-            </button>
-            <button type="submit" class="px-6 py-2 bg-xieOrange text-white font-bold rounded hover:bg-orange-600 transition" :disabled="loading">
-                <i v-if="loading" class="fas fa-spinner fa-spin mr-1"></i>
-                {{ loading ? '儲存中...' : '確認並繼續' }}
-            </button>
-        </div>
-      </form>
+      <div class="flex justify-end gap-2">
+          <button type="button" @click="$emit('close')" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded">
+              稍後再說
+          </button>
+          <button type="button" @click="goToProfile" class="px-6 py-2 bg-xieOrange text-white font-bold rounded hover:bg-orange-600 transition">
+              <i class="fas fa-user-edit mr-1"></i> 前往設定
+          </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import api from '../../services/api'
-import { useToast } from 'vue-toastification'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'InlineAddressModal',
@@ -44,30 +35,15 @@ export default {
   },
   emits: ['close', 'success'],
   setup () {
-    const toast = useToast()
-    return { toast }
-  },
-  data () {
-    return {
-      address: '',
-      loading: false
-    }
+    const router = useRouter()
+    return { router }
   },
   methods: {
-    async saveAddress () {
-      if (!this.address.trim()) return
-      this.loading = true
-      try {
-        await api.put('/profile', { address: this.address })
-        this.$emit('success', this.address)
-        this.$emit('close')
-      } catch (error) {
-        console.error(error)
-        this.toast.error('儲存失敗，請稍後再試')
-      } finally {
-        this.loading = false
-      }
+    goToProfile () {
+      this.$emit('close')
+      this.router.push('/profile')
     }
   }
 }
 </script>
+

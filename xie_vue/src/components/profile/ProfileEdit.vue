@@ -116,7 +116,6 @@ export default {
       editForm: {
         name: this.user.name,
         phone: this.user.phone || '',
-        address: this.user.address || '',
         birthday: this.user.birthday ? this.user.birthday.split('T')[0] : '',
         gender: this.user.gender || 'male'
       },
@@ -138,7 +137,6 @@ export default {
         this.editForm = {
           name: newVal.name,
           phone: newVal.phone || '',
-          address: newVal.address || '',
           birthday: newVal.birthday ? newVal.birthday.split('T')[0] : '',
           gender: newVal.gender || 'male'
         }

@@ -5,9 +5,11 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Exception;
 use App\Enums\OrderStatus;
 use App\Events\OrderPaid;
+use App\Exceptions\OrderAlreadyRefundedException;
+use App\Exceptions\OrderNotPayableException;
+use App\Exceptions\InvalidOrderTransitionException;
 
 class OrderService
 {
@@ -26,7 +28,7 @@ class OrderService
             $order = Order::where('id', $order->id)->lockForUpdate()->first();
 
             if ($order->status !== OrderStatus::PENDING_PAYMENT) {
-                throw new Exception('Order is not pending payment');
+                throw new OrderNotPayableException();
             }
 
             // Withdraw from wallet (using order_id for tracking)
@@ -63,7 +65,7 @@ class OrderService
     /**
      * Transition order to a new status with validation and auto-refund.
      * 
-     * @throws Exception When transition is not allowed
+     * @throws \App\Exceptions\InvalidOrderTransitionException When transition is not allowed
      */
     public function transitionStatus(Order $order, OrderStatus $newStatus): Order
     {
@@ -77,8 +79,9 @@ class OrderService
 
             // Validate transition
             if (!$currentStatus->canTransitionTo($newStatus)) {
-                throw new Exception(
-                    "Cannot transition order from {$currentStatus->label()} to {$newStatus->label()}"
+                throw new InvalidOrderTransitionException(
+                    $currentStatus->value,
+                    $newStatus->value
                 );
             }
 
@@ -91,7 +94,8 @@ class OrderService
                     $lockedOrder->id
                 );
 
-                // Restore inventory
+                // Restore inventory (eager load to avoid N+1)
+                $lockedOrder->load('items.product');
                 foreach ($lockedOrder->items as $item) {
                     $item->product->increment('stock', $item->quantity);
                 }
@@ -106,21 +110,15 @@ class OrderService
     }
 
     /**
-     * refund an order.
+     * Cancel an order and refund if already paid.
+     * Sets order status to CANCELLED and restores inventory.
      */
-    public function refund(Order $order): Order
+    public function cancelAndRefund(Order $order): Order
     {
-        if ($order->status === OrderStatus::RETURNED) { // Assuming 'refunded' maps to RETURNED or CANCELLED? User code had 'refunded'. 
-            // The Enum definitions: cancelled, returned. No 'refunded'.
-            // The previous code checked for literal string 'refunded'. 
-            // I need to align this. I'll assume 'CANCELLED' implies refunded for money. 
-            // Or maybe 'RETURNED'.
-            // Let's stick to 'CANCELLED' if it's a cancellation.
-            throw new Exception("Order is already refunded/cancelled.");
+        // Quick check before entering transaction
+        if ($order->status === OrderStatus::RETURNED || $order->status === OrderStatus::CANCELLED) {
+            throw new OrderAlreadyRefundedException();
         }
-
-        // Logic check
-        // ... (simplified for brevity, keeping core logic)
 
         return DB::transaction(function () use ($order) {
             // Refetch with lock
@@ -128,7 +126,7 @@ class OrderService
 
             // Check status again
             if (in_array($lockedOrder->status, [OrderStatus::CANCELLED, OrderStatus::RETURNED])) {
-                throw new Exception("Order is already refunded.");
+                throw new OrderAlreadyRefundedException();
             }
 
             // Check if order was paid (not pending)
@@ -142,7 +140,8 @@ class OrderService
                 );
             }
 
-            // Restore Stock (Primitive loop)
+            // Restore Stock (eager load to avoid N+1)
+            $lockedOrder->load('items.product');
             foreach ($lockedOrder->items as $item) {
                 $item->product->increment('stock', $item->quantity);
             }

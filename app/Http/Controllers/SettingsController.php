@@ -10,8 +10,9 @@ class SettingsController extends Controller
     public function index()
     {
         return response()->json([
-            'free_shipping_threshold' => (int) (Setting::get('free_shipping_threshold', 1000) * 100),
-            'shipping_fee' => (int) (Setting::get('shipping_fee', 60) * 100),
+            // Use bcmul for precision when converting to cents
+            'free_shipping_threshold' => (int) bcmul((string) Setting::get('free_shipping_threshold', 1000), '100', 0),
+            'shipping_fee' => (int) bcmul((string) Setting::get('shipping_fee', 60), '100', 0),
         ]);
     }
 }
