@@ -123,4 +123,28 @@ class CategoryController extends Controller
             'affected_products' => $productCount,
         ]);
     }
+
+    /**
+     * Batch fix all category slugs based on their names.
+     */
+    public function fixSlugs(): JsonResponse
+    {
+        $categories = Category::all();
+        $fixed = 0;
+
+        foreach ($categories as $category) {
+            $newSlug = Str::slug($category->name);
+            if ($category->slug !== $newSlug) {
+                $category->update(['slug' => $newSlug]);
+                $fixed++;
+            }
+        }
+
+        Cache::forget('categories');
+
+        return response()->json([
+            'message' => "Fixed {$fixed} category slugs.",
+            'fixed_count' => $fixed,
+        ]);
+    }
 }

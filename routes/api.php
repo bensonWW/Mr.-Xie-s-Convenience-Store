@@ -101,6 +101,7 @@ Route::middleware(['auth:sanctum', 'refresh_token'])->group(function () {
         Route::put('/categories/{id}', [App\Http\Controllers\Admin\CategoryController::class, 'update']);
         Route::delete('/categories/{id}', [App\Http\Controllers\Admin\CategoryController::class, 'destroy']);
         Route::post('/categories/{id}/reassign', [App\Http\Controllers\Admin\CategoryController::class, 'reassignAndDelete']);
+        Route::post('/categories/fix-slugs', [App\Http\Controllers\Admin\CategoryController::class, 'fixSlugs']);
 
         // Store Management
         Route::put('/stores/{id}', [StoreController::class, 'update']);
