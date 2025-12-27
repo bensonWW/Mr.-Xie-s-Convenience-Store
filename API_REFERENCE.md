@@ -57,6 +57,7 @@ Base URL:
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `GET` | `/admin/stats` | Get dashboard statistics |
+| `GET` | `/admin/inventory-report` | Get inventory report |
 | `GET` | `/admin/users` | List all users |
 | `POST` | `/admin/users` | Create a new user |
 | `GET` | `/admin/users/{id}` | Get user details |
@@ -64,11 +65,22 @@ Base URL:
 | `POST` | `/admin/users/{id}/wallet/transaction` | Admin Modifies Wallet (Deposit/Withdraw) |
 | `GET` | `/admin/orders` | List all orders (paginated) |
 | `GET` | `/admin/orders/{id}` | Get items for a single order |
-| `PUT` | `/admin/orders/{id}/status` | Update order status |
+| `POST` | `/admin/orders/{order}/refund` | Refund an order |
+| `PUT` | `/admin/orders/{order}/status` | Update order status |
+| `PUT` | `/admin/orders/{order}/logistics` | Update logistics number |
 | `GET` | `/admin/products` | List all products (paginated) |
 | `POST` | `/admin/products` | Create product |
 | `PUT` | `/admin/products/{id}` | Update product |
 | `DELETE` | `/admin/products/{id}` | Delete product |
+| `GET` | `/admin/categories` | List all categories with product counts |
+| `POST` | `/admin/categories` | Create category |
+| `PUT` | `/admin/categories/{id}` | Update category |
+| `DELETE` | `/admin/categories/{id}` | Delete category (products become uncategorized) |
+| `POST` | `/admin/categories/{id}/reassign` | Move products to another category then delete |
+| `GET` | `/admin/coupons` | List all coupons |
+| `POST` | `/admin/coupons` | Create coupon |
+| `PUT` | `/admin/coupons/{id}` | Update coupon |
+| `DELETE` | `/admin/coupons/{id}` | Delete coupon |
 | `PUT` | `/admin/stores/{id}` | Update store settings |
 
 ## How to Test
