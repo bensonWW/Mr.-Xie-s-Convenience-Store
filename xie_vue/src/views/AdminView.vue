@@ -38,6 +38,13 @@
                         <span>優惠券管理</span>
                     </router-link>
                 </li>
+                <li>
+                    <router-link to="/admin/categories" class="flex items-center px-6 py-3 transition"
+                       :class="$route.name === 'admin-categories' ? 'text-xieOrange bg-orange-50 border-r-4 border-xieOrange' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'">
+                        <i class="fas fa-tags w-6"></i>
+                        <span>分類管理</span>
+                    </router-link>
+                </li>
 
                 <li class="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider mt-4">顧客與數據</li>
                 <li>
@@ -103,6 +110,7 @@ export default {
         'admin-orders': '訂單管理',
         'admin-order-detail': '訂單詳情',
         'admin-coupons': '優惠券管理',
+        'admin-categories': '分類管理',
         'admin-users': '會員管理',
         'admin-analytics': '銷售分析'
       }
