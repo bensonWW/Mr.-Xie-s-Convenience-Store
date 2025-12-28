@@ -319,17 +319,9 @@ export default {
           if (prod.image.startsWith('http')) {
             this.previewImage = prod.image
           } else {
-            // Adjust path based on your storage
-            this.previewImage = '/storage/' + prod.image // Usually Laravel uses storage link
-            // Fallback for demo
-            if (!prod.image.includes('/')) {
-              // If it's just filename
-              this.previewImage = '/images/' + prod.image // Or whatever your base is
-            }
-            // For safety in this environment where I don't know exact public path mapping:
-            if (!this.previewImage.startsWith('/') && !this.previewImage.startsWith('http')) {
-              this.previewImage = '/' + prod.image
-            }
+            // Laravel stores to public disk, accessible via /storage symlink
+            const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || ''
+            this.previewImage = baseUrl + '/storage/' + prod.image
           }
         }
       } catch (e) {

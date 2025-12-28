@@ -122,7 +122,14 @@ export default {
     getImageUrl (image) {
       if (!image) return ''
       if (image.startsWith('http')) return image
-      return '/images/' + image
+      // Laravel stores images at storage/app/public, accessible via /storage symlink
+      // For cloud deployment, use API base URL
+      const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || ''
+      // Check if image path already includes 'storage' or 'images' prefix
+      if (image.startsWith('storage/') || image.startsWith('/storage/')) {
+        return baseUrl + '/' + image.replace(/^\//, '')
+      }
+      return baseUrl + '/storage/' + image
     },
     getCategoryName (cat) {
       if (!cat) return ''
