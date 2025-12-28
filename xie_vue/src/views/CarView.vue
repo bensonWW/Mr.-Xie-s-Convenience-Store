@@ -345,22 +345,16 @@ function handleAddressSuccess (newAddress) {
                         </div>
                     </div>
 
-                    <!-- Insufficient Balance Warning -->
-                    <div v-if="isBalanceInsufficient" class="mb-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800/50 rounded-lg p-3 text-rose-700 dark:text-rose-400 text-sm flex items-start gap-2">
-                         <i class="fas fa-exclamation-circle mt-0.5"></i>
+                    <!-- Order Info Note -->
+                    <div class="mb-4 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800/50 rounded-lg p-3 text-sky-700 dark:text-sky-400 text-sm flex items-start gap-2">
+                         <i class="fas fa-info-circle mt-0.5"></i>
                          <div>
-                             <p class="font-semibold">餘額不足 (現有 {{ formatPrice(userBalance) }})</p>
-                             <p class="text-xs opacity-80">請先儲值後再進行結帳付款。</p>
+                             <p class="font-semibold">付款說明</p>
+                             <p class="text-xs opacity-80">下單後可至會員中心付款，錢包餘額：{{ formatPrice(userBalance) }}</p>
                          </div>
                     </div>
 
-                    <div v-if="isBalanceInsufficient" class="flex gap-2 mb-3">
-                         <button @click="showTopUpModal = true" class="w-full bg-sky-600 dark:bg-sky-700 text-white font-semibold py-3 rounded-md text-lg hover:bg-sky-700 dark:hover:bg-sky-600 transition shadow-md">
-                             <i class="fas fa-wallet mr-1"></i> 立即儲值
-                         </button>
-                    </div>
-
-                    <button v-else class="w-full bg-xieOrange text-white font-semibold py-3 rounded-md text-lg hover:bg-[#cf8354] transition shadow-md shadow-xieOrange/20 mb-3 disabled:opacity-50 disabled:cursor-not-allowed" @click="checkout" :disabled="isProcessing">
+                    <button class="w-full bg-xieOrange text-white font-semibold py-3 rounded-md text-lg hover:bg-[#cf8354] transition shadow-md shadow-xieOrange/20 mb-3 disabled:opacity-50 disabled:cursor-not-allowed" @click="checkout" :disabled="isProcessing">
                         <i v-if="isProcessing" class="fas fa-spinner fa-spin mr-2"></i>
                         {{ isProcessing ? '處理中...' : '確認下單' }}
                     </button>
