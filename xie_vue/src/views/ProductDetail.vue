@@ -84,9 +84,9 @@
                 <span class="flex items-center gap-1.5"><i class="fas fa-barcode"></i> {{ item.id }}</span>
                 <span class="w-1 h-1 rounded-full bg-stone-300 dark:bg-slate-600"></span>
                 <span class="flex items-center gap-1.5"><i class="fas fa-tag"></i> {{ formatCategory(item.category) }}</span>
-                <span v-if="item.rating_avg > 0" class="w-1 h-1 rounded-full bg-stone-300 dark:bg-slate-600"></span>
-                <span v-if="item.rating_avg > 0" class="flex items-center gap-1 text-xieOrange">
-                  <i class="fas fa-star"></i> {{ item.rating_avg?.toFixed(1) }} ({{ item.rating_count }})
+                <span v-if="parseFloat(item.rating_avg) > 0" class="w-1 h-1 rounded-full bg-stone-300 dark:bg-slate-600"></span>
+                <span v-if="parseFloat(item.rating_avg) > 0" class="flex items-center gap-1 text-xieOrange">
+                  <i class="fas fa-star"></i> {{ parseFloat(item.rating_avg || 0).toFixed(1) }} ({{ item.rating_count }})
                 </span>
               </div>
             </div>
@@ -245,7 +245,7 @@
               <div class="flex justify-between py-3 border-b border-dashed border-stone-100 dark:border-slate-700">
                 <span class="text-stone-500 dark:text-stone-400">平均評分</span>
                 <span class="font-medium text-xieOrange flex items-center gap-1">
-                  <i class="fas fa-star"></i> {{ item.rating_avg?.toFixed(1) || '0.0' }}
+                  <i class="fas fa-star"></i> {{ parseFloat(item.rating_avg || 0).toFixed(1) }}
                 </span>
               </div>
             </div>
