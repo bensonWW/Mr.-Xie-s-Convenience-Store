@@ -11,7 +11,7 @@
                 <div class="text-2xl font-bold font-mono text-gray-800 dark:text-stone-100">${{ stats.total_sales ? stats.total_sales.toLocaleString() : 0 }}</div>
                 <div class="text-emerald-500 dark:text-emerald-400 text-xs font-medium mt-1"><i class="fas fa-arrow-up"></i> 12% 較上月</div>
             </div>
-            <div class="w-12 h-9 rounded-lg bg-orange-100 dark:bg-xieOrange/10 text-xieOrange flex items-center justify-center text-xl">g relative">
+            <div class="w-12 h-9 rounded-lg bg-orange-100 dark:bg-xieOrange/10 text-xieOrange flex items-center justify-center text-xl relative">
                 <i class="fas fa-dollar-sign"></i>
             </div>
         </div>

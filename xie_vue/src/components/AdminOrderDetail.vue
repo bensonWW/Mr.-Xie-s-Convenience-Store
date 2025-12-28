@@ -200,7 +200,21 @@ export default {
       return this.order?.snapshot_data?.phone || this.order?.user?.phone || 'N/A'
     },
     shippingAddress () {
-      return this.order?.snapshot_data?.shipping_address || this.order?.address || 'N/A'
+      // Handle snapshot string
+      if (this.order?.snapshot_data?.shipping_address) {
+        return this.order.snapshot_data.shipping_address
+      }
+      // Handle structured address object
+      const addr = this.order?.address
+      if (addr && typeof addr === 'object') {
+        return `${addr.zip_code || ''} ${addr.city || ''}${addr.district || ''}${addr.detail_address || addr.address || ''}`.trim() || 'N/A'
+      }
+      // Handle address string
+      if (typeof addr === 'string') {
+        return addr || 'N/A'
+      }
+      // Fallback to shipping_address string
+      return this.order?.shipping_address || 'N/A'
     },
     isSnapshot () {
       return !!this.order?.snapshot_data
