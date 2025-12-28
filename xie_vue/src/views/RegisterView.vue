@@ -105,7 +105,6 @@ export default {
 
       this.loading = true
       try {
-        await api.get('/sanctum/csrf-cookie')
         await api.post('/register', {
           name: this.name,
           email: this.email,
