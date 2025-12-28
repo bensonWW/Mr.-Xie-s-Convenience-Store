@@ -283,17 +283,18 @@ function handleAddressSuccess (newAddress) {
                     <div class="col-span-6 flex gap-4 items-center">
                         <input type="checkbox" checked class="w-4 h-4 text-xieOrange focus:ring-xieOrange border-stone-300 dark:border-slate-600 rounded bg-stone-50 dark:bg-slate-700">
                         <div class="w-20 h-20 bg-stone-100 dark:bg-slate-700 rounded-lg border border-stone-200 dark:border-slate-600 flex items-center justify-center overflow-hidden shrink-0">
-                            <i class="fas fa-box-open text-2xl text-stone-300 dark:text-slate-500"></i>
+                            <img v-if="item.product?.image" :src="item.product.image" :alt="item.product?.name" class="w-full h-full object-cover">
+                            <i v-else class="fas fa-box-open text-2xl text-stone-300 dark:text-slate-500"></i>
                         </div>
                         <div>
-                            <h3 class="font-semibold text-slate-700 dark:text-stone-100 line-clamp-2">{{ item.name }}</h3>
+                            <h3 class="font-semibold text-slate-700 dark:text-stone-100 line-clamp-2">{{ item.product?.name || '商品載入中...' }}</h3>
                             <div class="text-xs text-stone-500 dark:text-stone-400 mt-1">規格：預設</div>
                             <div class="text-xs text-emerald-600 dark:text-emerald-400 mt-1"><i class="fas fa-check-circle"></i> 24h 到貨</div>
                         </div>
                     </div>
 
                     <div class="col-span-2 text-center text-sm text-stone-500 dark:text-stone-400">
-                        <span class="md:hidden mr-2">單價:</span>{{ formatPrice(item.price) }}
+                        <span class="md:hidden mr-2">單價:</span>{{ formatPrice(item.product?.price || 0) }}
                     </div>
 
                     <div class="col-span-2 flex justify-center">
@@ -305,7 +306,7 @@ function handleAddressSuccess (newAddress) {
                     </div>
 
                     <div class="col-span-1 text-center font-bold text-xieOrange">
-                        {{ formatPrice(item.price * item.quantity) }}
+                        {{ formatPrice((item.product?.price || 0) * item.quantity) }}
                     </div>
 
                     <div class="col-span-1 text-right">
