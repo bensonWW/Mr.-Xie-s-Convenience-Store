@@ -81,10 +81,9 @@ export const useCartStore = defineStore('cart', {
             this.totalAmount = Math.max(0, this.totalAmount + (quantityDiff * itemPrice))
 
             try {
-                // Sync with server in background (no blocking)
+                // Sync with server (no fetchCart to avoid overwriting optimistic state)
                 await api.put(`/cart/items/${itemId}`, { quantity })
-                // Fetch fresh data from server to ensure accuracy
-                this.fetchCart()
+                // Success: local state is already correct, no need to refetch
             } catch (e) {
                 console.error('Update cart error:', e)
                 // Rollback on error
