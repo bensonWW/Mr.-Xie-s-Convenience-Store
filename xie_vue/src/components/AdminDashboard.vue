@@ -178,28 +178,13 @@ export default {
       }
 
       // Create gradient fill
-      const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 256)
+      const ctx2d = ctx.getContext('2d')
+      const gradient = ctx2d.createLinearGradient(0, 0, 0, 256)
       gradient.addColorStop(0, 'rgba(237, 137, 54, 0.15)')
       gradient.addColorStop(1, 'rgba(237, 137, 54, 0.01)')
 
       try {
-        const ctx2d = ctx.getContext('2d');
-        const gradient = ctx2d.createLinearGradient(0, 0, 0, 200);
-        gradient.addColorStop(0, 'rgba(237, 137, 54, 0.3)');
-        gradient.addColorStop(1, 'rgba(237, 137, 54, 0)');
         this.chart = markRaw(new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: this.stats.chart_data ? this.stats.chart_data.labels : [],
-            datasets: [{
-              label: '營收',
-              data: this.stats.chart_data ? this.stats.chart_data.values : [],
-              borderColor: '#ed8936',
-              backgroundColor: gradient,
-              fill: true,
-              tension: 0.4
-            }]
-          },
           type: 'line',
           data: {
             labels: this.stats.chart_data ? this.stats.chart_data.labels : [],
