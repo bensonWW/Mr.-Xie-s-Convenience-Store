@@ -40,28 +40,30 @@
                   {{ getStatusText(order.status) }}
                 </span>
               </td>
-              <td class="px-6 py-4 text-right space-x-2">
-                <button 
-                  v-if="order.status === 'pending_payment'" 
-                  class="bg-xieOrange text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-[#cf8354] transition" 
-                  @click="openPaymentModal(order)"
-                >
-                  去付款
-                </button>
-                <button 
-                  v-if="order.status === 'processing'" 
-                  class="bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 px-3 py-1.5 rounded-full text-xs font-medium hover:bg-rose-100 dark:hover:bg-rose-900/30 transition" 
-                  @click="cancelOrder(order)"
-                >
-                  取消訂單
-                </button>
-                <button 
-                  class="w-8 h-8 rounded-full border border-stone-200 dark:border-slate-600 text-stone-400 hover:text-xieOrange hover:border-xieOrange flex items-center justify-center transition" 
-                  @click="openOrderDetails(order.id)"
-                  title="詳情"
-                >
-                  <i class="fas fa-chevron-right text-xs"></i>
-                </button>
+              <td class="px-6 py-4">
+                <div class="flex items-center justify-end gap-2">
+                  <button 
+                    v-if="order.status === 'pending_payment'" 
+                    class="bg-xieOrange text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-[#cf8354] transition" 
+                    @click="openPaymentModal(order)"
+                  >
+                    去付款
+                  </button>
+                  <button 
+                    v-if="order.status === 'processing'" 
+                    class="bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 px-3 py-1.5 rounded-full text-xs font-medium hover:bg-rose-100 dark:hover:bg-rose-900/30 transition" 
+                    @click="cancelOrder(order)"
+                  >
+                    取消訂單
+                  </button>
+                  <button 
+                    class="w-8 h-8 rounded-full border border-stone-200 dark:border-slate-600 text-stone-400 hover:text-xieOrange hover:border-xieOrange flex items-center justify-center transition" 
+                    @click="openOrderDetails(order.id)"
+                    title="詳情"
+                  >
+                    <i class="fas fa-chevron-right text-xs"></i>
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
