@@ -8,10 +8,10 @@
             <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.02]" style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 16px 16px;"></div>
             <div class="relative">
                 <div class="text-stone-400 dark:text-stone-500 text-xs font-bold uppercase tracking-wider mb-1">總銷售額</div>
-                <div class="text-2xl font-bold font-mono text-slate-800 dark:text-stone-100">${{ formatNumber(stats.total_sales) }}</div>
+                <div class="text-2xl font-bold font-mono text-gray-800 dark:text-stone-100">${{ stats.total_sales ? stats.total_sales.toLocaleString() : 0 }}</div>
                 <div class="text-emerald-500 dark:text-emerald-400 text-xs font-medium mt-1"><i class="fas fa-arrow-up"></i> 12% 較上月</div>
             </div>
-            <div class="w-12 h-9 rounded-lg bg-xieOrange/10 dark:bg-xieOrange/10 text-xieOrange flex items-center justify-center text-lg relative">
+            <div class="w-12 h-9 rounded-lg bg-orange-100 dark:bg-xieOrange/10 text-xieOrange flex items-center justify-center text-xl">g relative">
                 <i class="fas fa-dollar-sign"></i>
             </div>
         </div>
@@ -21,7 +21,7 @@
             <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.02]" style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 16px 16px;"></div>
             <div class="relative">
                 <div class="text-stone-400 dark:text-stone-500 text-xs font-bold uppercase tracking-wider mb-1">總訂單數</div>
-                <div class="text-2xl font-bold font-mono text-slate-800 dark:text-stone-100">{{ formatNumber(stats.order_count) }}</div>
+                <div class="text-2xl font-bold font-mono text-gray-800 dark:text-stone-100">{{ stats.order_count ? stats.order_count.toLocaleString() : 0 }}</div>
                 <div class="text-stone-400 dark:text-stone-500 text-xs font-medium mt-1">待出貨: {{ pendingOrdersCount }}</div>
             </div>
             <div class="w-12 h-9 rounded-lg bg-sky-100 dark:bg-sky-500/10 text-sky-500 dark:text-sky-400 flex items-center justify-center text-lg relative">
@@ -34,7 +34,7 @@
             <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.02]" style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 16px 16px;"></div>
             <div class="relative">
                 <div class="text-stone-400 dark:text-stone-500 text-xs font-bold uppercase tracking-wider mb-1">總會員數</div>
-                <div class="text-2xl font-bold font-mono text-slate-800 dark:text-stone-100">{{ formatNumber(stats.user_count) }}</div>
+                <div class="text-2xl font-bold font-mono text-gray-800 dark:text-stone-100">{{ stats.user_count ? stats.user_count.toLocaleString() : 0 }}</div>
                 <div class="text-emerald-500 dark:text-emerald-400 text-xs font-medium mt-1"><i class="fas fa-plus"></i> 新增 3 人</div>
             </div>
             <div class="w-12 h-9 rounded-lg bg-violet-100 dark:bg-violet-500/10 text-violet-500 dark:text-violet-400 flex items-center justify-center text-lg relative">
@@ -47,7 +47,7 @@
             <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.02]" style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 16px 16px;"></div>
             <div class="relative">
                 <div class="text-stone-400 dark:text-stone-500 text-xs font-bold uppercase tracking-wider mb-1">低庫存商品</div>
-                <div class="text-2xl font-bold font-mono text-rose-500 dark:text-rose-400">{{ stats.low_stock_products ? stats.low_stock_products.length : 0 }}</div>
+                <div class="text-2xl font-bold font-mono text-red-500 dark:text-red-400">{{ stats.low_stock_products ? stats.low_stock_products.length.toLocaleString() : 0 }}</div>
                 <div class="text-rose-400 dark:text-rose-300 text-xs font-medium mt-1 cursor-pointer hover:underline" @click="$emit('switch-tab', 'products')">立即補貨</div>
             </div>
             <div class="w-12 h-9 rounded-lg bg-rose-100 dark:bg-rose-500/10 text-rose-500 dark:text-rose-400 flex items-center justify-center text-lg relative">
@@ -63,7 +63,7 @@
             <!-- Subtle grid dots -->
             <div class="absolute inset-0 opacity-[0.02] dark:opacity-[0.015]" style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 24px 24px;"></div>
             <h3 class="font-bold text-slate-800 dark:text-stone-100 mb-4 relative">近 7 天營收趨勢</h3>
-            <div class="h-64 relative">
+            <div class="h-64 bg-[url('/images/grid-dots.png')] bg-repeat bg-[length:8px_8px] bg-gray-200 dark:bg-gray-700"> relative">
                 <canvas ref="revenueChart"></canvas>
             </div>
         </div>
@@ -71,7 +71,12 @@
         <!-- Recent Orders -->
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-0 overflow-hidden transition-colors duration-300">
             <div class="px-6 py-4 border-b border-stone-100 dark:border-slate-700 flex justify-between items-center">
-                <h3 class="font-bold text-slate-800 dark:text-stone-100">最新訂單</h3>
+                <h2 class="font-semibold text-slate-700 dark:text-stone-100">{{ getPageTitle }}</h2>
+          <div class="text-xs text-stone-400 dark:text-stone-500 flex items-center gap-1">
+            <span class="hover:text-xieOrange cursor-pointer transition">管理後台</span>
+            <span>/</span>
+            <span class="text-slate-600 dark:text-stone-300">{{ getPageTitle }}</span>
+          </div>
                 <router-link to="/admin/orders" class="text-xs text-xieOrange hover:underline font-medium">查看全部</router-link>
             </div>
             <ul class="divide-y divide-stone-100 dark:divide-slate-700">
@@ -178,7 +183,23 @@ export default {
       gradient.addColorStop(1, 'rgba(237, 137, 54, 0.01)')
 
       try {
+        const ctx2d = ctx.getContext('2d');
+        const gradient = ctx2d.createLinearGradient(0, 0, 0, 200);
+        gradient.addColorStop(0, 'rgba(237, 137, 54, 0.3)');
+        gradient.addColorStop(1, 'rgba(237, 137, 54, 0)');
         this.chart = markRaw(new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: this.stats.chart_data ? this.stats.chart_data.labels : [],
+            datasets: [{
+              label: '營收',
+              data: this.stats.chart_data ? this.stats.chart_data.values : [],
+              borderColor: '#ed8936',
+              backgroundColor: gradient,
+              fill: true,
+              tension: 0.4
+            }]
+          },
           type: 'line',
           data: {
             labels: this.stats.chart_data ? this.stats.chart_data.labels : [],

@@ -243,10 +243,10 @@ export default {
     return {
       categories: [],
       categoryImages: [
-        'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?q=80&w=2574&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1616486338812-3dadae4b4f9d?q=80&w=2670&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=2670&auto=format&fit=crop'
-      ],
+          'https://images.unsplash.com/photo-1581291519195-ef11498d1cf5?q=80&w=2574&auto=format&fit=crop', // appliance image
+          'https://images.unsplash.com/photo-1616486338812-3dadae4b4f9d?q=80&w=2670&auto=format&fit=crop',
+          'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=2670&auto=format&fit=crop'
+        ],
       showBackToTop: false
     }
   },
