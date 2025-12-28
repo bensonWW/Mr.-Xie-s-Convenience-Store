@@ -1,112 +1,162 @@
 <template>
-  <div class="container mx-auto px-4 py-6 grid grid-cols-12 gap-6">
+  <div class="bg-wood-50 dark:bg-slate-900 min-h-screen pb-12 transition-colors duration-300">
+    <!-- Filters Header -->
+    <div class="bg-white dark:bg-slate-800 border-b border-stone-200 dark:border-slate-800/50 sticky top-16 z-dropdown transition-colors duration-300">
+      <div class="container mx-auto px-4 py-4">
+        <!-- Breadcrumb & Sort -->
+        <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+          <div class="flex items-center space-x-2 text-sm text-stone-500 dark:text-stone-400">
+            <router-link to="/" class="hover:text-slate-700 dark:hover:text-stone-200">首頁</router-link>
+            <span>/</span>
+            <span class="text-slate-700 dark:text-stone-100 font-medium">{{ displayTitle }}</span>
+            <span class="ml-4 text-stone-400 dark:text-stone-500">共 {{ filteredItems.length }} 筆</span>
+          </div>
 
-    <!-- Sidebar -->
-    <aside class="col-span-12 md:col-span-3 lg:col-span-2">
-      <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div class="bg-xieBlue text-white px-4 py-3 font-bold">
-          <i class="fas fa-list mr-2"></i> 商品分類
-        </div>
-        <ul class="text-sm text-gray-700 divide-y divide-gray-100 font-medium">
-          <li
-            v-for="cat in validCategories"
-            :key="cat.id"
-            @click="selectCategory(cat)"
-            :class="['px-4 py-3 border-l-4 cursor-pointer transition', selectedCategoryName === cat.displayName ? 'bg-orange-50 text-xieOrange border-xieOrange' : 'hover:bg-gray-50 hover:text-xieOrange border-transparent']"
-          >
-            {{ cat.displayName }}
-          </li>
-        </ul>
-      </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="col-span-12 md:col-span-9 lg:col-span-10">
-
-      <!-- Header / Breadcrumbs & Sort -->
-      <div class="bg-white p-4 rounded-lg shadow-sm mb-6 flex flex-col md:flex-row justify-between items-center text-sm">
-        <div class="mb-4 md:mb-0">
-          <router-link to="/" class="text-gray-500 hover:text-xieOrange">首頁</router-link>
-          <span class="mx-2 text-gray-400">/</span>
-          <span class="font-bold text-xieBlue">{{ displayTitle }}</span>
-          <span class="ml-4 text-gray-500">共 {{ filteredItems.length }} 筆商品</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <label class="font-bold text-gray-700">排序：</label>
-          <select class="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-xieOrange">
-            <option>綜合排名</option>
-            <option>熱銷排行</option>
-            <option>價格由低到高</option>
-            <option>價格由高到低</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Product Grid -->
-      <div v-if="filteredItems.length === 0" class="col-span-12 text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
-          <i class="fas fa-box-open text-4xl mb-4 text-gray-300"></i>
-          <p>找不到相關商品</p>
-          <button @click="showAll" class="mt-4 text-xieOrange underline text-sm">瀏覽所有商品</button>
-      </div>
-
-      <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        <div
-          v-for="item in filteredItems"
-          :key="item.id"
-          class="bg-white rounded-lg shadow hover:shadow-lg transition group border border-gray-200 hover:border-xieOrange overflow-hidden"
-        >
-          <router-link :to="`/items/${item.id}`" class="block relative bg-gray-100 p-4">
-            <div class="w-full h-48 flex items-center justify-center bg-white rounded-t-lg overflow-hidden">
-               <img v-if="item.img" :src="item.img" :alt="item.name" class="w-full h-full object-cover">
-               <i v-else class="fas fa-image text-4xl text-gray-300"></i>
-            </div>
-          </router-link>
-          <div class="p-3">
-            <h3 class="text-sm text-gray-800 line-clamp-2 h-10 mb-2 group-hover:text-xieOrange transition leading-tight">
-              <router-link :to="`/items/${item.id}`">{{ item.name }}</router-link>
-            </h3>
-            <div class="flex items-end justify-between">
-              <div>
-                 <div v-if="item.original_price" class="text-xs text-gray-400 line-through">{{ formatPrice(item.original_price) }}</div>
-                 <div class="text-xieOrange font-bold text-lg leading-none">{{ formatPrice(item.price) }}</div>
-              </div>
-              <button @click.prevent="addToCart(item)" class="bg-xieOrange text-white p-2 rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md hover:bg-orange-600">
-                <i class="fas fa-cart-plus"></i>
+          <!-- Quick Filters -->
+          <div class="flex items-center space-x-4">
+            <div class="flex overflow-x-auto space-x-2 no-scrollbar">
+              <button 
+                v-for="cat in validCategories.slice(0, 5)" 
+                :key="cat.id"
+                class="px-4 py-1.5 rounded-full text-sm whitespace-nowrap border transition-colors"
+                :class="selectedCategoryName === cat.displayName ? 'bg-slate-700 dark:bg-slate-600 text-white border-slate-700 dark:border-slate-600' : 'bg-white dark:bg-slate-700 text-stone-600 dark:text-stone-300 border-stone-200 dark:border-slate-600 hover:border-stone-400 dark:hover:border-stone-500'"
+                @click="selectCategory(cat)"
+              >
+                {{ cat.displayName }}
               </button>
             </div>
           </div>
+
+          <!-- Sort -->
+          <div class="flex items-center space-x-2">
+            <span class="text-xs text-stone-500 dark:text-stone-400">排序:</span>
+            <select class="text-sm bg-transparent border-none focus:ring-0 cursor-pointer text-slate-700 dark:text-stone-200 font-medium">
+              <option class="dark:bg-slate-800">最新上架</option>
+              <option class="dark:bg-slate-800">價格由低到高</option>
+              <option class="dark:bg-slate-800">價格由高到低</option>
+              <option class="dark:bg-slate-800">熱銷排行</option>
+            </select>
+          </div>
         </div>
       </div>
+    </div>
 
-      <!-- Pagination -->
-      <div class="mt-8 flex justify-center space-x-2" v-if="pagination.last_page > 1">
-        <button
-          @click="changePage(pagination.current_page - 1)"
-          :disabled="pagination.current_page <= 1"
-          class="px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded hover:bg-gray-100 disabled:opacity-50"
-        >
-          <i class="fas fa-chevron-left"></i>
-        </button>
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+      <div class="flex flex-col md:flex-row gap-8">
+        
+        <!-- Sidebar Filter -->
+        <aside class="w-full md:w-64 flex-shrink-0 hidden md:block">
+          <div class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-stone-100 dark:border-slate-700 sticky top-36 transition-colors duration-300">
+            <h3 class="font-semibold text-slate-700 dark:text-stone-100 mb-4 pb-2 border-b border-stone-100 dark:border-slate-700">商品分類</h3>
+            <ul class="space-y-1">
+              <li
+                v-for="cat in validCategories"
+                :key="cat.id"
+                @click="selectCategory(cat)"
+                :class="['px-3 py-2 rounded-md cursor-pointer transition text-sm font-medium', selectedCategoryName === cat.displayName ? 'bg-xieOrange/10 text-xieOrange border-l-4 border-xieOrange' : 'text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-slate-700']"
+              >
+                {{ cat.displayName }}
+              </li>
+            </ul>
 
-        <button
-          v-for="page in pagination.last_page"
-          :key="page"
-          @click="changePage(page)"
-          :class="['px-3 py-2 border rounded font-bold', page === pagination.current_page ? 'bg-xieOrange border-xieOrange text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-xieOrange']"
-        >
-          {{ page }}
-        </button>
+            <h3 class="font-semibold text-slate-700 dark:text-stone-100 mt-8 mb-4 pb-2 border-b border-stone-100 dark:border-slate-700">庫存狀況</h3>
+            <label class="flex items-center space-x-2 mb-2 cursor-pointer">
+              <input type="checkbox" class="text-xieOrange focus:ring-xieOrange rounded-sm bg-stone-50 dark:bg-slate-700 border-stone-300 dark:border-slate-600">
+              <span class="text-sm text-stone-600 dark:text-stone-300">僅顯示有貨</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" class="text-xieOrange focus:ring-xieOrange rounded-sm bg-stone-50 dark:bg-slate-700 border-stone-300 dark:border-slate-600">
+              <span class="text-sm text-stone-600 dark:text-stone-300">促銷商品</span>
+            </label>
+          </div>
+        </aside>
 
-        <button
-          @click="changePage(pagination.current_page + 1)"
-          :disabled="pagination.current_page >= pagination.last_page"
-          class="px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded hover:bg-gray-100 disabled:opacity-50"
-        >
-          <i class="fas fa-chevron-right"></i>
-        </button>
+        <!-- Product Grid -->
+        <div class="flex-1">
+          <!-- Empty State -->
+          <div v-if="filteredItems.length === 0" class="bg-white dark:bg-slate-800 rounded-lg border border-stone-100 dark:border-slate-700 p-12">
+            <div class="flex flex-col items-center justify-center text-center">
+              <div class="w-20 h-20 rounded-full bg-sky-50 dark:bg-sky-900/20 flex items-center justify-center mb-6">
+                <i class="fas fa-search text-3xl text-sky-400 dark:text-sky-500"></i>
+              </div>
+              <h3 class="text-lg font-semibold text-slate-700 dark:text-stone-100 mb-2">找不到相關商品</h3>
+              <p class="text-sm text-stone-500 dark:text-stone-400 mb-6">請嘗試其他關鍵字或分類</p>
+              <button @click="showAll" class="bg-xieOrange text-white px-6 py-2 rounded-md hover:bg-[#cf8354] transition font-medium">
+                瀏覽所有商品
+              </button>
+            </div>
+          </div>
+
+          <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div
+              v-for="item in filteredItems"
+              :key="item.id"
+              class="group bg-white dark:bg-slate-800 rounded-lg border border-stone-100 dark:border-slate-700 hover:border-stone-300 dark:hover:border-slate-600 hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer"
+            >
+              <router-link :to="`/items/${item.id}`" class="block">
+                <!-- Image -->
+                <div class="relative aspect-square overflow-hidden bg-stone-100 dark:bg-slate-700">
+                  <img v-if="item.img" :src="item.img" :alt="item.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                  <i v-else class="fas fa-image text-4xl text-stone-300 dark:text-slate-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
+                  <!-- Quick Add -->
+                  <button 
+                    @click.prevent="addToCart(item)" 
+                    class="absolute bottom-2 right-2 bg-white/90 dark:bg-slate-800/90 p-2 rounded-full shadow-sm text-slate-700 dark:text-stone-200 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-xieOrange hover:text-white"
+                  >
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
+
+                <!-- Content -->
+                <div class="p-4">
+                  <h3 class="text-sm font-medium text-slate-700 dark:text-stone-100 mb-2 line-clamp-2 h-10 group-hover:text-xieOrange transition-colors">
+                    {{ item.name }}
+                  </h3>
+                  <div class="flex items-end justify-between">
+                    <div class="flex items-baseline space-x-1">
+                      <span class="text-xs text-stone-500 dark:text-stone-400">NT$</span>
+                      <span class="text-lg font-bold text-slate-700 dark:text-stone-100">{{ formatPrice(item.price).replace('NT$ ', '') }}</span>
+                    </div>
+                    <div v-if="item.original_price" class="text-xs text-stone-400 dark:text-stone-500 line-through">
+                      {{ formatPrice(item.original_price) }}
+                    </div>
+                  </div>
+                </div>
+              </router-link>
+            </div>
+          </div>
+          
+          <!-- Pagination -->
+          <div class="flex justify-center mt-12 space-x-2" v-if="pagination.last_page > 1">
+            <button
+              @click="changePage(pagination.current_page - 1)"
+              :disabled="pagination.current_page <= 1"
+              class="w-10 h-10 flex items-center justify-center border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-slate-700 rounded-md transition-colors disabled:opacity-50"
+            >
+              <i class="fas fa-chevron-left"></i>
+            </button>
+
+            <button
+              v-for="page in pagination.last_page"
+              :key="page"
+              @click="changePage(page)"
+              :class="['w-10 h-10 flex items-center justify-center border rounded-md font-medium transition-colors', page === pagination.current_page ? 'border-xieOrange bg-xieOrange text-white' : 'border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-stone-500 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-slate-700']"
+            >
+              {{ page }}
+            </button>
+
+            <button
+              @click="changePage(pagination.current_page + 1)"
+              :disabled="pagination.current_page >= pagination.last_page"
+              class="w-10 h-10 flex items-center justify-center border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-slate-700 rounded-md transition-colors disabled:opacity-50"
+            >
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
       </div>
-
-    </main>
+    </div>
   </div>
 </template>
 
@@ -148,7 +198,7 @@ export default {
       if (this.$route.query.search) {
         return `搜尋: "${this.$route.query.search}"`
       }
-      return this.selectedCategoryName ? `${this.selectedCategoryName}商品` : '所有商品'
+      return this.selectedCategoryName ? `${this.selectedCategoryName}` : '所有商品'
     },
     selectedCategoryName () {
       if (typeof this.selectedCategory === 'object' && this.selectedCategory !== null) {
@@ -190,11 +240,11 @@ export default {
       try {
         await this.cartStore.addToCart(item.id, 1)
       } catch (error) {
-        console.error('Add to cart error (ItemsView):', error)
+        console.error('Add to cart error:', error)
         const status = error.response?.status
         const backendMessage = error.response?.data?.message || error.response?.data?.error
         if (!backendMessage) {
-          this.toast.error(`加入購物車失敗${status ? ` (狀態: ${status})` : ''}`)
+          this.toast.error(`加入購物車失敗${status ? ` (${status})` : ''}`)
         }
       }
     },
@@ -233,7 +283,6 @@ export default {
               total: response.data.total || response.data.meta?.total || 0
             }
           } else {
-            console.warn('Unexpected API response structure', response.data)
             productsData = []
           }
         }

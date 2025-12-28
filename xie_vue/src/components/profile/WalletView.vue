@@ -1,52 +1,52 @@
 <template>
   <div class="space-y-6">
     <!-- Balance Card -->
-    <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-xieOrange flex justify-between items-center transition hover:shadow-md">
-        <div>
-            <h3 class="text-gray-500 text-sm font-bold tracking-wide">我的錢包餘額</h3>
-            <div class="text-3xl font-bold text-xieOrange mt-1">{{ formatPrice(balance) }}</div>
-        </div>
-        <button @click="showTopUpModal = true" class="bg-xieOrange text-white px-6 py-2 rounded font-bold hover:bg-orange-600 transition shadow-md flex items-center gap-2">
-            <i class="fas fa-plus-circle"></i> 儲值
-        </button>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-stone-100 dark:border-slate-700 p-6 flex justify-between items-center transition-colors duration-300">
+      <div>
+        <h3 class="text-stone-500 dark:text-stone-400 text-sm font-medium tracking-wide">我的錢包餘額</h3>
+        <div class="text-3xl font-bold text-xieOrange mt-1">{{ formatPrice(balance) }}</div>
+      </div>
+      <button @click="showTopUpModal = true" class="bg-xieOrange text-white px-6 py-3 rounded-full font-medium hover:bg-[#cf8354] transition shadow-lg shadow-xieOrange/20 flex items-center gap-2">
+        <i class="fas fa-plus-circle"></i> 儲值
+      </button>
     </div>
 
     <!-- Transaction History -->
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden min-h-[400px]">
-        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-            <h3 class="font-bold text-gray-800">交易紀錄</h3>
-            <span class="text-xs text-gray-400">最近 20 筆</span>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-stone-100 dark:border-slate-700 overflow-hidden min-h-[400px] transition-colors duration-300">
+      <div class="px-6 py-4 border-b border-stone-100 dark:border-slate-700 flex justify-between items-center">
+        <h3 class="font-semibold text-slate-700 dark:text-stone-100">交易紀錄</h3>
+        <span class="text-xs text-stone-400 dark:text-stone-500">最近 20 筆</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left" v-if="transactions.length > 0">
+          <thead class="bg-stone-50 dark:bg-slate-700 text-stone-600 dark:text-stone-300 font-medium border-b border-stone-100 dark:border-slate-600">
+            <tr>
+              <th class="px-6 py-3">時間</th>
+              <th class="px-6 py-3">類型</th>
+              <th class="px-6 py-3">金額</th>
+              <th class="px-6 py-3">說明</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-stone-100 dark:divide-slate-700">
+            <tr v-for="t in transactions" :key="t.id" class="hover:bg-stone-50 dark:hover:bg-slate-700/50 transition">
+              <td class="px-6 py-4 text-stone-500 dark:text-stone-400">{{ formatDate(t.created_at) }}</td>
+              <td class="px-6 py-4">
+                <span :class="getTypeClass(t.type)" class="px-2.5 py-1 rounded-full text-xs font-medium">
+                  {{ getTypeName(t.type) }}
+                </span>
+              </td>
+              <td class="px-6 py-4 font-bold" :class="isPositive(t.type) ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
+                {{ isPositive(t.type) ? '+' : '-' }}{{ formatPrice(Math.abs(t.amount)) }}
+              </td>
+              <td class="px-6 py-4 text-stone-600 dark:text-stone-300">{{ t.description }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-else class="flex flex-col items-center justify-center h-64 text-stone-400 dark:text-stone-500">
+          <i class="fas fa-receipt text-4xl mb-3 opacity-50"></i>
+          <p>尚無交易紀錄</p>
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left" v-if="transactions.length > 0">
-                <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200">
-                    <tr>
-                        <th class="px-6 py-3">時間</th>
-                        <th class="px-6 py-3">類型</th>
-                        <th class="px-6 py-3">金額</th>
-                        <th class="px-6 py-3">說明</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    <tr v-for="t in transactions" :key="t.id" class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 text-gray-500">{{ formatDate(t.created_at) }}</td>
-                        <td class="px-6 py-4">
-                            <span :class="getTypeClass(t.type)" class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wide">
-                                {{ getTypeName(t.type) }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 font-bold" :class="isPositive(t.type) ? 'text-green-600' : 'text-red-600'">
-                          {{ isPositive(t.type) ? '+' : '-' }}{{ formatPrice(Math.abs(t.amount)) }}
-                        </td>
-                        <td class="px-6 py-4 text-gray-600">{{ t.description }}</td>
-                    </tr>
-                </tbody>
-            </table>
-            <div v-else class="flex flex-col items-center justify-center h-64 text-gray-400">
-                <i class="fas fa-receipt text-4xl mb-3 text-gray-300"></i>
-                <p>尚無交易紀錄</p>
-            </div>
-        </div>
+      </div>
     </div>
 
     <!-- Top Up Modal -->
@@ -95,14 +95,13 @@ export default {
       }
     },
     handleTopUpSuccess (data) {
-      if (data && data.balance !== undefined) {
+      if (data?.balance !== undefined) {
         this.balance = data.balance
         if (data.transaction) {
           this.transactions.unshift(data.transaction)
         }
         this.toast.success('儲值成功！')
       } else {
-        // Fallback re-fetch if data is incomplete
         this.fetchWallet()
       }
     },
@@ -113,22 +112,22 @@ export default {
     getTypeName (type) {
       const map = {
         deposit: '儲值',
-        withdraw: '提領/扣款',
-        withdrawal: '提領/扣款',
-        payment: '消費支付',
+        withdraw: '提領',
+        withdrawal: '提領',
+        payment: '消費',
         refund: '退款'
       }
       return map[type] || type
     },
     getTypeClass (type) {
       const map = {
-        deposit: 'bg-green-100 text-green-700',
-        withdraw: 'bg-red-100 text-red-700',
-        withdrawal: 'bg-red-100 text-red-700',
-        payment: 'bg-blue-100 text-blue-700',
-        refund: 'bg-purple-100 text-purple-700'
+        deposit: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
+        withdraw: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400',
+        withdrawal: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400',
+        payment: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400',
+        refund: 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400'
       }
-      return map[type] || 'bg-gray-100 text-gray-600'
+      return map[type] || 'bg-stone-100 dark:bg-slate-600 text-stone-600 dark:text-stone-300'
     },
     isPositive (type) {
       return ['deposit', 'refund'].includes(type)
@@ -136,12 +135,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-/* Utility Classes matching Admin UI Tokens */
-.bg-xieBlue { background-color: #2d3748; }
-.text-xieBlue { color: #2d3748; }
-.bg-xieOrange { background-color: #ed8936; }
-.text-xieOrange { color: #ed8936; }
-.border-xieOrange { border-color: #ed8936; }
-</style>

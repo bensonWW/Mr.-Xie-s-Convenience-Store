@@ -2,46 +2,46 @@
   <div class="p-6">
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white rounded-lg p-5 shadow-sm border-l-4 border-xieOrange flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-800 rounded-lg p-5 shadow-sm border-l-4 border-xieOrange flex items-center justify-between transition-colors duration-300">
             <div>
-                <div class="text-gray-400 text-xs font-bold uppercase mb-1">總銷售額</div>
-                <div class="text-2xl font-bold text-gray-800">${{ stats.total_sales ? stats.total_sales.toLocaleString() : 0 }}</div>
-                <div class="text-green-500 text-xs font-bold mt-1"><i class="fas fa-arrow-up"></i> 12% 較上月</div>
+                <div class="text-gray-400 dark:text-stone-500 text-xs font-bold uppercase mb-1">總銷售額</div>
+                <div class="text-2xl font-bold text-gray-800 dark:text-stone-100">${{ stats.total_sales ? stats.total_sales.toLocaleString() : 0 }}</div>
+                <div class="text-green-500 dark:text-emerald-400 text-xs font-bold mt-1"><i class="fas fa-arrow-up"></i> 12% 較上月</div>
             </div>
-            <div class="w-10 h-10 rounded-full bg-orange-100 text-xieOrange flex items-center justify-center text-xl">
+            <div class="w-10 h-10 rounded-full bg-orange-100 dark:bg-xieOrange/20 text-xieOrange flex items-center justify-center text-xl">
                 <i class="fas fa-dollar-sign"></i>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg p-5 shadow-sm border-l-4 border-blue-500 flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-800 rounded-lg p-5 shadow-sm border-l-4 border-blue-500 flex items-center justify-between transition-colors duration-300">
             <div>
-                <div class="text-gray-400 text-xs font-bold uppercase mb-1">總訂單數</div>
-                <div class="text-2xl font-bold text-gray-800">{{ stats.order_count || 0 }}</div>
-                <div class="text-gray-400 text-xs font-bold mt-1">待出貨: {{ pendingOrdersCount }}</div>
+                <div class="text-gray-400 dark:text-stone-500 text-xs font-bold uppercase mb-1">總訂單數</div>
+                <div class="text-2xl font-bold text-gray-800 dark:text-stone-100">{{ stats.order_count || 0 }}</div>
+                <div class="text-gray-400 dark:text-stone-500 text-xs font-bold mt-1">待出貨: {{ pendingOrdersCount }}</div>
             </div>
-            <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-500 flex items-center justify-center text-xl">
+            <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400 flex items-center justify-center text-xl">
                 <i class="fas fa-shopping-bag"></i>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg p-5 shadow-sm border-l-4 border-purple-500 flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-800 rounded-lg p-5 shadow-sm border-l-4 border-purple-500 flex items-center justify-between transition-colors duration-300">
             <div>
-                <div class="text-gray-400 text-xs font-bold uppercase mb-1">總會員數</div>
-                <div class="text-2xl font-bold text-gray-800">{{ stats.user_count || 0 }}</div>
-                <div class="text-green-500 text-xs font-bold mt-1"><i class="fas fa-plus"></i> 新增 3 人</div>
+                <div class="text-gray-400 dark:text-stone-500 text-xs font-bold uppercase mb-1">總會員數</div>
+                <div class="text-2xl font-bold text-gray-800 dark:text-stone-100">{{ stats.user_count || 0 }}</div>
+                <div class="text-green-500 dark:text-emerald-400 text-xs font-bold mt-1"><i class="fas fa-plus"></i> 新增 3 人</div>
             </div>
-            <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-500 flex items-center justify-center text-xl">
+            <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-500 dark:text-purple-400 flex items-center justify-center text-xl">
                 <i class="fas fa-users"></i>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg p-5 shadow-sm border-l-4 border-red-500 flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-800 rounded-lg p-5 shadow-sm border-l-4 border-red-500 flex items-center justify-between transition-colors duration-300">
             <div>
-                <div class="text-gray-400 text-xs font-bold uppercase mb-1">低庫存商品</div>
-                <div class="text-2xl font-bold text-red-500">{{ stats.low_stock_products ? stats.low_stock_products.length : 0 }}</div>
-                <div class="text-red-400 text-xs font-bold mt-1 cursor-pointer hover:underline" @click="$emit('switch-tab', 'products')">立即補貨</div>
+                <div class="text-gray-400 dark:text-stone-500 text-xs font-bold uppercase mb-1">低庫存商品</div>
+                <div class="text-2xl font-bold text-red-500 dark:text-red-400">{{ stats.low_stock_products ? stats.low_stock_products.length : 0 }}</div>
+                <div class="text-red-400 dark:text-red-300 text-xs font-bold mt-1 cursor-pointer hover:underline" @click="$emit('switch-tab', 'products')">立即補貨</div>
             </div>
-            <div class="w-10 h-10 rounded-full bg-red-100 text-red-500 flex items-center justify-center text-xl">
+            <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400 flex items-center justify-center text-xl">
                 <i class="fas fa-exclamation-triangle"></i>
             </div>
         </div>
@@ -50,31 +50,31 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <!-- Revenue Chart -->
-        <div class="bg-white rounded-lg shadow-sm p-6 lg:col-span-2">
-            <h3 class="font-bold text-gray-800 mb-4">近 7 天營收趨勢</h3>
+        <div class="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6 lg:col-span-2 transition-colors duration-300">
+            <h3 class="font-bold text-gray-800 dark:text-stone-100 mb-4">近 7 天營收趨勢</h3>
             <div class="h-64">
                 <canvas ref="revenueChart"></canvas>
             </div>
         </div>
 
         <!-- Recent Orders -->
-        <div class="bg-white rounded-lg shadow-sm p-0 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="font-bold text-gray-800">最新訂單</h3>
+        <div class="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-0 overflow-hidden transition-colors duration-300">
+            <div class="px-6 py-4 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center">
+                <h3 class="font-bold text-gray-800 dark:text-stone-100">最新訂單</h3>
                 <router-link to="/admin/orders" class="text-xs text-xieOrange hover:underline">查看全部</router-link>
             </div>
-            <ul class="divide-y divide-gray-100">
-                <li v-for="order in stats.recent_orders" :key="order.id" class="px-6 py-3 hover:bg-gray-50 flex justify-between items-center cursor-pointer" @click="$router.push(`/admin/orders/${order.id}`)">
+            <ul class="divide-y divide-gray-100 dark:divide-slate-700">
+                <li v-for="order in stats.recent_orders" :key="order.id" class="px-6 py-3 hover:bg-gray-50 dark:hover:bg-slate-700/50 flex justify-between items-center cursor-pointer transition-colors" @click="$router.push(`/admin/orders/${order.id}`)">
                     <div>
-                        <div class="font-bold text-sm text-xieBlue">#{{ order.id }} - {{ order.user ? order.user.name : 'Unknown' }}</div>
-                        <div class="text-xs text-gray-500">{{ new Date(order.created_at).toLocaleDateString() }}</div>
+                        <div class="font-bold text-sm text-xieBlue dark:text-sky-400">#{{ order.id }} - {{ order.user ? order.user.name : 'Unknown' }}</div>
+                        <div class="text-xs text-gray-500 dark:text-stone-400">{{ new Date(order.created_at).toLocaleDateString() }}</div>
                     </div>
                     <div class="text-right">
-                        <div class="font-bold text-sm">${{ order.total_amount }}</div>
+                        <div class="font-bold text-sm text-gray-800 dark:text-stone-100">${{ order.total_amount }}</div>
                         <span class="text-xs px-2 py-0.5 rounded" :class="getStatusClass(order.status)">{{ order.status }}</span>
                     </div>
                 </li>
-                <li v-if="!stats.recent_orders || stats.recent_orders.length === 0" class="px-6 py-3 text-center text-gray-400 text-sm">
+                <li v-if="!stats.recent_orders || stats.recent_orders.length === 0" class="px-6 py-3 text-center text-gray-400 dark:text-stone-500 text-sm">
                     暫無訂單
                 </li>
             </ul>
@@ -182,13 +182,13 @@ export default {
     },
     getStatusClass (status) {
       const map = {
-        pending_payment: 'bg-yellow-100 text-yellow-600',
-        processing: 'bg-blue-100 text-blue-600',
-        shipped: 'bg-purple-100 text-purple-600',
-        completed: 'bg-green-100 text-green-600',
-        cancelled: 'bg-red-100 text-red-600'
+        pending_payment: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400',
+        processing: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
+        shipped: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+        completed: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
+        cancelled: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
       }
-      return map[status] || 'bg-gray-100 text-gray-600'
+      return map[status] || 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-stone-400'
     }
   }
 }

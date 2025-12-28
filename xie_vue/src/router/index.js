@@ -39,6 +39,16 @@ const routes = [
     component: CarView
   },
   {
+    path: '/login',
+    name: 'login',
+    component: () => import('../views/LoginView.vue')
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: () => import('../views/RegisterView.vue')
+  },
+  {
     path: '/admin',
     component: () => import('../views/AdminView.vue'),
     meta: { requiresAuth: true, roles: ['admin', 'staff'] },

@@ -1,117 +1,123 @@
 <template>
-  <div class="bg-gray-100 min-h-screen pb-12">
+  <div class="bg-wood-50 dark:bg-slate-900 min-h-screen pb-12 transition-colors duration-300">
     <!-- Breadcrumbs -->
-    <div class="bg-gray-100 py-4">
-        <div class="container mx-auto px-4 text-sm text-gray-500">
-            <router-link to="/" class="hover:text-xieOrange">首頁</router-link> <span class="mx-2">/</span>
-            <router-link to="/items" class="hover:text-xieOrange">{{ formatCategory(item?.category) || '商品' }}</router-link> <span class="mx-2">/</span>
-            <span class="text-gray-700">{{ item?.name }}</span>
-        </div>
+    <div class="bg-white dark:bg-slate-800 border-b border-stone-100 dark:border-slate-800/50 py-4 transition-colors duration-300">
+      <div class="container mx-auto px-4 text-sm text-stone-500 dark:text-stone-400">
+        <router-link to="/" class="hover:text-xieOrange transition">首頁</router-link>
+        <span class="mx-2">/</span>
+        <router-link to="/items" class="hover:text-xieOrange transition">{{ formatCategory(item?.category) || '商品' }}</router-link>
+        <span class="mx-2">/</span>
+        <span class="text-slate-700 dark:text-stone-100">{{ item?.name }}</span>
+      </div>
     </div>
 
-    <main class="container mx-auto px-4" v-if="item">
-        <div class="bg-white rounded-xl shadow-sm p-6 grid grid-cols-1 md:grid-cols-2 gap-10">
+    <main class="container mx-auto px-4 py-8" v-if="item">
+      <div class="bg-white dark:bg-slate-800 rounded-lg border border-stone-100 dark:border-slate-700 p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-10 transition-colors duration-300">
 
-            <!-- Image Section -->
-            <div class="space-y-4">
-                <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200 p-8 relative overflow-hidden group">
-                    <img v-if="imgUrl" :src="imgUrl" :alt="item.name" class="w-full h-full object-contain">
-                    <i v-else class="fas fa-image text-9xl text-gray-300"></i>
-                    <button class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition p-2 bg-white rounded-full shadow-sm" @click="toggleWishlist">
-                        <i :class="isFavorited ? 'fas fa-heart text-red-500' : 'far fa-heart'" class="text-xl"></i>
-                    </button>
-                </div>
-                <!-- Mock Thumbnails -->
-                <div class="flex gap-2 overflow-x-auto">
-                    <div class="w-20 h-20 border-2 border-xieOrange rounded-md p-1 cursor-pointer">
-                        <div class="bg-gray-100 w-full h-full flex items-center justify-center text-gray-400 overflow-hidden">
-                             <img v-if="imgUrl" :src="imgUrl" class="w-full h-full object-cover">
-                             <i v-else class="fas fa-image"></i>
-                        </div>
-                    </div>
-                     <!-- Placeholders for gallery effect -->
-                    <div class="w-20 h-20 border-2 border-transparent hover:border-xieOrange rounded-md p-1 cursor-pointer transition">
-                        <div class="bg-gray-100 w-full h-full flex items-center justify-center text-gray-400"><i class="fas fa-image"></i></div>
-                    </div>
-                </div>
+        <!-- Image Section -->
+        <div class="space-y-4">
+          <div class="aspect-square bg-stone-100 dark:bg-slate-700 rounded-lg flex items-center justify-center border border-stone-200 dark:border-slate-600 p-8 relative overflow-hidden group">
+            <img v-if="imgUrl" :src="imgUrl" :alt="item.name" class="w-full h-full object-contain">
+            <i v-else class="fas fa-image text-7xl text-stone-300 dark:text-slate-500"></i>
+            <button 
+              class="absolute top-4 right-4 text-stone-400 dark:text-stone-500 hover:text-rose-500 transition p-2 bg-white dark:bg-slate-700 rounded-full shadow-sm border border-stone-100 dark:border-slate-600" 
+              @click="toggleWishlist"
+            >
+              <i :class="isFavorited ? 'fas fa-heart text-rose-500' : 'far fa-heart'" class="text-xl"></i>
+            </button>
+          </div>
+          <!-- Thumbnails -->
+          <div class="flex gap-2 overflow-x-auto">
+            <div class="w-20 h-20 border-2 border-xieOrange rounded-md p-1 cursor-pointer">
+              <div class="bg-stone-100 dark:bg-slate-700 w-full h-full flex items-center justify-center overflow-hidden rounded">
+                <img v-if="imgUrl" :src="imgUrl" class="w-full h-full object-cover">
+                <i v-else class="fas fa-image text-stone-400 dark:text-slate-500"></i>
+              </div>
             </div>
-
-            <!-- Info Section -->
-            <div class="flex flex-col">
-                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">{{ item.name }}</h1>
-                <div class="text-sm text-gray-500 mb-4">商品編號：{{ item.id }} | 分類：{{ formatCategory(item.category) }}</div>
-
-                <div class="bg-orange-50 p-4 rounded-lg mb-6 flex items-end gap-3">
-                    <span class="text-xs text-gray-500 mb-1">特價</span>
-                    <div class="text-4xl font-bold text-xieOrange">{{ formatPrice(item.price) }}</div>
-                    <div v-if="item.original_price" class="text-sm text-gray-400 line-through mb-1">{{ formatPrice(item.original_price) }}</div>
-                </div>
-
-                <ul class="space-y-2 text-gray-600 mb-6 text-sm">
-                    <li><i class="fas fa-check text-xieOrange mr-2"></i>24h 快速出貨</li>
-                    <li><i class="fas fa-check text-xieOrange mr-2"></i>原廠正品保證</li>
-                    <li><i class="fas fa-check text-xieOrange mr-2"></i>7天鑑賞期</li>
-                </ul>
-
-                <hr class="border-gray-100 mb-6">
-
-                <div class="space-y-6">
-                    <div class="flex justify-between items-center text-sm">
-                        <div class="text-gray-600">庫存狀況：<span class="text-green-600 font-bold">現貨充足 (剩餘 {{ item.stock || 0 }} 件)</span></div>
-                        <div class="font-bold text-gray-800">總計：<span class="text-xieOrange text-xl ml-2">{{ formatPrice(totalPrice) }}</span></div>
-                    </div>
-
-                    <div class="flex items-center gap-4">
-                        <span class="font-bold text-gray-700">數量：</span>
-                        <div class="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden focus-within:border-xieOrange transition">
-                            <button class="bg-gray-100 px-3 py-2 text-gray-600 hover:bg-orange-100 hover:text-xieOrange transition" @click="decreaseQty" :disabled="qty <= 1">-</button>
-                            <input type="number" v-model.number="qty" class="w-16 text-center py-2 font-bold focus:outline-none" :min="1" :max="maxQty" @input="onQtyInput" @keydown="preventInputArrows">
-                            <button class="bg-gray-100 px-3 py-2 text-gray-600 hover:bg-orange-100 hover:text-xieOrange transition" @click="increaseQty" :disabled="qty >= maxQty">+</button>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-4">
-                        <button @click="addToCart" class="flex-1 bg-xieOrange text-white text-lg font-bold py-3 px-6 rounded-lg hover:bg-orange-600 transition shadow-md flex items-center justify-center gap-2">
-                            <i class="fas fa-cart-plus"></i> 加入購物車
-                        </button>
-                        <button @click="buyNow" class="flex-1 border-2 border-xieOrange text-xieOrange text-lg font-bold py-3 px-6 rounded-lg hover:bg-orange-50 transition flex items-center justify-center gap-2">
-                            <i class="fas fa-bolt"></i> 直接購買
-                        </button>
-                    </div>
-                </div>
+            <div class="w-20 h-20 border-2 border-transparent hover:border-xieOrange rounded-md p-1 cursor-pointer transition">
+              <div class="bg-stone-100 dark:bg-slate-700 w-full h-full flex items-center justify-center text-stone-400 dark:text-slate-500 rounded">
+                <i class="fas fa-image"></i>
+              </div>
             </div>
+          </div>
         </div>
 
-        <!-- Tabs Section -->
-        <div class="mt-10 bg-white rounded-xl shadow-sm overflow-hidden">
-            <div class="flex border-b border-gray-200">
-                <button
-                    @click="activeTab = 'details'"
-                    :class="['px-6 py-4 font-bold transition', activeTab === 'details' ? 'text-xieOrange border-b-2 border-xieOrange bg-orange-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50']"
-                >
-                    商品詳情
-                </button>
-                <button
-                    @click="activeTab = 'reviews'"
-                    :class="['px-6 py-4 font-bold transition', activeTab === 'reviews' ? 'text-xieOrange border-b-2 border-xieOrange bg-orange-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50']"
-                >
-                    商品評價 (0)
-                </button>
+        <!-- Info Section -->
+        <div class="flex flex-col">
+          <h1 class="text-2xl md:text-3xl font-bold text-slate-700 dark:text-stone-100 mb-2">{{ item.name }}</h1>
+          <div class="text-sm text-stone-500 dark:text-stone-400 mb-6">商品編號：{{ item.id }} | 分類：{{ formatCategory(item.category) }}</div>
+
+          <div class="bg-xieOrange/10 dark:bg-xieOrange/20 p-6 rounded-lg mb-6 flex items-end gap-3 border border-xieOrange/20">
+            <span class="text-xs text-stone-500 dark:text-stone-400 mb-1">特價</span>
+            <div class="text-4xl font-bold text-xieOrange">{{ formatPrice(item.price) }}</div>
+            <div v-if="item.original_price" class="text-sm text-stone-400 dark:text-stone-500 line-through mb-1">{{ formatPrice(item.original_price) }}</div>
+          </div>
+
+          <ul class="space-y-2 text-stone-600 dark:text-stone-300 mb-6 text-sm">
+            <li><i class="fas fa-check text-emerald-500 mr-2"></i>24h 快速出貨</li>
+            <li><i class="fas fa-check text-emerald-500 mr-2"></i>原廠正品保證</li>
+            <li><i class="fas fa-check text-emerald-500 mr-2"></i>7天鑑賞期</li>
+          </ul>
+
+          <hr class="border-stone-100 dark:border-slate-700 mb-6">
+
+          <div class="space-y-6">
+            <div class="flex justify-between items-center text-sm">
+              <div class="text-stone-600 dark:text-stone-300">庫存狀況：<span class="text-emerald-600 dark:text-emerald-400 font-semibold">現貨充足 (剩餘 {{ item.stock || 0 }} 件)</span></div>
+              <div class="font-semibold text-slate-700 dark:text-stone-100">總計：<span class="text-xieOrange text-xl ml-2">{{ formatPrice(totalPrice) }}</span></div>
             </div>
-            <div class="p-8 text-gray-700 leading-relaxed min-h-[200px]">
-                <div v-show="activeTab === 'details'">
-                    <h3 class="text-lg font-bold mb-4">產品介紹</h3>
-                    <p class="mb-4">{{ item.information || '此商品尚無詳細描述。' }}</p>
-                </div>
-                <div v-show="activeTab === 'reviews'">
-                    <p class="text-gray-500">暫無評價。</p>
-                </div>
+
+            <div class="flex items-center gap-4">
+              <span class="font-semibold text-slate-700 dark:text-stone-100">數量：</span>
+              <div class="flex items-center border-2 border-stone-200 dark:border-slate-600 rounded-lg overflow-hidden focus-within:border-xieOrange transition">
+                <button class="bg-stone-50 dark:bg-slate-700 px-3 py-2 text-stone-600 dark:text-stone-300 hover:bg-xieOrange/10 hover:text-xieOrange transition" @click="decreaseQty" :disabled="qty <= 1">-</button>
+                <input type="number" v-model.number="qty" class="w-16 text-center py-2 font-bold focus:outline-none bg-transparent text-slate-700 dark:text-stone-100" :min="1" :max="maxQty" @input="onQtyInput">
+                <button class="bg-stone-50 dark:bg-slate-700 px-3 py-2 text-stone-600 dark:text-stone-300 hover:bg-xieOrange/10 hover:text-xieOrange transition" @click="increaseQty" :disabled="qty >= maxQty">+</button>
+              </div>
             </div>
+
+            <div class="flex gap-4">
+              <button @click="addToCart" class="flex-1 bg-xieOrange text-white text-lg font-semibold py-3 px-6 rounded-md hover:bg-[#cf8354] transition shadow-md shadow-xieOrange/20 flex items-center justify-center gap-2">
+                <i class="fas fa-cart-plus"></i> 加入購物車
+              </button>
+              <button @click="buyNow" class="flex-1 border-2 border-slate-700 dark:border-stone-300 text-slate-700 dark:text-stone-200 text-lg font-semibold py-3 px-6 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center justify-center gap-2">
+                <i class="fas fa-bolt"></i> 直接購買
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <!-- Tabs Section -->
+      <div class="mt-10 bg-white dark:bg-slate-800 rounded-lg border border-stone-100 dark:border-slate-700 overflow-hidden transition-colors duration-300">
+        <div class="flex border-b border-stone-100 dark:border-slate-700">
+          <button
+            @click="activeTab = 'details'"
+            :class="['px-6 py-4 font-semibold transition', activeTab === 'details' ? 'text-xieOrange border-b-2 border-xieOrange bg-xieOrange/5' : 'text-stone-500 dark:text-stone-400 hover:text-slate-700 dark:hover:text-stone-200 hover:bg-stone-50 dark:hover:bg-slate-700']"
+          >
+            商品詳情
+          </button>
+          <button
+            @click="activeTab = 'reviews'"
+            :class="['px-6 py-4 font-semibold transition', activeTab === 'reviews' ? 'text-xieOrange border-b-2 border-xieOrange bg-xieOrange/5' : 'text-stone-500 dark:text-stone-400 hover:text-slate-700 dark:hover:text-stone-200 hover:bg-stone-50 dark:hover:bg-slate-700']"
+          >
+            商品評價 (0)
+          </button>
+        </div>
+        <div class="p-8 text-stone-700 dark:text-stone-300 leading-relaxed min-h-[200px]">
+          <div v-show="activeTab === 'details'">
+            <h3 class="text-lg font-semibold text-slate-700 dark:text-stone-100 mb-4">產品介紹</h3>
+            <p class="mb-4">{{ item.information || '此商品尚無詳細描述。' }}</p>
+          </div>
+          <div v-show="activeTab === 'reviews'">
+            <p class="text-stone-500 dark:text-stone-400">暫無評價。</p>
+          </div>
+        </div>
+      </div>
     </main>
 
     <div v-else class="container mx-auto px-4 py-12 text-center">
-        <div class="text-2xl text-gray-400 mb-4">載入中...</div>
+      <div class="text-2xl text-stone-400 dark:text-stone-500 mb-4">載入中...</div>
     </div>
   </div>
 </template>
@@ -163,14 +169,12 @@ export default {
       }
 
       if (this.isFavorited) {
-        // Remove
         api.delete(`/favorites/${this.item.id}`)
           .then(() => {
             this.isFavorited = false
             this.toast.info('已取消收藏')
           })
       } else {
-        // Add
         api.post('/favorites', { product_id: this.item.id })
           .then(() => {
             this.isFavorited = true
@@ -180,20 +184,11 @@ export default {
     },
     async checkWishlistStatus () {
       try {
-        // Optimally we would check just this ID, but our API is list-based.
-        // For now fetching list is okay unless user has thousands.
-        // If performance issue, adds GET /favorites/check/{id} endpoint later.
         const res = await api.get('/favorites')
         const favorites = res.data
-        // Assuming favorites returns list of products
         this.isFavorited = favorites.some(f => f.id === this.item.id)
       } catch (e) {
         console.error('Check wishlist error', e)
-      }
-    },
-    preventInputArrows (e) {
-      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-        e.preventDefault()
       }
     },
     onQtyInput () {
@@ -222,11 +217,11 @@ export default {
       try {
         await this.cartStore.addToCart(this.item.id, this.qty)
       } catch (error) {
-        console.error('Add to cart error (ProductDetail):', error)
+        console.error('Add to cart error:', error)
         const status = error.response?.status
         const backendMessage = error.response?.data?.message || error.response?.data?.error
         if (!backendMessage) {
-          this.toast.error(`加入購物車失敗${status ? ` (狀態: ${status})` : ''}`)
+          this.toast.error(`加入購物車失敗${status ? ` (${status})` : ''}`)
         }
       }
     },
@@ -236,7 +231,6 @@ export default {
         this.$router.push('/profile')
         return
       }
-      // Logic: Add to cart then go to cart page
       api.post('/cart/items', {
         product_id: this.item.id,
         quantity: this.qty
@@ -270,8 +264,6 @@ export default {
         this.qty = 1
         this.updateTotalPrice()
 
-        // Check wish status again now that item is loaded?
-        // No, checkWishlistStatus uses this.item.id, so check it only after item is loaded OR use route param.
         if (localStorage.getItem('token')) this.checkWishlistStatus()
       } catch (error) {
         console.error('Fetch product error:', error)
