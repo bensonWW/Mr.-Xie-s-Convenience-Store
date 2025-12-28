@@ -64,12 +64,34 @@ export const useCartStore = defineStore('cart', {
         },
 
         async updateItem(itemId, quantity) {
+            // Optimistic update: update local state immediately for instant UI feedback
+            const itemIndex = this.items.findIndex(item => item.id === itemId)
+            if (itemIndex === -1) return
+
+            const oldQuantity = this.items[itemIndex].quantity
+            const oldTotalAmount = this.totalAmount
+            const oldCount = this.count
+
+            // Immediately update local state
+            const quantityDiff = quantity - oldQuantity
+            this.items[itemIndex].quantity = quantity
+            this.count = Math.max(0, this.count + quantityDiff)
+            // Update total amount optimistically (estimate based on item price)
+            const itemPrice = this.items[itemIndex].product?.price || 0
+            this.totalAmount = Math.max(0, this.totalAmount + (quantityDiff * itemPrice))
+
             try {
+                // Sync with server in background (no blocking)
                 await api.put(`/cart/items/${itemId}`, { quantity })
-                await this.fetchCart()
+                // Fetch fresh data from server to ensure accuracy
+                this.fetchCart()
             } catch (e) {
-                console.error(e)
-                // toast.error('更新失敗')
+                console.error('Update cart error:', e)
+                // Rollback on error
+                this.items[itemIndex].quantity = oldQuantity
+                this.totalAmount = oldTotalAmount
+                this.count = oldCount
+                toast.error('更新失敗，請重試')
             }
         },
 
