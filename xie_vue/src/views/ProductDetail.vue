@@ -188,31 +188,28 @@
 
       <!-- Product Details Tabs -->
       <div class="mt-12 bg-white dark:bg-slate-800 rounded-2xl border border-stone-100 dark:border-slate-700 overflow-hidden shadow-xl shadow-stone-300/30 dark:shadow-black/30">
-        <!-- Tab Headers - No background, bottom border only -->
-        <div class="flex border-b border-stone-100 dark:border-slate-700">
+        <!-- Tab Headers - Pill Style -->
+        <div class="flex gap-2 p-4 border-b border-stone-100 dark:border-slate-700 bg-stone-50/50 dark:bg-slate-800/50">
           <button
             @click="activeTab = 'details'"
-            class="flex-1 px-6 py-5 font-semibold transition-all relative"
-            :class="activeTab === 'details' ? 'text-xieOrange' : 'text-stone-400 dark:text-stone-500 opacity-50 hover:opacity-80'"
+            class="flex-1 px-5 py-3 font-medium text-sm rounded-xl transition-all"
+            :class="activeTab === 'details' ? 'bg-white dark:bg-slate-700 text-xieOrange shadow-sm border border-xieOrange/20' : 'text-stone-500 dark:text-stone-400 hover:bg-white/50 dark:hover:bg-slate-700/50'"
           >
             <i class="fas fa-info-circle mr-2"></i>商品詳情
-            <div v-if="activeTab === 'details'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-xieOrange"></div>
           </button>
           <button
             @click="activeTab = 'specs'"
-            class="flex-1 px-6 py-5 font-semibold transition-all relative"
-            :class="activeTab === 'specs' ? 'text-xieOrange' : 'text-stone-400 dark:text-stone-500 opacity-50 hover:opacity-80'"
+            class="flex-1 px-5 py-3 font-medium text-sm rounded-xl transition-all"
+            :class="activeTab === 'specs' ? 'bg-white dark:bg-slate-700 text-xieOrange shadow-sm border border-xieOrange/20' : 'text-stone-500 dark:text-stone-400 hover:bg-white/50 dark:hover:bg-slate-700/50'"
           >
             <i class="fas fa-list-alt mr-2"></i>規格說明
-            <div v-if="activeTab === 'specs'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-xieOrange"></div>
           </button>
           <button
             @click="activeTab = 'reviews'"
-            class="flex-1 px-6 py-5 font-semibold transition-all relative"
-            :class="activeTab === 'reviews' ? 'text-xieOrange' : 'text-stone-400 dark:text-stone-500 opacity-50 hover:opacity-80'"
+            class="flex-1 px-5 py-3 font-medium text-sm rounded-xl transition-all"
+            :class="activeTab === 'reviews' ? 'bg-white dark:bg-slate-700 text-xieOrange shadow-sm border border-xieOrange/20' : 'text-stone-500 dark:text-stone-400 hover:bg-white/50 dark:hover:bg-slate-700/50'"
           >
-            <i class="fas fa-star mr-2"></i>商品評價 <span class="text-xs ml-1">({{ reviews.length }})</span>
-            <div v-if="activeTab === 'reviews'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-xieOrange"></div>
+            <i class="fas fa-star mr-2"></i>商品評價 <span class="text-xs ml-1 opacity-70">({{ reviews.length }})</span>
           </button>
         </div>
         
@@ -282,6 +279,40 @@
                 >
                   {{ submittingReview ? '送出中...' : '送出評價' }}
                 </button>
+              </div>
+            </div>
+
+            <!-- Review Eligibility Message -->
+            <div v-else-if="!canReview && reviewReason" class="mb-8 p-5 bg-stone-50 dark:bg-slate-700/30 rounded-xl border border-stone-100 dark:border-slate-700">
+              <div v-if="reviewReason === 'not_logged_in'" class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center text-amber-600 dark:text-amber-400">
+                  <i class="fas fa-user-lock text-xl"></i>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-700 dark:text-stone-100">請先登入</p>
+                  <p class="text-sm text-stone-500 dark:text-stone-400">登入後即可查看您的評價資格</p>
+                </div>
+                <router-link to="/login" class="ml-auto px-4 py-2 bg-xieOrange text-white text-sm font-medium rounded-lg hover:bg-[#cf8354] transition">
+                  立即登入
+                </router-link>
+              </div>
+              <div v-else-if="reviewReason === 'not_purchased'" class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-sky-100 dark:bg-sky-900/30 rounded-full flex items-center justify-center text-sky-600 dark:text-sky-400">
+                  <i class="fas fa-shopping-bag text-xl"></i>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-700 dark:text-stone-100">尚未購買此商品</p>
+                  <p class="text-sm text-stone-500 dark:text-stone-400">購買並完成訂單後即可撰寫評價</p>
+                </div>
+              </div>
+              <div v-else-if="reviewReason === 'already_reviewed'" class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                  <i class="fas fa-check-circle text-xl"></i>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-700 dark:text-stone-100">您已評價過此商品</p>
+                  <p class="text-sm text-stone-500 dark:text-stone-400">每位會員僅能評價一次</p>
+                </div>
               </div>
             </div>
 
@@ -376,6 +407,7 @@ export default {
       lightboxOpen: false,
       reviews: [],
       canReview: false,
+      reviewReason: null,
       newReview: {
         rating: 0,
         comment: ''
@@ -435,13 +467,16 @@ export default {
     async checkCanReview () {
       if (!localStorage.getItem('auth_token')) {
         this.canReview = false
+        this.reviewReason = 'not_logged_in'
         return
       }
       try {
         const res = await api.get(`/products/${this.item.id}/reviews/can-review`)
         this.canReview = res.data.can_review
+        this.reviewReason = res.data.reason || null
       } catch (e) {
         this.canReview = false
+        this.reviewReason = 'error'
       }
     },
     async submitReview () {
