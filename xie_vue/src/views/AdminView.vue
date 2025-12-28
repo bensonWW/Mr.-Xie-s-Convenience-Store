@@ -79,12 +79,19 @@
           <button class="md:hidden text-stone-500 dark:text-stone-400 mr-4">
             <i class="fas fa-bars text-xl"></i>
           </button>
-          <h2 class="font-semibold text-slate-700 dark:text-stone-100">{{ getPageTitle }}</h2>
+          <div>
+            <h2 class="font-semibold text-slate-700 dark:text-stone-100">{{ getPageTitle }}</h2>
+            <div class="text-xs text-stone-400 dark:text-stone-500 flex items-center gap-1">
+              <span class="hover:text-xieOrange cursor-pointer transition">管理後台</span>
+              <span>/</span>
+              <span class="text-slate-600 dark:text-stone-300">{{ getPageTitle }}</span>
+            </div>
+          </div>
         </div>
         <div class="flex items-center space-x-4">
-          <button class="text-stone-400 dark:text-stone-500 hover:text-slate-700 dark:hover:text-stone-300 relative transition">
-            <i class="fas fa-bell"></i>
-            <div class="w-2 h-2 bg-rose-500 rounded-full absolute -top-0.5 -right-0.5"></div>
+          <button class="text-stone-400 dark:text-stone-500 hover:text-slate-700 dark:hover:text-stone-300 relative transition group">
+            <i class="fas fa-bell group-hover:animate-wiggle"></i>
+            <div class="w-2 h-2 bg-rose-500 rounded-full absolute -top-0.5 -right-0.5 animate-pulse"></div>
           </button>
           <div class="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center text-slate-600 dark:text-stone-300">
             <i class="fas fa-user-shield"></i>
@@ -134,3 +141,18 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(15deg); }
+  50% { transform: rotate(-10deg); }
+  75% { transform: rotate(5deg); }
+}
+.animate-wiggle {
+  animation: wiggle 0.5s ease-in-out;
+}
+.group:hover .group-hover\:animate-wiggle {
+  animation: wiggle 0.5s ease-in-out;
+}
+</style>
