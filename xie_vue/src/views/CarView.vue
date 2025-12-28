@@ -109,10 +109,6 @@ const finalTotal = computed(() => {
   return Math.max(0, Math.round(total))
 })
 
-const isBalanceInsufficient = computed(() => {
-  return userBalance.value < finalTotal.value
-})
-
 async function applyCoupon () {
   if (!selectedCouponId.value) {
     discountAmount.value = 0
