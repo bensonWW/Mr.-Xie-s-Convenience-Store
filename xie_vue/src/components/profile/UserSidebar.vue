@@ -2,11 +2,11 @@
   <aside class="col-span-1 hidden lg:block">
     <div class="bg-white dark:bg-slate-800 rounded-2xl border border-stone-100 dark:border-slate-700 overflow-hidden transition-colors duration-300 sticky top-24">
       <!-- User Profile Header -->
-      <div class="p-6 text-center border-b border-stone-100 dark:border-slate-700 bg-gradient-to-b from-stone-50 dark:from-slate-700 to-white dark:to-slate-800">
+      <div class="p-6 text-center border-b border-stone-100 dark:border-slate-700 bg-stone-50/50 dark:bg-slate-700/50 backdrop-blur-sm">
         <div class="w-20 h-20 mx-auto bg-stone-200 dark:bg-slate-600 rounded-full mb-3 border-4 border-white dark:border-slate-700 shadow-md overflow-hidden relative">
           <img :src="avatarUrl || defaultAvatar" alt="Avatar" class="w-full h-full object-cover">
           <button 
-            class="absolute bottom-0 right-0 bg-xieOrange text-white rounded-full w-7 h-7 flex items-center justify-center cursor-pointer hover:bg-[#cf8354] transition" 
+            class="absolute bottom-0 right-0 rounded-full w-7 h-7 flex items-center justify-center cursor-pointer transition bg-black/20 hover:bg-xieOrange text-white" 
             @click="triggerFileInput"
           >
             <i class="fas fa-camera text-xs"></i>
@@ -28,56 +28,56 @@
         <ul class="space-y-1 text-sm">
           <li>
             <a href="#" 
-               class="flex items-center gap-3 px-4 py-3 rounded-xl transition"
-               :class="currentView === 'dashboard' ? 'bg-xieOrange/10 text-xieOrange font-semibold' : 'text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-xieOrange'"
+               class="flex items-center gap-3 px-3 py-3 rounded-xl transition border-l-2 tracking-wide"
+               :class="currentView === 'dashboard' ? 'border-xieOrange text-xieOrange font-semibold bg-xieOrange/5' : 'border-transparent text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-xieOrange'"
                @click.prevent="$emit('update:currentView', 'dashboard')">
               <i class="fas fa-home w-5 text-center"></i> 會員首頁
             </a>
           </li>
           <li>
             <a href="#" 
-               class="flex items-center gap-3 px-4 py-3 rounded-xl transition"
-               :class="currentView === 'orders' ? 'bg-xieOrange/10 text-xieOrange font-semibold' : 'text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-xieOrange'"
+               class="flex items-center gap-3 px-3 py-3 rounded-xl transition border-l-2 tracking-wide"
+               :class="currentView === 'orders' ? 'border-xieOrange text-xieOrange font-semibold bg-xieOrange/5' : 'border-transparent text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-xieOrange'"
                @click.prevent="$emit('update:currentView', 'orders')">
               <i class="fas fa-file-invoice-dollar w-5 text-center"></i> 我的訂單
             </a>
           </li>
           <li>
             <a href="#" 
-               class="flex items-center gap-3 px-4 py-3 rounded-xl transition"
-               :class="currentView === 'wallet' ? 'bg-xieOrange/10 text-xieOrange font-semibold' : 'text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-xieOrange'"
+               class="flex items-center gap-3 px-3 py-3 rounded-xl transition border-l-2 tracking-wide"
+               :class="currentView === 'wallet' ? 'border-xieOrange text-xieOrange font-semibold bg-xieOrange/5' : 'border-transparent text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-xieOrange'"
                @click.prevent="$emit('update:currentView', 'wallet')">
               <i class="fas fa-wallet w-5 text-center"></i> 我的錢包
             </a>
           </li>
           <li>
             <a href="#" 
-               class="flex items-center gap-3 px-4 py-3 rounded-xl transition"
-               :class="currentView === 'coupons' ? 'bg-xieOrange/10 text-xieOrange font-semibold' : 'text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-xieOrange'"
+               class="flex items-center gap-3 px-3 py-3 rounded-xl transition border-l-2 tracking-wide"
+               :class="currentView === 'coupons' ? 'border-xieOrange text-xieOrange font-semibold bg-xieOrange/5' : 'border-transparent text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-xieOrange'"
                @click.prevent="$emit('update:currentView', 'coupons')">
               <i class="fas fa-ticket-alt w-5 text-center"></i> 我的折價券
             </a>
           </li>
           <li>
             <a href="#" 
-               class="flex items-center gap-3 px-4 py-3 rounded-xl transition"
-               :class="currentView === 'wishlist' ? 'bg-xieOrange/10 text-xieOrange font-semibold' : 'text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-xieOrange'"
+               class="flex items-center gap-3 px-3 py-3 rounded-xl transition border-l-2 tracking-wide"
+               :class="currentView === 'wishlist' ? 'border-xieOrange text-xieOrange font-semibold bg-xieOrange/5' : 'border-transparent text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-xieOrange'"
                @click.prevent="$emit('update:currentView', 'wishlist')">
               <i class="far fa-heart w-5 text-center"></i> 追蹤清單
             </a>
           </li>
           <li>
             <a href="#" 
-               class="flex items-center gap-3 px-4 py-3 rounded-xl transition"
-               :class="currentView === 'address' ? 'bg-xieOrange/10 text-xieOrange font-semibold' : 'text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-xieOrange'"
+               class="flex items-center gap-3 px-3 py-3 rounded-xl transition border-l-2 tracking-wide"
+               :class="currentView === 'address' ? 'border-xieOrange text-xieOrange font-semibold bg-xieOrange/5' : 'border-transparent text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-xieOrange'"
                @click.prevent="$emit('update:currentView', 'address')">
               <i class="fas fa-map-marker-alt w-5 text-center"></i> 收貨地址
             </a>
           </li>
           <li class="border-t border-stone-100 dark:border-slate-700 mt-2 pt-2">
             <a href="#" 
-               class="flex items-center gap-3 px-4 py-3 rounded-xl transition"
-               :class="currentView === 'editProfile' ? 'bg-xieOrange/10 text-xieOrange font-semibold' : 'text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-xieOrange'"
+               class="flex items-center gap-3 px-3 py-3 rounded-xl transition border-l-2 tracking-wide"
+               :class="currentView === 'editProfile' ? 'border-xieOrange text-xieOrange font-semibold bg-xieOrange/5' : 'border-transparent text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-xieOrange'"
                @click.prevent="$emit('update:currentView', 'editProfile')">
               <i class="fas fa-user-cog w-5 text-center"></i> 個人資料
             </a>

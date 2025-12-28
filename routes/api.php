@@ -9,6 +9,7 @@ use App\Http\Controllers\CouponController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\VerificationController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes (with rate limiting for auth)
@@ -19,6 +20,7 @@ Route::middleware('throttle:auth')->group(function () {
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
+Route::get('/products/{id}/reviews', [ReviewController::class, 'index']);
 Route::get('/categories', [ProductController::class, 'categories']);
 
 Route::get('/stores', [StoreController::class, 'index']);
@@ -68,6 +70,11 @@ Route::middleware(['auth:sanctum', 'refresh_token'])->group(function () {
     Route::get('/favorites', [App\Http\Controllers\FavoriteController::class, 'index']);
     Route::post('/favorites', [App\Http\Controllers\FavoriteController::class, 'store']);
     Route::delete('/favorites/{productId}', [App\Http\Controllers\FavoriteController::class, 'destroy']);
+
+    // Reviews
+    Route::post('/products/{id}/reviews', [ReviewController::class, 'store']);
+    Route::get('/products/{id}/reviews/can-review', [ReviewController::class, 'canReview']);
+    Route::delete('/reviews/{id}', [ReviewController::class, 'destroy']);
 
     // Admin routes (all admin order operations consolidated)
     Route::middleware(['is_admin', 'throttle:admin'])->prefix('admin')->group(function () {

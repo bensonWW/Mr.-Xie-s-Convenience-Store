@@ -50,6 +50,14 @@ class Product extends Model
     }
 
     /**
+     * Get the reviews for the product.
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /**
      * Scope to filter by category (using category_id or category name/slug).
      */
     public function scopeInCategory($query, $categoryIdentifier)

@@ -27,7 +27,9 @@
           </thead>
           <tbody class="divide-y divide-stone-100 dark:divide-slate-700">
             <tr v-for="order in orders" :key="order.id" class="hover:bg-stone-50 dark:hover:bg-slate-700/50 transition">
-              <td class="px-6 py-4 font-bold text-slate-700 dark:text-stone-100">#{{ order.id }}</td>
+              <td class="px-6 py-4">
+                <span class="text-stone-400 dark:text-stone-500">#</span><span class="font-mono font-bold text-slate-700 dark:text-stone-100">{{ order.id }}</span>
+              </td>
               <td class="px-6 py-4 text-stone-500 dark:text-stone-400">{{ formatDate(order.created_at) }}</td>
               <td class="px-6 py-4 font-bold text-slate-700 dark:text-stone-100">{{ formatPrice(order.total_amount) }}</td>
               <td class="px-6 py-4">
@@ -54,10 +56,11 @@
                   取消訂單
                 </button>
                 <button 
-                  class="text-stone-400 hover:text-xieOrange text-xs font-medium transition" 
+                  class="w-8 h-8 rounded-full border border-stone-200 dark:border-slate-600 text-stone-400 hover:text-xieOrange hover:border-xieOrange flex items-center justify-center transition" 
                   @click="openOrderDetails(order.id)"
+                  title="詳情"
                 >
-                  詳情
+                  <i class="fas fa-chevron-right text-xs"></i>
                 </button>
               </td>
             </tr>
@@ -186,13 +189,13 @@ export default {
     },
     getStatusClass (status) {
       const classes = {
-        pending_payment: 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400',
-        processing: 'bg-stone-100 dark:bg-slate-600 text-stone-600 dark:text-stone-300',
-        shipped: 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400',
-        completed: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
-        cancelled: 'bg-stone-100 dark:bg-slate-600 text-stone-500 dark:text-stone-400'
+        pending_payment: 'bg-amber-50/80 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-[0.5px] border-amber-200/50 dark:border-amber-700/50',
+        processing: 'bg-slate-100 dark:bg-slate-600 text-slate-600 dark:text-slate-300 border-[0.5px] border-slate-200/50 dark:border-slate-500/50',
+        shipped: 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 border-[0.5px] border-sky-200/50 dark:border-sky-700/50',
+        completed: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-[0.5px] border-emerald-200/50 dark:border-emerald-700/50',
+        cancelled: 'bg-stone-100 dark:bg-slate-600 text-stone-500 dark:text-stone-400 border-[0.5px] border-stone-200/50 dark:border-slate-500/50'
       }
-      return classes[status] || 'bg-stone-100 dark:bg-slate-600 text-stone-600 dark:text-stone-300'
+      return classes[status] || 'bg-stone-100 dark:bg-slate-600 text-stone-600 dark:text-stone-300 border-[0.5px] border-stone-200/50'
     },
     async openOrderDetails (orderId) {
       try {
