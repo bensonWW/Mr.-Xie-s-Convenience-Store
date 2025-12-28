@@ -319,8 +319,9 @@ export default {
           if (prod.image.startsWith('http')) {
             this.previewImage = prod.image
           } else {
-            // Laravel stores to public disk, accessible via /storage symlink
-            const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || ''
+            // Get backend base URL from api config
+            const apiBaseUrl = api.defaults.baseURL || ''
+            const baseUrl = apiBaseUrl.replace('/api', '')
             this.previewImage = baseUrl + '/storage/' + prod.image
           }
         }
