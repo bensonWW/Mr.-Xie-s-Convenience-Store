@@ -155,17 +155,17 @@ export default {
       this.$router.push('/car')
     },
     async increaseQty (item) {
-      await this.cartStore.updateQuantity(item.id, item.quantity + 1)
+      await this.cartStore.updateItem(item.id, item.quantity + 1)
     },
     async decreaseQty (item) {
       if (item.quantity > 1) {
-        await this.cartStore.updateQuantity(item.id, item.quantity - 1)
+        await this.cartStore.updateItem(item.id, item.quantity - 1)
       } else {
-        await this.cartStore.removeFromCart(item.id)
+        await this.cartStore.removeItem(item.id)
       }
     },
     async removeItem (item) {
-      await this.cartStore.removeFromCart(item.id)
+      await this.cartStore.removeItem(item.id)
     }
   }
 }

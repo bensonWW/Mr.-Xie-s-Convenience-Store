@@ -12,6 +12,7 @@ export const useCartStore = defineStore('cart', {
     }),
 
     getters: {
+        cartItems: (state) => state.items,
         cartCount: (state) => state.count,
         cartTotal: (state) => state.totalAmount
     },
