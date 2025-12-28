@@ -44,7 +44,7 @@
                 <button 
                   v-if="order.status === 'pending_payment'" 
                   class="bg-xieOrange text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-[#cf8354] transition" 
-                  @click="openOrderDetails(order.id)"
+                  @click="openPaymentModal(order)"
                 >
                   去付款
                 </button>
@@ -72,6 +72,94 @@
         </div>
       </div>
     </div>
+
+    <!-- Payment Modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showPaymentModal && paymentOrder" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="showPaymentModal = false">
+          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+          <div class="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <!-- Header -->
+            <div class="px-6 py-5 border-b border-stone-100 dark:border-slate-700 bg-stone-50/50 dark:bg-slate-700/30">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-xieOrange/10 rounded-full flex items-center justify-center text-xieOrange">
+                  <i class="fas fa-credit-card text-lg"></i>
+                </div>
+                <div>
+                  <h3 class="font-bold text-slate-700 dark:text-stone-100">付款訂單 #{{ paymentOrder.id }}</h3>
+                  <p class="text-xs text-stone-500 dark:text-stone-400">請確認餘額後付款</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 space-y-4">
+              <!-- Order Amount -->
+              <div class="flex justify-between items-center py-3 border-b border-dashed border-stone-100 dark:border-slate-700">
+                <span class="text-stone-500 dark:text-stone-400">訂單金額</span>
+                <span class="text-2xl font-bold text-slate-700 dark:text-stone-100">{{ formatPrice(paymentOrder.total_amount) }}</span>
+              </div>
+
+              <!-- Wallet Balance -->
+              <div class="flex justify-between items-center py-3 border-b border-dashed border-stone-100 dark:border-slate-700">
+                <span class="text-stone-500 dark:text-stone-400">我的錢包餘額</span>
+                <div class="flex items-center gap-3">
+                  <span class="text-xl font-bold" :class="isBalanceSufficient ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
+                    {{ formatPrice(walletBalance) }}
+                  </span>
+                  <button 
+                    @click="showTopUpModal = true"
+                    class="px-3 py-1.5 text-xs font-medium bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 rounded-full hover:bg-sky-100 dark:hover:bg-sky-900/50 transition"
+                  >
+                    <i class="fas fa-plus-circle mr-1"></i>儲值
+                  </button>
+                </div>
+              </div>
+
+              <!-- Balance Warning -->
+              <div v-if="!isBalanceSufficient" class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-4 flex items-center gap-3">
+                <div class="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
+                  <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div>
+                  <p class="font-medium text-amber-800 dark:text-amber-400">餘額不足</p>
+                  <p class="text-sm text-amber-700 dark:text-amber-300 opacity-80">還差 {{ formatPrice(balanceShortfall) }}，請先儲值</p>
+                </div>
+              </div>
+
+              <!-- Sufficient Balance -->
+              <div v-else class="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl p-4 flex items-center gap-3">
+                <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 flex-shrink-0">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+                <div>
+                  <p class="font-medium text-emerald-800 dark:text-emerald-400">餘額充足</p>
+                  <p class="text-sm text-emerald-700 dark:text-emerald-300 opacity-80">付款後餘額：{{ formatPrice(walletBalance - paymentOrder.total_amount) }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 bg-stone-50 dark:bg-slate-700/50 flex gap-3 border-t border-stone-100 dark:border-slate-600">
+              <button 
+                class="flex-1 py-3 border border-stone-300 dark:border-slate-500 rounded-xl text-stone-600 dark:text-stone-300 font-medium hover:bg-stone-100 dark:hover:bg-slate-600 transition" 
+                @click="showPaymentModal = false"
+              >
+                取消
+              </button>
+              <button 
+                class="flex-[2] py-3 bg-xieOrange text-white rounded-xl font-semibold hover:bg-[#cf8354] transition shadow-lg shadow-xieOrange/20 disabled:opacity-50 disabled:cursor-not-allowed" 
+                :disabled="!isBalanceSufficient || paymentLoading"
+                @click="confirmPayment"
+              >
+                <i v-if="paymentLoading" class="fas fa-spinner fa-spin mr-2"></i>
+                {{ paymentLoading ? '付款中...' : '確認付款' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- Order Details Modal -->
     <div v-if="showOrderDetails && selectedOrder" class="fixed inset-0 z-modal flex items-center justify-center bg-black/50 backdrop-blur-sm" @click.self="showOrderDetails = false">
@@ -119,13 +207,20 @@
           <button 
             v-if="selectedOrder.status === 'pending_payment'" 
             class="px-6 py-2 bg-xieOrange text-white rounded-full font-medium hover:bg-[#cf8354] transition text-sm shadow-lg shadow-xieOrange/20" 
-            @click="payOrder"
+            @click="showOrderDetails = false; openPaymentModal(selectedOrder)"
           >
             立即付款
           </button>
         </div>
       </div>
     </div>
+
+    <!-- Top Up Modal -->
+    <UserTopUpModal
+      :visible="showTopUpModal"
+      @close="showTopUpModal = false"
+      @success="handleTopUpSuccess"
+    />
   </div>
 </template>
 
@@ -134,9 +229,13 @@ import api from '../../services/api'
 import { ORDER_STATUS_LABELS, LOGISTICS_STATUS_LABELS } from '../../utils/constants'
 import { formatPrice } from '../../utils/currency'
 import { useToast } from 'vue-toastification'
+import UserTopUpModal from './UserTopUpModal.vue'
 
 export default {
   name: 'OrderHistory',
+  components: {
+    UserTopUpModal
+  },
   props: {
     orders: {
       type: Array,
@@ -156,12 +255,26 @@ export default {
     return {
       showOrderDetails: false,
       selectedOrder: null,
-      currentTab: this.activeTab
+      currentTab: this.activeTab,
+      // Payment modal state
+      showPaymentModal: false,
+      paymentOrder: null,
+      walletBalance: 0,
+      showTopUpModal: false,
+      paymentLoading: false
     }
   },
   computed: {
     filterTitle () {
       return ORDER_STATUS_LABELS[this.currentTab] || this.currentTab
+    },
+    isBalanceSufficient () {
+      if (!this.paymentOrder) return false
+      return this.walletBalance >= this.paymentOrder.total_amount
+    },
+    balanceShortfall () {
+      if (!this.paymentOrder) return 0
+      return Math.max(0, this.paymentOrder.total_amount - this.walletBalance)
     }
   },
   watch: {
@@ -197,6 +310,46 @@ export default {
       }
       return classes[status] || 'bg-stone-100 dark:bg-slate-600 text-stone-600 dark:text-stone-300 border-[0.5px] border-stone-200/50'
     },
+    async fetchWalletBalance () {
+      try {
+        const res = await api.get('/user/wallet')
+        this.walletBalance = res.data.balance || 0
+      } catch (e) {
+        console.error('Fetch wallet error:', e)
+      }
+    },
+    async openPaymentModal (order) {
+      this.paymentOrder = order
+      await this.fetchWalletBalance()
+      this.showPaymentModal = true
+    },
+    handleTopUpSuccess (data) {
+      this.walletBalance = data.balance
+      this.showTopUpModal = false
+      this.toast.success('儲值成功！')
+    },
+    async confirmPayment () {
+      if (!this.paymentOrder || !this.isBalanceSufficient) return
+
+      this.paymentLoading = true
+      try {
+        await api.post(`/orders/${this.paymentOrder.id}/pay`)
+        this.toast.success('付款成功！')
+        this.showPaymentModal = false
+        this.paymentOrder = null
+        this.$emit('order-updated')
+      } catch (error) {
+        console.error('Payment error:', error)
+        if (error.response?.data?.error_code === 'INSUFFICIENT_BALANCE') {
+          this.toast.error('餘額不足，請先儲值')
+          await this.fetchWalletBalance()
+        } else {
+          this.toast.error(error.response?.data?.message || '付款失敗')
+        }
+      } finally {
+        this.paymentLoading = false
+      }
+    },
     async openOrderDetails (orderId) {
       try {
         const response = await api.get(`/orders/${orderId}`)
@@ -205,22 +358,6 @@ export default {
       } catch (error) {
         console.error('Fetch order details error:', error)
         this.toast.error('無法取得訂單詳情')
-      }
-    },
-    async payOrder () {
-      if (!this.selectedOrder) return
-      try {
-        await api.post(`/orders/${this.selectedOrder.id}/pay`)
-        this.toast.success('付款成功！')
-        this.showOrderDetails = false
-        this.$emit('order-updated')
-      } catch (error) {
-        console.error('Payment error:', error)
-        if (error.response?.data?.error_code === 'INSUFFICIENT_BALANCE') {
-          this.toast.error('餘額不足，請前往儲值')
-        } else {
-          this.toast.error(error.response?.data?.message || '付款失敗')
-        }
       }
     },
     async cancelOrder (order) {
@@ -238,3 +375,14 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

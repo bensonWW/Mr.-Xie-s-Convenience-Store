@@ -183,13 +183,7 @@ async function checkout () {
     return
   }
 
-  if (isBalanceInsufficient.value) {
-    toast.error('餘額不足，請先儲值')
-    showTopUpModal.value = true
-    return
-  }
-
-  if (!confirm('確定要使用錢包餘額結帳嗎？')) return
+  if (!confirm('確定要送出訂單嗎？\n（訂單建立後可至會員中心付款）')) return
 
   isProcessing.value = true
   try {
@@ -197,9 +191,10 @@ async function checkout () {
       coupon_code: appliedCoupon.value ? appliedCoupon.value.code : null,
       shipping_address: userAddress.value || undefined,
       shipping_name: userName.value || undefined,
-      shipping_phone: userPhone.value || undefined
+      shipping_phone: userPhone.value || undefined,
+      skip_payment: true
     })
-    toast.success('訂單支付成功！')
+    toast.success('訂單已送出！請至會員中心付款')
     
     await cartStore.fetchCart()
     
@@ -210,14 +205,9 @@ async function checkout () {
     router.push('/profile')
   } catch (error) {
     console.error('Checkout error:', error)
-    if (error.response?.status === 402) {
-      toast.error('餘額不足，請先儲值')
-      showTopUpModal.value = true
-    } else {
-      const status = error.response?.status
-      const backendMessage = error.response?.data?.message || error.response?.data?.error
-      toast.error(`結帳失敗${status ? ` (狀態: ${status})` : ''}${backendMessage ? '：' + backendMessage : ''}`)
-    }
+    const status = error.response?.status
+    const backendMessage = error.response?.data?.message || error.response?.data?.error
+    toast.error(`送出訂單失敗${status ? ` (狀態: ${status})` : ''}${backendMessage ? '：' + backendMessage : ''}`)
   } finally {
     isProcessing.value = false
   }
