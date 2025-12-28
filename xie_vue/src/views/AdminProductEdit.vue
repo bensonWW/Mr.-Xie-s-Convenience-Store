@@ -288,12 +288,24 @@ export default {
       try {
         const res = await api.get(`/products/${id}`)
         const prod = res.data
+        
+        // Handle category - could be object or string
+        let categoryName = ''
+        if (prod.category) {
+          if (typeof prod.category === 'object') {
+            categoryName = prod.category.name || ''
+          } else {
+            categoryName = prod.category
+          }
+        }
+        
         this.form = {
           name: prod.name,
           price: prod.price, // Already integer, no conversion needed
           original_price: prod.original_price || null, // Already integer
           stock: prod.stock,
-          category: prod.category,
+          category: categoryName,
+          category_id: prod.category_id || (prod.category?.id),
           information: prod.information,
           image: null,
           status: prod.status || 'active',
