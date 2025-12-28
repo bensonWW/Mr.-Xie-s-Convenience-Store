@@ -96,6 +96,8 @@
 </template>
 
 <script>
+import api from '../../services/api'
+
 export default {
   name: 'DashboardStats',
   props: {
@@ -114,7 +116,8 @@ export default {
       animatedBalance: 0,
       animatedCoupons: 0,
       animatedOrders: 0,
-      animatedSpending: 0
+      animatedSpending: 0,
+      walletBalance: 0
     }
   },
   computed: {
@@ -123,15 +126,20 @@ export default {
       if (hour < 12) return '早安'
       if (hour < 18) return '午安'
       return '晚安'
+    },
+    totalSpending () {
+      // Calculate total spending from completed orders
+      if (!this.orders || this.orders.length === 0) return 0
+      return this.orders
+        .filter(o => o.status === 'completed' || o.status === 'shipped' || o.status === 'processing')
+        .reduce((sum, o) => sum + (o.total_amount || 0), 0)
     }
   },
   watch: {
-    user: {
+    walletBalance: {
       immediate: true,
       handler (val) {
-        if (val) {
-          this.animateValue('animatedBalance', val.balance || 0)
-        }
+        this.animateValue('animatedBalance', val || 0)
       }
     },
     coupons: {
@@ -142,12 +150,25 @@ export default {
     },
     orders: {
       immediate: true,
-      handler (val) {
-        this.animateValue('animatedOrders', val?.length || 0)
+      handler () {
+        this.animateValue('animatedOrders', this.orders?.length || 0)
+        this.animateValue('animatedSpending', this.totalSpending)
       }
     }
   },
+  created () {
+    this.fetchWalletBalance()
+  },
   methods: {
+    async fetchWalletBalance () {
+      try {
+        const res = await api.get('/user/wallet')
+        this.walletBalance = res.data.balance || 0
+      } catch (e) {
+        // Fallback to user.balance if wallet API fails
+        this.walletBalance = this.user?.balance || 0
+      }
+    },
     countStatus (status) {
       return this.orders.filter(o => o.status === status).length
     },
