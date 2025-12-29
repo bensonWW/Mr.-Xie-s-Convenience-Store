@@ -54,12 +54,9 @@ class CouponController extends Controller
     }
     public function index(Request $request)
     {
-        // Admin gets all coupons
-        if ($request->user() && $request->user()->role === 'admin') {
-            return response()->json(Coupon::all());
-        }
-
-        // Users get only currently valid coupons
+        // This endpoint is for users to see available coupons at checkout
+        // Admin management of coupons uses the /admin/coupons resource route
+        // All users see only currently valid coupons
         $now = Carbon::now();
         $today = $now->toDateString(); // 'YYYY-MM-DD' format
 
