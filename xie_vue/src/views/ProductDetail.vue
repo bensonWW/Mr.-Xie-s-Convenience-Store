@@ -250,6 +250,31 @@
           
           <!-- Reviews Section -->
           <div v-show="activeTab === 'reviews'">
+            <!-- Rating Summary -->
+            <div v-if="reviews.length > 0" class="mb-8 p-6 bg-gradient-to-r from-xieOrange/5 to-amber-50 dark:from-xieOrange/10 dark:to-slate-800/50 rounded-xl border border-xieOrange/20">
+              <div class="flex items-center gap-6">
+                <div class="text-center">
+                  <div class="text-4xl font-bold text-xieOrange">{{ averageRating }}</div>
+                  <div class="flex items-center justify-center gap-0.5 mt-1">
+                    <i v-for="star in 5" :key="star" class="text-sm"
+                       :class="star <= Math.round(parseFloat(averageRating)) ? 'fas fa-star text-xieOrange' : 'far fa-star text-stone-300 dark:text-slate-600'"></i>
+                  </div>
+                  <div class="text-xs text-stone-500 dark:text-stone-400 mt-1">{{ reviews.length }} 則評價</div>
+                </div>
+                <div class="flex-1 space-y-1">
+                  <div v-for="n in 5" :key="n" class="flex items-center gap-2">
+                    <span class="text-xs text-stone-500 dark:text-stone-400 w-4">{{ 6 - n }}</span>
+                    <i class="fas fa-star text-xs text-xieOrange"></i>
+                    <div class="flex-1 h-2 bg-stone-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <div class="h-full bg-xieOrange rounded-full transition-all"
+                           :style="{ width: getRatingPercentage(6 - n) + '%' }"></div>
+                    </div>
+                    <span class="text-xs text-stone-400 dark:text-stone-500 w-8 text-right">{{ getRatingCount(6 - n) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Review Form -->
             <div v-if="canReview" class="mb-8 p-6 bg-stone-50 dark:bg-slate-700/30 rounded-xl border border-stone-100 dark:border-slate-700">
               <h4 class="font-semibold text-slate-700 dark:text-stone-100 mb-4">撰寫評價</h4>
@@ -616,6 +641,21 @@ export default {
       if (Array.isArray(cat)) return cat.join('、')
       if (cat && typeof cat === 'object') return cat.name || ''
       return cat
+    },
+    // Rating helpers
+    getRatingCount (rating) {
+      return this.reviews.filter(r => r.rating === rating).length
+    },
+    getRatingPercentage (rating) {
+      if (this.reviews.length === 0) return 0
+      return (this.getRatingCount(rating) / this.reviews.length) * 100
+    }
+  },
+  computed: {
+    averageRating () {
+      if (this.reviews.length === 0) return '0.0'
+      const sum = this.reviews.reduce((acc, r) => acc + r.rating, 0)
+      return (sum / this.reviews.length).toFixed(1)
     }
   }
 }
