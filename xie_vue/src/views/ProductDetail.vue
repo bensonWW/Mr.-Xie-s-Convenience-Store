@@ -94,11 +94,26 @@
             <!-- Price Section - Left border design -->
             <div class="pl-5 mb-8 border-l-4 border-xieOrange">
               <div class="flex items-baseline gap-3">
-                <span class="text-xs text-stone-400 dark:text-stone-500 opacity-70 writing-vertical-rl">特價</span>
-                <span class="text-4xl md:text-5xl font-bold text-xieOrange tracking-tight">{{ formatPrice(item.price) }}</span>
-                <span v-if="item.original_price" class="text-lg text-stone-400 dark:text-stone-500 line-through">{{ formatPrice(item.original_price) }}</span>
-                <span v-if="item.original_price" class="px-2 py-1 bg-rose-500 text-white text-xs font-bold rounded">省 {{ formatPrice(item.original_price - item.price) }}</span>
+                <span class="text-xs text-stone-400 dark:text-stone-500 opacity-70 writing-vertical-rl">{{ item.has_variants ? '起' : '特價' }}</span>
+                <span class="text-4xl md:text-5xl font-bold text-xieOrange tracking-tight">{{ formatPrice(displayPrice) }}</span>
+                <span v-if="displayOriginalPrice && displayOriginalPrice > displayPrice" class="text-lg text-stone-400 dark:text-stone-500 line-through">{{ formatPrice(displayOriginalPrice) }}</span>
+                <span v-if="displayOriginalPrice && displayOriginalPrice > displayPrice" class="px-2 py-1 bg-rose-500 text-white text-xs font-bold rounded">省 {{ formatPrice(displayOriginalPrice - displayPrice) }}</span>
               </div>
+              <div v-if="item.has_variants && item.price_range" class="text-sm text-stone-500 dark:text-stone-400 mt-1">
+                價格區間: {{ item.price_range }}
+              </div>
+            </div>
+
+            <!-- Variant Selector (only for products with variants) -->
+            <div v-if="item.has_variants && item.attributes?.length > 0" class="mb-8">
+              <VariantSelector
+                :attributes="item.attributes"
+                :variants="item.variants"
+                :valid-combinations="validCombinations"
+                :in-stock-combinations="inStockCombinations"
+                :default-variant="item.default_variant"
+                @variant-selected="onVariantSelected"
+              />
             </div>
 
             <!-- Trust Badges -->
@@ -122,12 +137,13 @@
               <div class="flex items-center justify-between">
                 <span class="text-sm text-stone-500 dark:text-stone-400 tracking-wide">庫存狀態</span>
                 <span class="flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full animate-pulse" :class="item.stock > 10 ? 'bg-emerald-500' : item.stock > 0 ? 'bg-yellow-500' : 'bg-red-500'"></span>
-                  <span class="font-semibold" :class="item.stock > 10 ? 'text-emerald-600 dark:text-emerald-400' : item.stock > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'">
-                    {{ item.stock > 10 ? '現貨充足' : item.stock > 0 ? `僅剩 ${item.stock} 件` : '已售完' }}
+                  <span class="w-2 h-2 rounded-full animate-pulse" :class="displayStock > 10 ? 'bg-emerald-500' : displayStock > 0 ? 'bg-yellow-500' : 'bg-red-500'"></span>
+                  <span class="font-semibold" :class="displayStock > 10 ? 'text-emerald-600 dark:text-emerald-400' : displayStock > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'">
+                    {{ displayStock > 10 ? '現貨充足' : displayStock > 0 ? `僅剩 ${displayStock} 件` : '已售完' }}
                   </span>
                 </span>
               </div>
+
               
               <div class="flex items-center justify-between">
                 <span class="text-sm text-stone-500 dark:text-stone-400 tracking-wide">購買數量</span>
@@ -411,9 +427,13 @@ import api from '../services/api'
 import { formatPrice } from '../utils/currency'
 import { useToast } from 'vue-toastification'
 import { useCartStore } from '../stores/cart'
+import VariantSelector from '../components/VariantSelector.vue'
 
 export default {
   name: 'ProductDetail',
+  components: {
+    VariantSelector
+  },
   setup () {
     const toast = useToast()
     const cartStore = useCartStore()
@@ -437,7 +457,11 @@ export default {
         rating: 0,
         comment: ''
       },
-      submittingReview: false
+      submittingReview: false,
+      // Variant selection
+      validCombinations: [],
+      inStockCombinations: [],
+      selectedVariant: null
     }
   },
   created () {
@@ -560,7 +584,23 @@ export default {
       this.updateTotalPrice()
     },
     updateTotalPrice () {
-      this.totalPrice = (this.item && this.item.price) ? this.qty * this.item.price : 0
+      const price = this.selectedVariant?.price ?? this.item?.price ?? 0
+      this.totalPrice = this.qty * price
+    },
+    onVariantSelected (variant) {
+      this.selectedVariant = variant
+      if (variant) {
+        this.maxQty = variant.stock > 0 ? variant.stock : 1
+        if (this.qty > this.maxQty) this.qty = this.maxQty
+        // Update displayed image if variant has one
+        if (variant.image) {
+          const baseUrl = api.defaults.baseURL.replace('/api', '')
+          this.imgUrl = variant.image.startsWith('http') ? variant.image : `${baseUrl}/images/${variant.image}`
+        }
+      } else {
+        this.maxQty = this.item?.stock > 0 ? this.item.stock : 1
+      }
+      this.updateTotalPrice()
     },
     decreaseQty () {
       if (this.qty > 1) this.qty--
@@ -577,8 +617,21 @@ export default {
         return
       }
 
+      // Check if product has variants but none selected
+      if (this.item?.has_variants && !this.selectedVariant) {
+        this.toast.warning('請選擇商品規格')
+        return
+      }
+
+      // Check stock
+      const stock = this.selectedVariant?.stock ?? this.item?.stock ?? 0
+      if (stock <= 0) {
+        this.toast.error('此規格目前缺貨')
+        return
+      }
+
       try {
-        await this.cartStore.addToCart(this.item.id, this.qty)
+        await this.cartStore.addToCart(this.item.id, this.qty, this.selectedVariant?.id)
       } catch (error) {
         console.error('Add to cart error:', error)
         const status = error.response?.status
@@ -609,7 +662,12 @@ export default {
       const id = idParam || this.$route.params.id
       try {
         const response = await api.get(`/products/${id}`)
-        this.item = response.data
+        // Handle new response format with valid_combinations
+        const data = response.data
+        this.item = data.product || data
+        this.validCombinations = data.valid_combinations || []
+        this.inStockCombinations = data.in_stock_combinations || []
+        this.selectedVariant = null
 
         if (this.item.image) {
           if (this.item.image.startsWith('http')) {
@@ -622,8 +680,16 @@ export default {
           this.imgUrl = ''
         }
 
-        const stock = Number(this.item.stock || 0)
-        this.maxQty = stock > 0 ? stock : 1
+        // If product has variants, use default variant or first variant
+        if (this.item.has_variants && this.item.variants?.length > 0) {
+          const defaultVariant = this.item.default_variant || this.item.variants.find(v => v.is_default) || this.item.variants[0]
+          this.selectedVariant = defaultVariant
+          this.maxQty = defaultVariant?.stock > 0 ? defaultVariant.stock : 1
+        } else {
+          const stock = Number(this.item.stock || 0)
+          this.maxQty = stock > 0 ? stock : 1
+        }
+        
         this.qty = 1
         this.updateTotalPrice()
 
@@ -656,6 +722,31 @@ export default {
       if (this.reviews.length === 0) return '0.0'
       const sum = this.reviews.reduce((acc, r) => acc + r.rating, 0)
       return (sum / this.reviews.length).toFixed(1)
+    },
+    displayPrice () {
+      if (this.selectedVariant) {
+        return this.selectedVariant.price
+      }
+      if (this.item?.has_variants && this.item?.price_min) {
+        return this.item.price_min
+      }
+      return this.item?.price || 0
+    },
+    displayOriginalPrice () {
+      if (this.selectedVariant) {
+        return this.selectedVariant.original_price
+      }
+      return this.item?.original_price || null
+    },
+    displayStock () {
+      if (this.selectedVariant) {
+        return this.selectedVariant.stock
+      }
+      if (this.item?.has_variants) {
+        // Sum of all variant stocks
+        return this.item.variants?.reduce((sum, v) => sum + v.stock, 0) || 0
+      }
+      return this.item?.stock || 0
     }
   }
 }

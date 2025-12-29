@@ -102,6 +102,23 @@ Route::middleware(['auth:sanctum', 'refresh_token'])->group(function () {
         Route::put('/products/{id}', [ProductController::class, 'update']);
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 
+        // Admin Product Variants Management
+        Route::prefix('products/{product}')->group(function () {
+            Route::get('/variants', [App\Http\Controllers\Admin\ProductVariantController::class, 'index']);
+            Route::post('/variants', [App\Http\Controllers\Admin\ProductVariantController::class, 'storeVariant']);
+            Route::post('/variants/bulk-generate', [App\Http\Controllers\Admin\ProductVariantController::class, 'bulkGenerate']);
+            Route::put('/variants/bulk-price', [App\Http\Controllers\Admin\ProductVariantController::class, 'bulkUpdatePrice']);
+            Route::put('/variants/bulk-stock', [App\Http\Controllers\Admin\ProductVariantController::class, 'bulkUpdateStock']);
+            Route::post('/attributes', [App\Http\Controllers\Admin\ProductVariantController::class, 'storeAttribute']);
+        });
+        Route::put('/attributes/{attribute}', [App\Http\Controllers\Admin\ProductVariantController::class, 'updateAttribute']);
+        Route::delete('/attributes/{attribute}', [App\Http\Controllers\Admin\ProductVariantController::class, 'destroyAttribute']);
+        Route::post('/attributes/{attribute}/values', [App\Http\Controllers\Admin\ProductVariantController::class, 'storeAttributeValue']);
+        Route::put('/attribute-values/{value}', [App\Http\Controllers\Admin\ProductVariantController::class, 'updateAttributeValue']);
+        Route::delete('/attribute-values/{value}', [App\Http\Controllers\Admin\ProductVariantController::class, 'destroyAttributeValue']);
+        Route::put('/variants/{variant}', [App\Http\Controllers\Admin\ProductVariantController::class, 'updateVariant']);
+        Route::delete('/variants/{variant}', [App\Http\Controllers\Admin\ProductVariantController::class, 'destroyVariant']);
+
         // Admin Category Management
         Route::get('/categories', [App\Http\Controllers\Admin\CategoryController::class, 'index']);
         Route::post('/categories', [App\Http\Controllers\Admin\CategoryController::class, 'store']);

@@ -59,11 +59,39 @@ class ProductService
     }
 
     /**
-     * Get a single product by ID.
+     * Get a single product by ID with all relations.
      */
-    public function getProduct(int $id): Product
+    public function getProduct(int $id): array
     {
-        return Product::with('category')->findOrFail($id);
+        $product = Product::with([
+            'category',
+            'store',
+            'reviews',
+            'defaultVariant',
+            'variants' => fn($q) => $q->orderBy('is_default', 'desc'),
+            'attributes.values',
+        ])->findOrFail($id);
+
+        // Build valid combinations for frontend variant selector
+        $validCombinations = $product->variants
+            ->where('is_active', true)
+            ->pluck('options')
+            ->values()
+            ->toArray();
+
+        // Get stock combinations (which combos are in stock)
+        $inStockCombinations = $product->variants
+            ->where('is_active', true)
+            ->where('stock', '>', 0)
+            ->pluck('options')
+            ->values()
+            ->toArray();
+
+        return [
+            'product' => $product,
+            'valid_combinations' => $validCombinations,
+            'in_stock_combinations' => $inStockCombinations,
+        ];
     }
 
     /**

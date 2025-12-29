@@ -21,20 +21,14 @@ export const useCartStore = defineStore('cart', {
         async fetchCart() {
             try {
                 const res = await api.get('/cart')
-                // Assuming backend structure: { items: [], total_amount: 0, ... }
-                // or array of items. Let's assume standard response structure.
-                // Based on previous Context, CartController::index returns Cart Model or Items.
-                // Let's inspect CartController if needed, but for now assume typical structure.
-                // If it returns just items array:
-                if (Array.isArray(res.data)) {
+                // New response format from updated CartController
+                if (res.data.items) {
+                    this.items = res.data.items
+                    this.count = this.items.reduce((sum, item) => sum + item.quantity, 0)
+                    this.totalAmount = res.data.total || 0
+                } else if (Array.isArray(res.data)) {
                     this.items = res.data
                     this.count = this.items.reduce((sum, item) => sum + item.quantity, 0)
-                    // Security Fix from Professor: Do not calculate price on frontend
-                    this.totalAmount = res.data.total_amount || 0
-                } else if (res.data.items) {
-                    // If wrapped
-                    this.items = res.data.items
-                    this.count = res.data.items.reduce((sum, item) => sum + item.quantity, 0)
                     this.totalAmount = res.data.total_amount || 0
                 }
             } catch (e) {
@@ -42,12 +36,16 @@ export const useCartStore = defineStore('cart', {
             }
         },
 
-        async addToCart(productId, quantity = 1) {
+        async addToCart(productId, quantity = 1, variantId = null) {
             try {
-                await api.post('/cart/items', {
+                const payload = {
                     product_id: productId,
                     quantity: quantity
-                })
+                }
+                if (variantId) {
+                    payload.variant_id = variantId
+                }
+                await api.post('/cart/items', payload)
                 // Optimistically bump the count immediately for snappy UX
                 this.count = (this.count || 0) + quantity
                 toast.success('已加入購物車')
