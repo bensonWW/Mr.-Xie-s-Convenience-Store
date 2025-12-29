@@ -7,7 +7,7 @@
 
     <!-- Admin Sidebar -->
     <aside 
-      class="fixed md:static inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-gray-800 via-gray-800 to-gray-900 text-gray-400 flex flex-col transform transition-transform duration-300 ease-in-out md:translate-x-0"
+      class="fixed md:static inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-gray-800 via-gray-800 to-gray-900 text-gray-200 flex flex-col transform transition-transform duration-300 ease-in-out md:translate-x-0"
       :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
     >
       <!-- Logo -->
