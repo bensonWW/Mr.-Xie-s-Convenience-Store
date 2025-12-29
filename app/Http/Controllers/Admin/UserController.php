@@ -30,7 +30,10 @@ class UserController extends Controller
             $query->where('status', $request->status);
         }
 
-        return $query->latest()->paginate(15);
+        // Allow custom per_page, default 50, max 100
+        $perPage = min($request->input('per_page', 50), 100);
+
+        return $query->latest()->paginate($perPage);
     }
 
     public function show($id)
