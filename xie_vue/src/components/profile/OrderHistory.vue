@@ -164,7 +164,7 @@
     </Teleport>
 
     <!-- Order Details Modal -->
-    <div v-if="showOrderDetails && selectedOrder" class="fixed inset-0 z-modal flex items-center justify-center bg-black/50 backdrop-blur-sm" @click.self="showOrderDetails = false">
+    <div v-if="showOrderDetails && selectedOrder" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" @click.self="showOrderDetails = false">
       <div class="bg-white dark:bg-slate-800 rounded-2xl border border-stone-100 dark:border-slate-700 shadow-xl w-full max-w-lg mx-4 overflow-hidden animate-fade-in">
         <!-- Modal Header -->
         <div class="px-6 py-4 border-b border-stone-100 dark:border-slate-700 flex justify-between items-center">
