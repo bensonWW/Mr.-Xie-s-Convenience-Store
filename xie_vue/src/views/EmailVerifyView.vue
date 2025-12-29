@@ -113,7 +113,23 @@ export default {
       }
     }
   },
+  mounted () {
+    // Automatically send verification code on first page load
+    if (!this.isVerified && this.userEmail) {
+      this.sendInitialCode()
+    }
+  },
   methods: {
+    async sendInitialCode () {
+      // Only send if not already verified
+      try {
+        await api.post('/email/verification-notification')
+        this.toast.info('驗證碼已寄送至您的信箱')
+      } catch (error) {
+        // Silent fail - user can click resend if needed
+        console.error('Initial verification code send failed:', error)
+      }
+    },
     async resendEmail () {
       this.isSending = true
       try {
