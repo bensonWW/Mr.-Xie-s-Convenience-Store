@@ -151,6 +151,8 @@ export default {
       try {
         await api.post('/email/verify-code', { code: this.code })
         this.toast.success('驗證成功！')
+        // Refresh user data so email_verified_at is updated
+        await this.authStore.fetchUser()
         this.$router.replace('/profile')
       } catch (error) {
         const msg = error.response?.data?.message || '驗證失敗，請檢查驗證碼'
