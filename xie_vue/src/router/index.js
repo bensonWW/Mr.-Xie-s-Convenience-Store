@@ -138,7 +138,16 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
-  // Wait for auth to be initialized before checking routes
+  // For public routes (no auth required), proceed immediately without waiting for auth
+  if (!to.meta.requiresAuth) {
+    // Trigger auth initialization in background (don't block navigation)
+    if (!authStore.initialized && authStore.token && !authStore.user && !authStore.loading) {
+      authStore.fetchUser() // Fire and forget
+    }
+    return next()
+  }
+
+  // For protected routes, we need to wait for auth to be initialized
   if (!authStore.initialized) {
     // Only call fetchUser if we have a token but haven't loaded user yet
     if (authStore.token && !authStore.user && !authStore.loading) {
@@ -152,7 +161,7 @@ router.beforeEach(async (to, from, next) => {
       authStore.initialized = true
     }
 
-    // If still loading, wait for it to complete
+    // If still loading, wait for it to complete (with shorter timeout)
     if (authStore.loading) {
       await new Promise(resolve => {
         const unwatch = authStore.$subscribe((mutation, state) => {
@@ -161,27 +170,26 @@ router.beforeEach(async (to, from, next) => {
             resolve()
           }
         })
-        // Timeout after 5 seconds to prevent infinite wait
+        // Timeout after 3 seconds to prevent long wait
         setTimeout(() => {
           unwatch()
           resolve()
-        }, 5000)
+        }, 3000)
       })
     }
   }
 
-  if (to.meta.requiresAuth) {
-    const isLoggedIn = authStore.isLoggedIn
-    const role = authStore.currentUser?.role
+  const isLoggedIn = authStore.isLoggedIn
+  const role = authStore.currentUser?.role
 
-    if (!isLoggedIn) {
-      return next({ path: '/login', query: { redirect: to.fullPath } })
-    }
-
-    if (to.meta.roles && !to.meta.roles.includes(role)) {
-      return next('/')
-    }
+  if (!isLoggedIn) {
+    return next({ path: '/login', query: { redirect: to.fullPath } })
   }
+
+  if (to.meta.roles && !to.meta.roles.includes(role)) {
+    return next('/')
+  }
+
   next()
 })
 
