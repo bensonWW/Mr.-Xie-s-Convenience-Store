@@ -130,10 +130,23 @@ class VariantService
         $createdVariants = collect();
 
         DB::transaction(function () use ($product, $combinations, $basePrice, $baseStock, $skuPrefix, &$createdVariants) {
-            foreach ($combinations as $index => $combo) {
+            // Get the highest existing SKU number for this product
+            $existingSkus = ProductVariant::where('product_id', $product->id)
+                ->pluck('sku')
+                ->toArray();
+
+            $maxSkuNumber = 0;
+            foreach ($existingSkus as $sku) {
+                if (preg_match('/-(\d+)$/', $sku, $matches)) {
+                    $maxSkuNumber = max($maxSkuNumber, (int) $matches[1]);
+                }
+            }
+
+            $skuCounter = $maxSkuNumber;
+
+            foreach ($combinations as $combo) {
                 $options = $this->buildOptionsFromCombination($combo);
                 $optionsText = $this->buildOptionsTextFromCombination($combo);
-                $sku = $skuPrefix . '-' . str_pad($index + 1, 3, '0', STR_PAD_LEFT);
 
                 // Check if variant with same options already exists
                 $existingHash = ProductVariant::generateOptionsHash($options);
@@ -142,6 +155,16 @@ class VariantService
                     ->exists();
 
                 if (!$exists) {
+                    $skuCounter++;
+                    $sku = $skuPrefix . '-' . str_pad($skuCounter, 3, '0', STR_PAD_LEFT);
+
+                    // Ensure SKU is unique
+                    while (in_array($sku, $existingSkus)) {
+                        $skuCounter++;
+                        $sku = $skuPrefix . '-' . str_pad($skuCounter, 3, '0', STR_PAD_LEFT);
+                    }
+                    $existingSkus[] = $sku;
+
                     $variant = ProductVariant::create([
                         'product_id' => $product->id,
                         'sku' => $sku,
@@ -149,7 +172,7 @@ class VariantService
                         'stock' => $baseStock,
                         'options' => $options,
                         'options_text' => $optionsText,
-                        'is_default' => $index === 0 && !$product->variants()->where('is_default', true)->exists(),
+                        'is_default' => $createdVariants->isEmpty() && !$product->variants()->where('is_default', true)->exists(),
                     ]);
                     $createdVariants->push($variant);
                 }
@@ -176,8 +199,25 @@ class VariantService
         $optionsText = $this->buildOptionsTextFromOptions($product, $options);
 
         if (!$sku) {
-            $count = $product->allVariants()->count() + 1;
-            $sku = 'P' . str_pad($product->id, 4, '0', STR_PAD_LEFT) . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+            $skuPrefix = 'P' . str_pad($product->id, 4, '0', STR_PAD_LEFT);
+
+            // Find the max SKU number
+            $maxSkuNumber = 0;
+            $existingSkus = ProductVariant::where('product_id', $product->id)->pluck('sku')->toArray();
+            foreach ($existingSkus as $existingSku) {
+                if (preg_match('/-(\d+)$/', $existingSku, $matches)) {
+                    $maxSkuNumber = max($maxSkuNumber, (int) $matches[1]);
+                }
+            }
+
+            $skuNumber = $maxSkuNumber + 1;
+            $sku = $skuPrefix . '-' . str_pad($skuNumber, 3, '0', STR_PAD_LEFT);
+
+            // Ensure SKU is unique
+            while (in_array($sku, $existingSkus)) {
+                $skuNumber++;
+                $sku = $skuPrefix . '-' . str_pad($skuNumber, 3, '0', STR_PAD_LEFT);
+            }
         }
 
         // If setting as default, unset other defaults
