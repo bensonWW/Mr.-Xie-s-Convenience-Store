@@ -46,7 +46,7 @@ enum OrderStatus: string
         return match ($this) {
             self::PENDING_PAYMENT => [self::PROCESSING, self::CANCELLED],
             self::PROCESSING => [self::SHIPPED, self::CANCELLED],
-            self::SHIPPED => [self::DELIVERED, self::RETURNED],
+            self::SHIPPED => [self::DELIVERED, self::COMPLETED, self::RETURNED], // Added COMPLETED for simplified flow
             self::DELIVERED => [self::COMPLETED, self::RETURNED],
             self::COMPLETED => [self::RETURNED],
             self::CANCELLED => [], // Terminal state
