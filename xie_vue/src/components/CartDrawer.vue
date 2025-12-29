@@ -61,8 +61,11 @@
               <h3 class="font-medium text-slate-700 dark:text-stone-100 text-sm line-clamp-2 mb-1">
                 {{ item.product?.name }}
               </h3>
+              <p v-if="item.variant" class="text-xs text-stone-500 dark:text-stone-400 mb-1">
+                {{ item.variant.options_text }}
+              </p>
               <p class="text-xieOrange font-bold text-sm">
-                {{ formatPrice(item.product?.price) }}
+                {{ formatPrice(item.effective_price || item.variant?.price || item.product?.price) }}
               </p>
               <div class="flex items-center gap-2 mt-2">
                 <button 

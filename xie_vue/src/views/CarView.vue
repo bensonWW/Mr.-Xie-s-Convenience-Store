@@ -275,13 +275,16 @@ function handleAddressSuccess (newAddress) {
                         </div>
                         <div>
                             <h3 class="font-semibold text-slate-700 dark:text-stone-100 line-clamp-2">{{ item.product?.name || '商品載入中...' }}</h3>
-                            <div class="text-xs text-stone-500 dark:text-stone-400 mt-1">規格：預設</div>
+                            <div v-if="item.variant" class="text-xs text-stone-500 dark:text-stone-400 mt-1">
+                              規格：{{ item.variant.options_text || '預設' }}
+                            </div>
+                            <div v-else class="text-xs text-stone-500 dark:text-stone-400 mt-1">規格：預設</div>
                             <div class="text-xs text-emerald-600 dark:text-emerald-400 mt-1"><i class="fas fa-check-circle"></i> 24h 到貨</div>
                         </div>
                     </div>
 
                     <div class="col-span-2 text-center text-sm text-stone-500 dark:text-stone-400">
-                        <span class="md:hidden mr-2">單價:</span>{{ formatPrice(item.product?.price || 0) }}
+                        <span class="md:hidden mr-2">單價:</span>{{ formatPrice(item.effective_price || item.variant?.price || item.product?.price || 0) }}
                     </div>
 
                     <div class="col-span-2 flex justify-center">
@@ -293,7 +296,7 @@ function handleAddressSuccess (newAddress) {
                     </div>
 
                     <div class="col-span-1 text-center font-bold text-xieOrange">
-                        {{ formatPrice((item.product?.price || 0) * item.quantity) }}
+                        {{ formatPrice((item.effective_price || item.variant?.price || item.product?.price || 0) * item.quantity) }}
                     </div>
 
                     <div class="col-span-1 text-right">
