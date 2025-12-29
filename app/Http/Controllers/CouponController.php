@@ -56,17 +56,20 @@ class CouponController extends Controller
     {
         // This endpoint is for users to see available coupons at checkout
         // Admin management of coupons uses the /admin/coupons resource route
-        // All users see only currently valid coupons
+        // All users see only currently valid coupons (with 7-day grace period after expiry)
         $today = Carbon::now()->format('Y-m-d');
+        // Keep coupons visible for 7 days after expiration
+        $gracePeriodDate = Carbon::now()->subDays(7)->format('Y-m-d');
 
         $coupons = Coupon::where(function ($query) use ($today) {
             // starts_at check: null (no start date) OR start date has passed
             $query->whereNull('starts_at')
                 ->orWhereRaw('DATE(starts_at) <= ?', [$today]);
-        })->where(function ($query) use ($today) {
-            // ends_at check: null (no end date) OR end date has NOT passed yet
+        })->where(function ($query) use ($gracePeriodDate) {
+            // ends_at check: null (no end date) OR end date is within grace period
+            // Coupons remain visible for 7 days after expiration
             $query->whereNull('ends_at')
-                ->orWhereRaw('DATE(ends_at) >= ?', [$today]);
+                ->orWhereRaw('DATE(ends_at) >= ?', [$gracePeriodDate]);
         })->where(function ($query) {
             // usage_limit check: null (unlimited) OR still has uses left
             $query->whereNull('usage_limit')
