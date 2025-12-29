@@ -134,12 +134,35 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
-  // Ensure session is initialized before checking auth
-  if (!authStore.initialized && !authStore.loading) {
-    try {
-      await authStore.fetchUser()
-    } catch (e) {
-      console.error('Auth check failed', e)
+  // Wait for auth to be initialized before checking routes
+  if (!authStore.initialized) {
+    // Only call fetchUser if we have a token but haven't loaded user yet
+    if (authStore.token && !authStore.user && !authStore.loading) {
+      try {
+        await authStore.fetchUser()
+      } catch (e) {
+        console.error('Auth check failed', e)
+      }
+    } else if (!authStore.token) {
+      // No token - mark as initialized
+      authStore.initialized = true
+    }
+
+    // If still loading, wait for it to complete
+    if (authStore.loading) {
+      await new Promise(resolve => {
+        const unwatch = authStore.$subscribe((mutation, state) => {
+          if (!state.loading) {
+            unwatch()
+            resolve()
+          }
+        })
+        // Timeout after 5 seconds to prevent infinite wait
+        setTimeout(() => {
+          unwatch()
+          resolve()
+        }, 5000)
+      })
     }
   }
 
@@ -148,11 +171,10 @@ router.beforeEach(async (to, from, next) => {
     const role = authStore.currentUser?.role
 
     if (!isLoggedIn) {
-      return next({ path: '/profile', query: { redirect: to.fullPath } })
+      return next({ path: '/login', query: { redirect: to.fullPath } })
     }
 
     if (to.meta.roles && !to.meta.roles.includes(role)) {
-      // alert('無權限訪問')
       return next('/')
     }
   }
