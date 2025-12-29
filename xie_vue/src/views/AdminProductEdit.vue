@@ -287,7 +287,8 @@ export default {
     async fetchProduct (id) {
       try {
         const res = await api.get(`/products/${id}`)
-        const prod = res.data
+        // API now returns { product: {...}, valid_combinations: [...], ... }
+        const prod = res.data.product || res.data
         
         // Handle category - could be object or string
         let categoryName = ''
