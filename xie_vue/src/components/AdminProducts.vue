@@ -18,12 +18,13 @@
               <th class="p-4 font-bold">價格</th>
               <th class="p-4 font-bold">分類</th>
               <th class="p-4 font-bold">庫存</th>
+              <th class="p-4 font-bold">規格</th>
               <th class="p-4 font-bold text-right">操作</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
             <tr v-if="products.length === 0">
-              <td colspan="7" class="p-8 text-center text-gray-400 dark:text-stone-500">暫無商品資料</td>
+              <td colspan="8" class="p-8 text-center text-gray-400 dark:text-stone-500">暫無商品資料</td>
             </tr>
             <tr v-for="prod in products" :key="prod.id" class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition">
               <td class="p-4 text-gray-500 dark:text-stone-400">#{{ prod.id }}</td>
@@ -39,6 +40,16 @@
               <td class="p-4">
                 <span :class="prod.stock < 10 ? 'text-red-500 dark:text-red-400 font-bold' : 'text-green-600 dark:text-emerald-400'">{{ prod.stock }}</span>
               </td>
+              <td class="p-4">
+                <button 
+                  @click="openVariantModal(prod)"
+                  class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded transition"
+                  :class="prod.has_variants ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 hover:bg-xieOrange hover:text-white'"
+                >
+                  <i class="fas fa-cubes"></i>
+                  {{ prod.has_variants ? '已設定' : '設定' }}
+                </button>
+              </td>
               <td class="p-4 text-right space-x-2">
                 <button class="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition" @click="$router.push(`/admin/products/${prod.id}/edit`)">
                   <i class="fas fa-edit"></i>
@@ -50,7 +61,6 @@
             </tr>
           </tbody>
         </table>
-      </div>
       </div>
 
        <!-- Pagination Controls -->
@@ -77,20 +87,41 @@
         </div>
       </div>
     </div>
+
+    <!-- Variant Modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showVariantModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <AdminProductVariants 
+              :product-id="selectedProductId"
+              @close="closeVariantModal"
+            />
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+  </div>
 </template>
 
 <script>
 import api from '../services/api'
 import { formatPrice } from '../utils/currency'
+import AdminProductVariants from './AdminProductVariants.vue'
 
 export default {
   name: 'AdminProducts',
+  components: {
+    AdminProductVariants
+  },
   data () {
     return {
       products: [],
       currentPage: 1,
       totalPages: 1,
-      totalItems: 0
+      totalItems: 0,
+      showVariantModal: false,
+      selectedProductId: null
     }
   },
   created () {
@@ -135,7 +166,27 @@ export default {
       if (!cat) return ''
       if (typeof cat === 'string') return cat
       return cat.name || cat.slug || String(cat)
+    },
+    openVariantModal (product) {
+      this.selectedProductId = product.id
+      this.showVariantModal = true
+    },
+    closeVariantModal () {
+      this.showVariantModal = false
+      this.selectedProductId = null
+      this.fetchProducts(this.currentPage) // Refresh to show updated has_variants status
     }
   }
 }
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
