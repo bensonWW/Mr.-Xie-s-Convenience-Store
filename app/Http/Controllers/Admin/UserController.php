@@ -270,18 +270,17 @@ class UserController extends Controller
         $user->addresses()->delete();
         $user->walletTransactions()->delete();
 
-        // Note: Orders are kept for record keeping, just remove user reference
-        // Check if orders table has nullable user_id
-        $user->orders()->update(['user_id' => null]);
+        // Note: Orders have onDelete('cascade') so they will be automatically deleted with the user
+        // This is a limitation of the current schema - orders cannot be preserved after user deletion
 
         // Delete user's tokens
         $user->tokens()->delete();
 
-        // Delete the user
+        // Delete the user (this will cascade delete orders due to FK constraint)
         $user->delete();
 
         return response()->json([
-            'message' => '用戶及相關資料已刪除成功'
+            'message' => '用戶及相關資料已刪除成功（包含訂單記錄）'
         ]);
     }
 }
