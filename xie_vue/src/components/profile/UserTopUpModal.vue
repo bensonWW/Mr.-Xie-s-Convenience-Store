@@ -98,8 +98,8 @@ export default {
           amount: this.topUpAmount,
           description: '線上儲值 (Mock)'
         })
+        // Emit success with data - parent will close the modal
         this.$emit('success', res.data)
-        this.close()
       } catch (e) {
         console.error('Top-up error:', e)
         const status = e.response?.status
