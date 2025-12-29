@@ -18,9 +18,20 @@ class VerificationController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
+        // 13.5: 60-second resend limit
+        $key = 'verification-email:' . $user->id;
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($key, 1)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($key);
+            return response()->json(['message' => 'Please wait before resending', 'retry_after' => $seconds], 429);
+        }
+
         try {
             $service->generateCode($user);
             $service->sendCode($user);
+
+            \Illuminate\Support\Facades\RateLimiter::hit($key, 60);
+
             return response()->json(['message' => 'Verification code sent']);
         } catch (\Throwable $e) {
             return response()->json(['message' => 'Failed to send code', 'error' => $e->getMessage()], 500);

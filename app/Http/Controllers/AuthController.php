@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -10,15 +14,8 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    public function register(RegisterRequest $request): JsonResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            // 'role' => 'string|in:customer,staff,store_member', // Removed for security. Admin/Staff must be seeded.
-        ]);
-
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -35,7 +32,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request): JsonResponse
     {
         if (!Auth::attempt($request->only('email', 'password'))) {
             throw ValidationException::withMessages([
@@ -51,27 +48,19 @@ class AuthController extends Controller
             ]);
         }
 
-        // Check last login and enforce re-verification if gap >= 2 days
+        // Check last login; admins/staff are exempt from email re-verification
         $previousLogin = $user->last_login_at;
         $user->last_login_at = now();
         $needsVerification = false;
+        $roleExempt = in_array($user->role, ['admin', 'staff'], true);
 
-        if ($previousLogin && $user->last_login_at->diffInDays($previousLogin) >= 2) {
-            // Force re-verification by clearing verification timestamp
+        if (!$roleExempt && $previousLogin && $user->last_login_at->diffInDays($previousLogin) >= 2) {
+            // Force re-verification by clearing verification timestamp for customer roles only
             $user->email_verified_at = null;
             $needsVerification = true;
         }
 
         $user->save();
-
-        if ($needsVerification) {
-            try {
-                app(\App\Services\EmailVerificationService::class)->generateCode($user);
-                app(\App\Services\EmailVerificationService::class)->sendCode($user);
-            } catch (\Throwable $e) {
-                // Ignore mailing failures here; frontend can retry via API
-            }
-        }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -79,34 +68,37 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'Bearer',
             'user' => $user,
-            'needs_verification' => $needsVerification,
         ]);
     }
 
-    public function logout(Request $request)
+    public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        // Handle Token-based logout (if present)
+        $user = $request->user();
+        if ($user && $user->currentAccessToken() && method_exists($user->currentAccessToken(), 'delete')) {
+            $user->currentAccessToken()->delete();
+        }
+
+        // Handle Session-based logout (SPA)
+        Auth::guard('web')->logout();
+
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         return response()->json(['message' => 'Logged out successfully']);
     }
 
-    public function user(Request $request)
+    public function user(Request $request): JsonResponse
     {
-        return $request->user();
+        return response()->json($request->user()->load('addresses'));
     }
 
-    public function updateProfile(Request $request)
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
         $user = $request->user();
-
-        $request->validate([
-            'name' => 'string|max:255',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-            'birthday' => 'nullable|date',
-        ]);
-
-        $user->update($request->only(['name', 'phone', 'address', 'birthday']));
+        $user->update($request->only(['name', 'phone', 'birthday']));
 
         return response()->json(['message' => 'Profile updated', 'user' => $user]);
     }

@@ -1,91 +1,107 @@
 <template>
-  <div class="flex h-screen overflow-hidden bg-gray-100 font-sans text-gray-700">
-    <!-- Sidebar -->
-    <aside class="w-64 bg-white shadow-md flex-shrink-0 hidden md:flex flex-col z-20">
-        <div class="h-16 flex items-center justify-center border-b border-gray-100 bg-xieBlue text-white font-bold text-xl tracking-wider">
-            MR. XIE ADMIN
+  <div class="min-h-screen bg-stone-100 dark:bg-slate-950 flex font-sans transition-colors duration-300">
+    <!-- Admin Sidebar (always dark for contrast) -->
+    <aside class="w-64 bg-slate-900 text-stone-400 flex flex-col flex-shrink-0 hidden md:flex">
+      <div class="h-16 flex items-center px-6 text-white font-bold text-xl border-b border-slate-800">
+        <div class="w-8 h-8 bg-xieOrange rounded flex items-center justify-center text-white font-serif font-bold mr-3">
+          X
         </div>
+        Admin
+      </div>
+      <nav class="flex-1 py-6 space-y-1 overflow-y-auto">
+        <router-link 
+          to="/admin/dashboard" 
+          class="block px-6 py-3 transition"
+          :class="$route.name === 'admin-dashboard' ? 'text-white bg-slate-800 border-l-4 border-xieOrange' : 'hover:bg-slate-800 hover:text-white border-l-4 border-transparent'"
+        >
+          <i class="fas fa-chart-line w-6"></i> 儀表板
+        </router-link>
 
-        <nav class="flex-1 overflow-y-auto py-4">
-            <ul class="space-y-1">
-                <li>
-                    <router-link to="/admin/dashboard" class="flex items-center px-6 py-3 transition"
-                       :class="$route.name === 'admin-dashboard' ? 'text-xieOrange bg-orange-50 border-r-4 border-xieOrange' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'">
-                        <i class="fas fa-chart-pie w-6"></i>
-                        <span class="font-bold">總覽儀表板</span>
-                    </router-link>
-                </li>
+        <div class="px-6 py-2 text-xs font-semibold text-stone-500 uppercase tracking-wider mt-4">商店管理</div>
+        
+        <router-link 
+          to="/admin/products" 
+          class="block px-6 py-3 transition"
+          :class="$route.name === 'admin-products' ? 'text-white bg-slate-800 border-l-4 border-xieOrange' : 'hover:bg-slate-800 hover:text-white border-l-4 border-transparent'"
+        >
+          <i class="fas fa-box w-6"></i> 商品管理
+        </router-link>
+        <router-link 
+          to="/admin/orders" 
+          class="block px-6 py-3 transition"
+          :class="$route.name && $route.name.includes('admin-order') ? 'text-white bg-slate-800 border-l-4 border-xieOrange' : 'hover:bg-slate-800 hover:text-white border-l-4 border-transparent'"
+        >
+          <i class="fas fa-shopping-cart w-6"></i> 訂單管理
+        </router-link>
+        <router-link 
+          to="/admin/coupons" 
+          class="block px-6 py-3 transition"
+          :class="$route.name === 'admin-coupons' ? 'text-white bg-slate-800 border-l-4 border-xieOrange' : 'hover:bg-slate-800 hover:text-white border-l-4 border-transparent'"
+        >
+          <i class="fas fa-ticket-alt w-6"></i> 優惠券
+        </router-link>
+        <router-link 
+          to="/admin/categories" 
+          class="block px-6 py-3 transition"
+          :class="$route.name === 'admin-categories' ? 'text-white bg-slate-800 border-l-4 border-xieOrange' : 'hover:bg-slate-800 hover:text-white border-l-4 border-transparent'"
+        >
+          <i class="fas fa-tags w-6"></i> 分類管理
+        </router-link>
 
-                <li class="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider mt-4">商店管理</li>
-                <li>
-                    <router-link to="/admin/products" class="flex items-center px-6 py-3 transition"
-                       :class="$route.name === 'admin-products' ? 'text-xieOrange bg-orange-50 border-r-4 border-xieOrange' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'">
-                        <i class="fas fa-box w-6"></i>
-                        <span>商品管理</span>
-                    </router-link>
-                </li>
-                <li>
-                    <router-link to="/admin/orders" class="flex items-center px-6 py-3 transition"
-                       :class="$route.name && $route.name.includes('admin-order') ? 'text-xieOrange bg-orange-50 border-r-4 border-xieOrange' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'">
-                        <i class="fas fa-file-invoice-dollar w-6"></i>
-                        <span>訂單管理</span>
-                    </router-link>
-                </li>
-                 <li>
-                    <router-link to="/admin/coupons" class="flex items-center px-6 py-3 transition"
-                       :class="$route.name === 'admin-coupons' ? 'text-xieOrange bg-orange-50 border-r-4 border-xieOrange' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'">
-                        <i class="fas fa-ticket-alt w-6"></i>
-                        <span>優惠券管理</span>
-                    </router-link>
-                </li>
-
-                <li class="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider mt-4">顧客與數據</li>
-                <li>
-                    <router-link to="/admin/users" class="flex items-center px-6 py-3 transition"
-                       :class="$route.name === 'admin-users' ? 'text-xieOrange bg-orange-50 border-r-4 border-xieOrange' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'">
-                        <i class="fas fa-users w-6"></i>
-                        <span>會員管理</span>
-                    </router-link>
-                </li>
-                <li>
-                    <router-link to="/admin/analytics" class="flex items-center px-6 py-3 transition"
-                       :class="$route.name === 'admin-analytics' ? 'text-xieOrange bg-orange-50 border-r-4 border-xieOrange' : 'text-gray-600 hover:bg-gray-50 hover:text-xieOrange'">
-                        <i class="fas fa-chart-line w-6"></i>
-                        <span>銷售分析</span>
-                    </router-link>
-                </li>
-            </ul>
-        </nav>
-
-        <div class="p-4 border-t border-gray-100">
-            <a href="#" class="flex items-center gap-3 text-sm text-gray-500 hover:text-red-500 transition" @click.prevent="logout">
-                <i class="fas fa-sign-out-alt"></i> 登出管理後台
-            </a>
-        </div>
+        <div class="px-6 py-2 text-xs font-semibold text-stone-500 uppercase tracking-wider mt-4">顧客與數據</div>
+        
+        <router-link 
+          to="/admin/users" 
+          class="block px-6 py-3 transition"
+          :class="$route.name === 'admin-users' ? 'text-white bg-slate-800 border-l-4 border-xieOrange' : 'hover:bg-slate-800 hover:text-white border-l-4 border-transparent'"
+        >
+          <i class="fas fa-users w-6"></i> 會員管理
+        </router-link>
+        <router-link 
+          to="/admin/analytics" 
+          class="block px-6 py-3 transition"
+          :class="$route.name === 'admin-analytics' ? 'text-white bg-slate-800 border-l-4 border-xieOrange' : 'hover:bg-slate-800 hover:text-white border-l-4 border-transparent'"
+        >
+          <i class="fas fa-chart-bar w-6"></i> 銷售分析
+        </router-link>
+      </nav>
+      <div class="p-4 border-t border-slate-800">
+        <a href="#" class="flex items-center text-sm hover:text-white transition" @click.prevent="logout">
+          <i class="fas fa-sign-out-alt w-6"></i> 登出
+        </a>
+      </div>
     </aside>
 
-    <div class="flex-1 flex flex-col h-screen overflow-hidden">
-
-        <!-- Header -->
-        <header class="h-16 bg-white shadow-sm flex items-center justify-between px-6 z-10">
-            <button class="md:hidden text-gray-500"><i class="fas fa-bars text-xl"></i></button>
-            <div class="text-lg font-bold text-gray-800">{{ getPageTitle }}</div>
-            <div class="flex items-center gap-4">
-                <button class="relative text-gray-400 hover:text-xieOrange transition">
-                    <i class="fas fa-bell"></i>
-                    <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-                </button>
-                <div class="flex items-center gap-2">
-                    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="w-8 h-8 rounded-full border">
-                    <span class="text-sm font-bold text-gray-700">Admin</span>
-                </div>
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <header class="h-16 bg-white dark:bg-slate-800 border-b border-stone-200 dark:border-slate-700 flex items-center justify-between px-6 transition-colors duration-300">
+        <div class="flex items-center">
+          <button class="md:hidden text-stone-500 dark:text-stone-400 mr-4">
+            <i class="fas fa-bars text-xl"></i>
+          </button>
+          <div>
+            <h2 class="font-semibold text-slate-700 dark:text-stone-100">{{ getPageTitle }}</h2>
+            <div class="text-xs text-stone-400 dark:text-stone-500 flex items-center gap-1">
+              <span class="hover:text-xieOrange cursor-pointer transition">管理後台</span>
+              <span>/</span>
+              <span class="text-slate-600 dark:text-stone-300">{{ getPageTitle }}</span>
             </div>
-        </header>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button class="text-stone-400 dark:text-stone-500 hover:text-slate-700 dark:hover:text-stone-300 relative transition group">
+            <i class="fas fa-bell group-hover:animate-wiggle"></i>
+            <div class="w-2 h-2 bg-rose-500 rounded-full absolute -top-0.5 -right-0.5 animate-pulse"></div>
+          </button>
+          <div class="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center text-slate-600 dark:text-stone-300">
+            <i class="fas fa-user-shield"></i>
+          </div>
+        </div>
+      </header>
 
-        <!-- Main Content -->
-        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
-            <router-view></router-view>
-        </main>
+      <main class="flex-1 overflow-auto p-6 md:p-8 bg-stone-100 dark:bg-slate-950">
+        <router-view></router-view>
+      </main>
     </div>
   </div>
 </template>
@@ -103,6 +119,7 @@ export default {
         'admin-orders': '訂單管理',
         'admin-order-detail': '訂單詳情',
         'admin-coupons': '優惠券管理',
+        'admin-categories': '分類管理',
         'admin-users': '會員管理',
         'admin-analytics': '銷售分析'
       }
@@ -126,5 +143,16 @@ export default {
 </script>
 
 <style scoped>
-/* Tailwind CSS is used for styling */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(15deg); }
+  50% { transform: rotate(-10deg); }
+  75% { transform: rotate(5deg); }
+}
+.animate-wiggle {
+  animation: wiggle 0.5s ease-in-out;
+}
+.group:hover .group-hover\:animate-wiggle {
+  animation: wiggle 0.5s ease-in-out;
+}
 </style>

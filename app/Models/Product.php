@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id
@@ -24,7 +25,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -49,6 +50,14 @@ class Product extends Model
     }
 
     /**
+     * Get the reviews for the product.
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /**
      * Scope to filter by category (using category_id or category name/slug).
      */
     public function scopeInCategory($query, $categoryIdentifier)
@@ -61,5 +70,45 @@ class Product extends Model
             $q->where('name', $categoryIdentifier)
                 ->orWhere('slug', $categoryIdentifier);
         });
+    }
+
+    /**
+     * Default low stock threshold.
+     * Products with stock below this are considered low.
+     */
+    public const LOW_STOCK_THRESHOLD = 10;
+
+    /**
+     * Check if product has low stock.
+     */
+    public function isLowStock(?int $threshold = null): bool
+    {
+        $threshold = $threshold ?? self::LOW_STOCK_THRESHOLD;
+        return $this->stock <= $threshold;
+    }
+
+    /**
+     * Check if product is out of stock.
+     */
+    public function isOutOfStock(): bool
+    {
+        return $this->stock <= 0;
+    }
+
+    /**
+     * Scope to get products with low stock.
+     */
+    public function scopeLowStock($query, ?int $threshold = null)
+    {
+        $threshold = $threshold ?? self::LOW_STOCK_THRESHOLD;
+        return $query->where('stock', '<=', $threshold)->where('stock', '>', 0);
+    }
+
+    /**
+     * Scope to get products that are out of stock.
+     */
+    public function scopeOutOfStock($query)
+    {
+        return $query->where('stock', '<=', 0);
     }
 }

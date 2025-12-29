@@ -5,9 +5,11 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Exception;
 use App\Enums\OrderStatus;
 use App\Events\OrderPaid;
+use App\Exceptions\OrderAlreadyRefundedException;
+use App\Exceptions\OrderNotPayableException;
+use App\Exceptions\InvalidOrderTransitionException;
 
 class OrderService
 {
@@ -26,7 +28,7 @@ class OrderService
             $order = Order::where('id', $order->id)->lockForUpdate()->first();
 
             if ($order->status !== OrderStatus::PENDING_PAYMENT) {
-                throw new Exception('Order is not pending payment');
+                throw new OrderNotPayableException();
             }
 
             // Withdraw from wallet (using order_id for tracking)
@@ -49,51 +51,74 @@ class OrderService
 
     /**
      * Check if status transition is valid.
+     * Delegates to OrderStatus enum's state machine.
      */
     public function canTransition(Order $order, OrderStatus $newStatus): bool
     {
-        // Define transitions map
-        // Using string values for keys just to be safe with array keys
-        $transitions = [
-            OrderStatus::PENDING_PAYMENT->value => [OrderStatus::PROCESSING, OrderStatus::CANCELLED],
-            OrderStatus::PROCESSING->value => [OrderStatus::SHIPPED, OrderStatus::CANCELLED],
-            OrderStatus::SHIPPED->value => [OrderStatus::DELIVERED, OrderStatus::RETURNED],
-            OrderStatus::DELIVERED->value => [OrderStatus::COMPLETED, OrderStatus::RETURNED],
-            OrderStatus::COMPLETED->value => [],
-            OrderStatus::CANCELLED->value => [],
-            OrderStatus::RETURNED->value => [],
-        ];
+        $currentStatus = $order->status instanceof OrderStatus
+            ? $order->status
+            : OrderStatus::from($order->status);
 
-        $currentStatusVal = $order->status instanceof OrderStatus ? $order->status->value : $order->status;
-
-        // Find allowed statuses (array of Enums)
-        $allowed = $transitions[$currentStatusVal] ?? [];
-
-        // Check if newStatus is in allowed
-        foreach ($allowed as $allowedStatus) {
-            if ($allowedStatus === $newStatus) {
-                return true;
-            }
-        }
-        return false;
+        return $currentStatus->canTransitionTo($newStatus);
     }
 
     /**
-     * refund an order.
+     * Transition order to a new status with validation and auto-refund.
+     * 
+     * @throws \App\Exceptions\InvalidOrderTransitionException When transition is not allowed
      */
-    public function refund(Order $order): Order
+    public function transitionStatus(Order $order, OrderStatus $newStatus): Order
     {
-        if ($order->status === OrderStatus::RETURNED) { // Assuming 'refunded' maps to RETURNED or CANCELLED? User code had 'refunded'. 
-            // The Enum definitions: cancelled, returned. No 'refunded'.
-            // The previous code checked for literal string 'refunded'. 
-            // I need to align this. I'll assume 'CANCELLED' implies refunded for money. 
-            // Or maybe 'RETURNED'.
-            // Let's stick to 'CANCELLED' if it's a cancellation.
-            throw new Exception("Order is already refunded/cancelled.");
-        }
+        return DB::transaction(function () use ($order, $newStatus) {
+            // Lock order for update
+            $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->first();
 
-        // Logic check
-        // ... (simplified for brevity, keeping core logic)
+            $currentStatus = $lockedOrder->status instanceof OrderStatus
+                ? $lockedOrder->status
+                : OrderStatus::from($lockedOrder->status);
+
+            // Validate transition
+            if (!$currentStatus->canTransitionTo($newStatus)) {
+                throw new InvalidOrderTransitionException(
+                    $currentStatus->value,
+                    $newStatus->value
+                );
+            }
+
+            // Auto-refund when cancelling a paid order
+            if ($newStatus === OrderStatus::CANCELLED && $currentStatus->requiresRefundOnCancel()) {
+                $this->walletService->refund(
+                    $lockedOrder->user,
+                    $lockedOrder->total_amount,
+                    "Auto-refund for cancelled Order #{$lockedOrder->id}",
+                    $lockedOrder->id
+                );
+
+                // Restore inventory (eager load to avoid N+1)
+                $lockedOrder->load('items.product');
+                foreach ($lockedOrder->items as $item) {
+                    $item->product->increment('stock', $item->quantity);
+                }
+            }
+
+            // Update status
+            $lockedOrder->status = $newStatus;
+            $lockedOrder->save();
+
+            return $lockedOrder;
+        });
+    }
+
+    /**
+     * Cancel an order and refund if already paid.
+     * Sets order status to CANCELLED and restores inventory.
+     */
+    public function cancelAndRefund(Order $order): Order
+    {
+        // Quick check before entering transaction
+        if ($order->status === OrderStatus::RETURNED || $order->status === OrderStatus::CANCELLED) {
+            throw new OrderAlreadyRefundedException();
+        }
 
         return DB::transaction(function () use ($order) {
             // Refetch with lock
@@ -101,7 +126,7 @@ class OrderService
 
             // Check status again
             if (in_array($lockedOrder->status, [OrderStatus::CANCELLED, OrderStatus::RETURNED])) {
-                throw new Exception("Order is already refunded.");
+                throw new OrderAlreadyRefundedException();
             }
 
             // Check if order was paid (not pending)
@@ -115,7 +140,8 @@ class OrderService
                 );
             }
 
-            // Restore Stock (Primitive loop)
+            // Restore Stock (eager load to avoid N+1)
+            $lockedOrder->load('items.product');
             foreach ($lockedOrder->items as $item) {
                 $item->product->increment('stock', $item->quantity);
             }

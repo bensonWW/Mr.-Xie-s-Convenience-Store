@@ -320,7 +320,7 @@
 
 <script>
 import api from '../services/api'
-import { mapActions } from 'vuex' // Add mapActions
+import { useAuthStore } from '@/stores/auth'
 import { useToast } from 'vue-toastification'
 
 // Import new components
@@ -337,7 +337,8 @@ export default {
   },
   setup () {
     const toast = useToast()
-    return { toast }
+    const authStore = useAuthStore()
+    return { toast, authStore }
   },
   data () {
     return {
@@ -358,7 +359,6 @@ export default {
         phone: '',
         birthday: '',
         gender: 'other',
-        address: '',
         status: 'active',
         memo: '',
         member_level: 'normal',
@@ -388,7 +388,6 @@ export default {
           phone: user.phone || '',
           birthday: user.birthday || '',
           gender: user.gender || 'other',
-          address: user.address || '',
           status: user.status || 'active',
           memo: user.memo || '',
           newsletter: user.newsletter !== undefined ? user.newsletter : true,
@@ -410,10 +409,8 @@ export default {
         this.$router.push('/admin/users')
       }
     },
-    ...mapActions(['logout']), // Map logout action
-    // logout method removed as we use the mapped action directly or wrapper
     handleLogout () {
-      this.logout() // Store action handles everything now
+      this.authStore.logout()
     },
     toggleBan () {
       this.form.status = this.form.status === 'banned' ? 'active' : 'banned'

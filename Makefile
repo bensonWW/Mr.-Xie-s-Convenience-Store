@@ -17,6 +17,7 @@ help:
 	@echo "  make fresh      - Fresh database with seeds"
 	@echo "  make test       - Run PHP tests"
 	@echo "  make optimize   - Optimize Laravel for production"
+	@echo "  make docs       - Generate API documentation (Scribe)"
 
 # Development
 build:
@@ -69,6 +70,16 @@ clear:
 	docker exec mr-xies-app php artisan view:clear
 	docker exec mr-xies-app php artisan cache:clear
 
+# Security
+audit:
+	docker exec mr-xies-app composer audit
+	cd xie_vue && npm audit
+
+# Documentation
+docs:
+	docker exec mr-xies-app php artisan scribe:generate
+	@echo "API docs available at: http://localhost:8000/docs"
+
 # Frontend
 frontend-build:
 	cd xie_vue && npm run build
@@ -79,6 +90,16 @@ frontend-dev:
 # Database
 db-shell:
 	docker exec -it mr-xies-db mysql -u laravel -p
+
+db-reset-password:
+	@echo "Resetting MySQL password and creating test database..."
+	docker exec mr-xies-db mysql -u root -proot -e "ALTER USER 'laravel'@'%' IDENTIFIED BY 'root'; CREATE DATABASE IF NOT EXISTS laravel_testing; GRANT ALL PRIVILEGES ON laravel_testing.* TO 'laravel'@'%'; FLUSH PRIVILEGES;"
+	@echo "Done! Run 'make migrate' to apply migrations."
+
+db-setup-test:
+	@echo "Creating test database..."
+	docker exec mr-xies-db mysql -u root -proot -e "CREATE DATABASE IF NOT EXISTS laravel_testing; GRANT ALL PRIVILEGES ON laravel_testing.* TO 'laravel'@'%'; FLUSH PRIVILEGES;"
+	@echo "Test database ready!"
 
 # Health check
 health:

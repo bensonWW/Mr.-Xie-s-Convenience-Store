@@ -70,7 +70,6 @@ function openEditModal (coupon) {
 async function saveCoupon () {
   try {
     const payload = { ...form.value }
-    // Convert logic
     if (payload.type === 'fixed') {
         payload.discount_amount = Math.round(payload.discount_amount * 100)
     }
@@ -109,17 +108,17 @@ async function deleteCoupon (id) {
 <template>
   <div class="p-6">
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold text-gray-800">優惠券管理</h2>
+      <h2 class="text-2xl font-bold text-gray-800 dark:text-stone-100">優惠券管理</h2>
       <button class="bg-xieOrange text-white px-4 py-2 rounded-lg font-bold hover:bg-orange-600 transition shadow-sm flex items-center gap-2" @click="openCreateModal">
         <i class="fas fa-plus"></i> 新增優惠券
       </button>
     </div>
 
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div class="bg-white dark:bg-slate-800 rounded-lg shadow-sm overflow-hidden transition-colors duration-300">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-gray-50 border-b border-gray-100 text-gray-600 text-sm uppercase tracking-wider">
+            <tr class="bg-gray-50 dark:bg-slate-900 border-b border-gray-100 dark:border-slate-700 text-gray-600 dark:text-stone-400 text-sm uppercase tracking-wider">
               <th class="p-4 font-bold">代碼</th>
               <th class="p-4 font-bold">折扣</th>
               <th class="p-4 font-bold">類型</th>
@@ -129,22 +128,22 @@ async function deleteCoupon (id) {
               <th class="p-4 font-bold text-right">操作</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
+          <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
             <tr v-if="coupons.length === 0">
-              <td colspan="7" class="p-8 text-center text-gray-400">暫無優惠券資料</td>
+              <td colspan="7" class="p-8 text-center text-gray-400 dark:text-stone-500">暫無優惠券資料</td>
             </tr>
-            <tr v-for="coupon in coupons" :key="coupon.id" class="hover:bg-gray-50 transition">
-              <td class="p-4 font-bold text-gray-800">{{ coupon.code }}</td>
+            <tr v-for="coupon in coupons" :key="coupon.id" class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition">
+              <td class="p-4 font-bold text-gray-800 dark:text-stone-100">{{ coupon.code }}</td>
               <td class="p-4 text-xieOrange font-bold">{{ coupon.type === 'fixed' ? formatPrice(coupon.discount_amount) : coupon.discount_amount + '%' }}</td>
-              <td class="p-4 text-gray-600"><span class="bg-gray-100 px-2 py-1 rounded text-xs">{{ coupon.type === 'fixed' ? '定額' : '百分比' }}</span></td>
-              <td class="p-4 text-gray-600">{{ coupon.limit_price ? formatPrice(coupon.limit_price) : '無' }}</td>
-              <td class="p-4 text-gray-600 text-sm">{{ coupon.starts_at ? coupon.starts_at.slice(0, 10) : '即時' }}</td>
-              <td class="p-4 text-gray-600 text-sm">{{ coupon.ends_at ? coupon.ends_at.slice(0, 10) : '永久' }}</td>
+              <td class="p-4 text-gray-600 dark:text-stone-300"><span class="bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded text-xs">{{ coupon.type === 'fixed' ? '定額' : '百分比' }}</span></td>
+              <td class="p-4 text-gray-600 dark:text-stone-300">{{ coupon.limit_price ? formatPrice(coupon.limit_price) : '無' }}</td>
+              <td class="p-4 text-gray-600 dark:text-stone-400 text-sm">{{ coupon.starts_at ? coupon.starts_at.slice(0, 10) : '即時' }}</td>
+              <td class="p-4 text-gray-600 dark:text-stone-400 text-sm">{{ coupon.ends_at ? coupon.ends_at.slice(0, 10) : '永久' }}</td>
               <td class="p-4 text-right space-x-2">
-                <button class="text-blue-500 hover:text-blue-700 transition" @click="openEditModal(coupon)">
+                <button class="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition" @click="openEditModal(coupon)">
                   <i class="fas fa-edit"></i>
                 </button>
-                <button class="text-red-500 hover:text-red-700 transition" @click="deleteCoupon(coupon.id)">
+                <button class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition" @click="deleteCoupon(coupon.id)">
                   <i class="fas fa-trash-alt"></i>
                 </button>
               </td>
@@ -156,46 +155,46 @@ async function deleteCoupon (id) {
 
     <!-- Modal -->
     <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">{{ isEditing ? '編輯優惠券' : '新增優惠券' }}</h2>
+      <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-md p-6 transition-colors duration-300">
+        <h2 class="text-xl font-bold text-gray-800 dark:text-stone-100 mb-4">{{ isEditing ? '編輯優惠券' : '新增優惠券' }}</h2>
 
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-bold text-gray-700 mb-1">代碼</label>
-            <input v-model="form.code" type="text" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-xieOrange" required>
+            <label class="block text-sm font-bold text-gray-700 dark:text-stone-200 mb-1">代碼</label>
+            <input v-model="form.code" type="text" class="w-full border border-gray-300 dark:border-slate-600 rounded px-3 py-2 focus:outline-none focus:border-xieOrange bg-white dark:bg-slate-700 text-gray-800 dark:text-stone-100" required>
           </div>
 
           <div>
-            <label class="block text-sm font-bold text-gray-700 mb-1">折扣類型</label>
-            <select v-model="form.type" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-xieOrange">
+            <label class="block text-sm font-bold text-gray-700 dark:text-stone-200 mb-1">折扣類型</label>
+            <select v-model="form.type" class="w-full border border-gray-300 dark:border-slate-600 rounded px-3 py-2 focus:outline-none focus:border-xieOrange bg-white dark:bg-slate-700 text-gray-800 dark:text-stone-100">
               <option value="fixed">定額折扣 ($)</option>
               <option value="percentage">百分比折扣 (%)</option>
             </select>
           </div>
 
           <div>
-            <label class="block text-sm font-bold text-gray-700 mb-1">折扣數值</label>
-            <input v-model.number="form.discount_amount" type="number" min="0" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-xieOrange" required>
+            <label class="block text-sm font-bold text-gray-700 dark:text-stone-200 mb-1">折扣數值</label>
+            <input v-model.number="form.discount_amount" type="number" min="0" class="w-full border border-gray-300 dark:border-slate-600 rounded px-3 py-2 focus:outline-none focus:border-xieOrange bg-white dark:bg-slate-700 text-gray-800 dark:text-stone-100" required>
           </div>
 
           <div>
-            <label class="block text-sm font-bold text-gray-700 mb-1">最低消費限制 (選填)</label>
-            <input v-model.number="form.limit_price" type="number" min="0" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-xieOrange">
+            <label class="block text-sm font-bold text-gray-700 dark:text-stone-200 mb-1">最低消費限制 (選填)</label>
+            <input v-model.number="form.limit_price" type="number" min="0" class="w-full border border-gray-300 dark:border-slate-600 rounded px-3 py-2 focus:outline-none focus:border-xieOrange bg-white dark:bg-slate-700 text-gray-800 dark:text-stone-100">
           </div>
 
           <div>
-            <label class="block text-sm font-bold text-gray-700 mb-1">開始日期 (選填)</label>
-            <input v-model="form.starts_at" type="date" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-xieOrange">
+            <label class="block text-sm font-bold text-gray-700 dark:text-stone-200 mb-1">開始日期 (選填)</label>
+            <input v-model="form.starts_at" type="date" class="w-full border border-gray-300 dark:border-slate-600 rounded px-3 py-2 focus:outline-none focus:border-xieOrange bg-white dark:bg-slate-700 text-gray-800 dark:text-stone-100">
           </div>
 
           <div>
-            <label class="block text-sm font-bold text-gray-700 mb-1">結束日期 (選填)</label>
-            <input v-model="form.ends_at" type="date" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-xieOrange">
+            <label class="block text-sm font-bold text-gray-700 dark:text-stone-200 mb-1">結束日期 (選填)</label>
+            <input v-model="form.ends_at" type="date" class="w-full border border-gray-300 dark:border-slate-600 rounded px-3 py-2 focus:outline-none focus:border-xieOrange bg-white dark:bg-slate-700 text-gray-800 dark:text-stone-100">
           </div>
         </div>
 
         <div class="flex justify-end gap-3 mt-6">
-          <button @click="showModal = false" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">取消</button>
+          <button @click="showModal = false" class="px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-stone-300 rounded hover:bg-gray-300 dark:hover:bg-slate-600 transition">取消</button>
           <button @click="saveCoupon" class="px-4 py-2 bg-xieOrange text-white rounded hover:bg-orange-600 transition">儲存</button>
         </div>
       </div>

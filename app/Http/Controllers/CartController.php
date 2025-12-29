@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cart;
-use App\Models\CartItem;
+use App\Services\CartService;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
+    public function __construct(
+        protected CartService $cartService
+    ) {}
+
     public function index(Request $request)
     {
-        $cart = Cart::firstOrCreate(['user_id' => $request->user()->id]);
+        $cart = $this->cartService->getOrCreateCart($request->user());
         return $cart->load('items.product');
     }
 
@@ -21,37 +24,11 @@ class CartController extends Controller
             'quantity' => 'required|integer|min:1',
         ]);
 
-        $user = $request->user();
-
-        $cart = \Illuminate\Support\Facades\DB::transaction(function () use ($request, $user) {
-            $cart = Cart::firstOrCreate(['user_id' => $user->id]);
-
-            // Lock product to check stock accurately
-            $product = \App\Models\Product::where('id', $request->product_id)->lockForUpdate()->firstOrFail();
-
-            $item = $cart->items()->where('product_id', $request->product_id)->first();
-            $currentQty = $item ? $item->quantity : 0;
-            $newQty = $currentQty + $request->quantity;
-
-            if ($product->stock < $newQty) {
-                // If insufficient, do not modify cart
-                throw \Illuminate\Validation\ValidationException::withMessages([
-                    'quantity' => ["Insufficient stock. Only {$product->stock} remaining."],
-                ]);
-            }
-
-            if ($item) {
-                $item->quantity = $newQty;
-                $item->save();
-            } else {
-                $item = $cart->items()->create([
-                    'product_id' => $request->product_id,
-                    'quantity' => $request->quantity,
-                ]);
-            }
-
-            return $cart->load('items.product');
-        });
+        $cart = $this->cartService->addItem(
+            $request->user(),
+            $request->product_id,
+            $request->quantity
+        );
 
         return response()->json($cart);
     }
@@ -62,37 +39,18 @@ class CartController extends Controller
             'quantity' => 'required|integer|min:1',
         ]);
 
-        $item = \Illuminate\Support\Facades\DB::transaction(function () use ($request, $itemId) {
-            $cart = Cart::where('user_id', $request->user()->id)->firstOrFail();
-            $item = $cart->items()->where('id', $itemId)->firstOrFail();
-
-            // Lock product for check
-            $product = \App\Models\Product::where('id', $item->product_id)->lockForUpdate()->firstOrFail();
-
-            if ($product->stock < $request->quantity) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
-                    'quantity' => ["Insufficient stock. Only {$product->stock} remaining."],
-                ]);
-            }
-
-            $item->quantity = $request->quantity;
-            $item->save();
-
-            return $item;
-        });
+        $item = $this->cartService->updateItem(
+            $request->user(),
+            $itemId,
+            $request->quantity
+        );
 
         return response()->json($item);
     }
 
     public function removeItem(Request $request, $itemId)
     {
-        return \Illuminate\Support\Facades\DB::transaction(function () use ($request, $itemId) {
-            $cart = Cart::where('user_id', $request->user()->id)->firstOrFail();
-            $item = $cart->items()->where('id', $itemId)->firstOrFail();
-
-            $item->delete();
-
-            return response()->json(['message' => 'Item removed']);
-        });
+        $this->cartService->removeItem($request->user(), $itemId);
+        return response()->json(['message' => 'Item removed']);
     }
 }

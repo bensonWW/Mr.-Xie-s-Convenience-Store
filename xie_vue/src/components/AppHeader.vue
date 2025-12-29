@@ -1,147 +1,186 @@
 <template>
-  <div>
-    <!-- Top Bar -->
-    <div class="bg-xieBlue text-white text-sm py-2">
-      <div class="container mx-auto px-4 flex justify-between items-center">
-        <span><i class="fas fa-check-circle text-xieOrange mr-2"></i>謝先生便利商店 - 您最信賴的居家夥伴</span>
-        <div class="space-x-4">
-          <a href="#" class="text-white hover:text-xieOrange no-underline">下載 App</a>
-          <a href="#" class="text-white hover:text-xieOrange no-underline">店家中心</a>
-          <a href="#" class="text-white hover:text-xieOrange no-underline">幫助中心</a>
+  <nav class="bg-white dark:bg-slate-900 border-b border-stone-200 dark:border-slate-800/50 sticky top-0 z-sticky transition-colors duration-300">
+    <div class="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+      <!-- Logo -->
+      <router-link to="/" class="flex items-center space-x-2.5 group flex-shrink-0">
+        <div class="w-9 h-9 bg-xieOrange rounded-lg flex items-center justify-center text-white font-serif font-bold shadow-sm">
+          X
+        </div>
+        <span class="text-xl font-bold text-slate-700 dark:text-stone-100 tracking-tight group-hover:text-xieOrange transition-colors">
+          Xie Mart
+        </span>
+      </router-link>
+
+      <!-- Search Bar - Rounded pill style with embedded icon -->
+      <div class="hidden md:flex flex-1 justify-end max-w-xs mx-6">
+        <div class="relative w-full group">
+          <input 
+            type="text" 
+            v-model="search"
+            @keyup.enter="doSearch"
+            placeholder="搜尋商品..." 
+            class="w-full bg-stone-100 dark:bg-slate-800 border-0 rounded-full py-2.5 pl-4 pr-11 focus:outline-none focus:ring-2 focus:ring-xieOrange/50 transition-all text-sm text-slate-700 dark:text-stone-200 placeholder:text-stone-400 dark:placeholder:text-stone-500"
+          >
+          <button 
+            @click="doSearch"
+            class="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full text-stone-400 hover:text-xieOrange hover:bg-stone-200 dark:hover:bg-slate-700 transition"
+          >
+            <i class="fas fa-search text-sm"></i>
+          </button>
         </div>
       </div>
-    </div>
 
-    <!-- Main Header -->
-    <header class="bg-white shadow-md sticky top-0 z-50">
-      <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
-        <router-link to="/" class="flex items-center gap-2 group no-underline">
-          <div class="bg-xieBlue text-white p-2 rounded text-xl font-bold">Mr. Xie</div>
-          <div class="text-2xl font-bold text-xieBlue tracking-tighter group-hover:text-xieOrange transition">
-            謝先生<span class="text-xieOrange">便利商店</span>
-          </div>
+      <!-- Actions - Compact icons with hover tooltips -->
+      <div class="flex items-center space-x-1">
+        <!-- Dark Mode Toggle -->
+        <button 
+          @click="toggleTheme" 
+          class="relative w-10 h-10 flex items-center justify-center rounded-full text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-slate-800 hover:text-xieOrange transition group"
+          :title="isDarkMode ? '切換淺色模式' : '切換深色模式'"
+        >
+          <i :class="isDarkMode ? 'fas fa-sun' : 'fas fa-moon'" class="text-lg"></i>
+          <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] tracking-wider text-stone-500 dark:text-stone-400 opacity-0 group-hover:opacity-100 transition whitespace-nowrap">{{ isDarkMode ? '淺色' : '深色' }}</span>
+        </button>
+
+        <!-- User -->
+        <router-link 
+          :to="isLoggedIn ? '/profile' : '/login'" 
+          class="relative w-10 h-10 flex items-center justify-center rounded-full text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-slate-800 hover:text-xieOrange transition group"
+          :title="isLoggedIn ? '會員中心' : '登入'"
+        >
+          <i :class="isLoggedIn ? 'fas fa-user-check' : 'far fa-user'" class="text-lg"></i>
+          <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] tracking-wider text-stone-500 dark:text-stone-400 opacity-0 group-hover:opacity-100 transition whitespace-nowrap">{{ isLoggedIn ? '會員' : '登入' }}</span>
         </router-link>
 
-        <div class="flex-1 w-full max-w-2xl mx-auto">
-          <div class="flex">
-            <input
-              type="text"
-              v-model="search"
-              @keyup.enter="doSearch"
-              placeholder="搜尋：大同電鍋、衛生紙、除濕機..."
-              class="w-full border-2 border-xieOrange rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-300"
-            >
-            <button
-              @click="doSearch"
-              class="bg-xieOrange text-white px-6 py-2 rounded-r-lg font-bold hover:bg-orange-600 transition flex items-center"
-            >
-              <i class="fas fa-search mr-2"></i> 搜尋
-            </button>
-          </div>
-          <div class="text-xs text-gray-500 mt-1 space-x-2">
-            <span class="text-xieOrange font-bold">熱搜：</span>
-            <router-link to="/items?search=Dyson" class="hover:underline">Dyson 吸塵器</router-link>
-            <router-link to="/items?search=洗衣球" class="hover:underline">洗衣球</router-link>
-            <router-link to="/items?search=氣炸鍋" class="hover:underline">氣炸鍋</router-link>
-          </div>
-        </div>
+        <!-- Wishlist -->
+        <router-link 
+          to="/profile?tab=wishlist" 
+          class="relative w-10 h-10 flex items-center justify-center rounded-full text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-slate-800 hover:text-xieOrange transition group"
+          title="收藏清單"
+        >
+          <i class="far fa-heart text-lg"></i>
+          <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] tracking-wider text-stone-500 dark:text-stone-400 opacity-0 group-hover:opacity-100 transition whitespace-nowrap">收藏</span>
+        </router-link>
 
-        <div class="flex items-center space-x-6 text-xieBlue">
-          <router-link to="/profile?tab=wishlist" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
-            <i class="far fa-heart text-xl"></i>
-            <span class="text-xs mt-1">收藏</span>
-          </router-link>
+        <!-- Cart -->
+        <button 
+          v-if="isLoggedIn"
+          @click="$emit('open-cart')"
+          class="relative w-10 h-10 flex items-center justify-center rounded-full text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-slate-800 hover:text-xieOrange transition group"
+          title="購物車"
+        >
+          <i class="fas fa-shopping-bag text-lg"></i>
+          <span 
+            v-if="!cartLoading && cartCount > 0"
+            class="absolute top-0.5 right-0.5 bg-xieOrange text-white text-[9px] font-bold min-w-[16px] h-[16px] flex items-center justify-center rounded-full"
+          >
+            {{ cartCount > 99 ? '99+' : cartCount }}
+          </span>
+          <span 
+            v-if="cartLoading"
+            class="absolute top-0.5 right-0.5 bg-stone-300 dark:bg-slate-600 text-transparent text-[9px] min-w-[16px] h-[16px] rounded-full animate-pulse"
+          >0</span>
+          <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] tracking-wider text-stone-500 dark:text-stone-400 opacity-0 group-hover:opacity-100 transition whitespace-nowrap">購物車</span>
+        </button>
 
-          <router-link to="/car" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
-            <i class="fas fa-shopping-cart text-xl relative">
-              <span v-if="isLoggedIn && cartLoading" class="absolute -top-2 -right-2 bg-gray-400 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center animate-pulse">...</span>
-              <span v-else-if="isLoggedIn && cartCount > 0" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">{{ cartCount }}</span>
-            </i>
-            <span class="text-xs mt-1">購物車</span>
-          </router-link>
+        <!-- Divider -->
+        <div class="w-px h-6 bg-stone-200 dark:bg-slate-700 mx-2 hidden md:block"></div>
 
-          <template v-if="!isLoggedIn">
-             <router-link to="/profile" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
-              <i class="far fa-user text-xl"></i>
-              <span class="text-xs mt-1">登入</span>
-            </router-link>
-          </template>
-          <template v-else>
-             <router-link to="/profile" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline">
-              <i class="fas fa-user-check text-xl"></i>
-              <span class="text-xs mt-1">會員中心</span>
-            </router-link>
+        <!-- Admin Link -->
+        <router-link 
+          v-if="isAdmin" 
+          to="/admin" 
+          class="hidden md:flex items-center gap-1.5 text-xieOrange font-medium border border-xieOrange rounded-full px-4 py-1.5 text-sm hover:bg-xieOrange hover:text-white transition"
+        >
+          <i class="fas fa-cogs text-xs"></i>
+          <span>後台</span>
+        </router-link>
 
-             <router-link v-if="isAdmin" to="/admin" class="flex flex-col items-center text-xieOrange font-bold border border-xieOrange rounded px-2 py-1 hover:bg-xieOrange hover:text-white transition no-underline">
-               <i class="fas fa-cogs text-lg"></i>
-               <span class="text-xs">後台管理</span>
-            </router-link>
-
-             <button @click="logout" class="flex flex-col items-center text-xieBlue hover:text-xieOrange no-underline bg-transparent border-none cursor-pointer">
-              <i class="fas fa-sign-out-alt text-xl"></i>
-              <span class="text-xs mt-1">登出</span>
-            </button>
-          </template>
-
-        </div>
+        <!-- Logout -->
+        <button 
+          v-if="isLoggedIn"
+          @click="handleLogout" 
+          class="hidden md:flex relative w-10 h-10 items-center justify-center rounded-full text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-slate-800 hover:text-xieOrange transition group"
+          title="登出"
+        >
+          <i class="fas fa-sign-out-alt text-lg"></i>
+          <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] tracking-wider text-stone-500 dark:text-stone-400 opacity-0 group-hover:opacity-100 transition whitespace-nowrap">登出</span>
+        </button>
       </div>
-    </header>
-  </div>
+    </div>
+  </nav>
 </template>
 
 <script>
-import { mapActions } from 'vuex' // Keep for Auth
-import { useCartStore } from '../stores/cart' // Import Pinia Store
+import { useCartStore } from '../stores/cart'
+import { useAuthStore } from '../stores/auth'
+import { isDark, toggleDarkMode } from '../utils/darkMode'
 
 export default {
   name: 'AppHeader',
+  emits: ['open-cart'],
   setup () {
-      const cartStore = useCartStore()
-      return { cartStore }
+    const cartStore = useCartStore()
+    const authStore = useAuthStore()
+    return { cartStore, authStore, isDark }
   },
   data () {
     return {
       search: ''
-      // cartLoading: false // Handled by store or just ignored for simple count
     }
   },
   computed: {
     isLoggedIn () {
-      return !!this.$store.getters.isLoggedIn
+      return this.authStore.isLoggedIn
     },
     isAdmin () {
-      return this.$store.getters.isAdmin
+      return this.authStore.isAdmin
     },
     cartCount () {
-        // Use Pinia getter
       return this.cartStore.cartCount
+    },
+    cartLoading () {
+      return this.cartStore.loading
+    },
+    isDarkMode () {
+      return this.isDark
     }
   },
   methods: {
-    // ...mapActions('cart', ['fetchCount']), // Removed
-    ...mapActions(['logout']),
     doSearch () {
       if (this.search.trim()) {
         this.$router.push({ path: '/items', query: { search: this.search.trim() } })
       }
     },
-    handleLogout () {
-      this.logout()
+    async handleLogout () {
+      await this.authStore.logout()
+      this.$router.push('/login')
+      // Reset cart state safely (handle missing method)
+      if (typeof this.cartStore.clearCart === 'function') {
+        this.cartStore.clearCart()
+      } else if (typeof this.cartStore.$reset === 'function') {
+        this.cartStore.$reset()
+      } else {
+        // Fallback: manual reset
+        this.cartStore.items = []
+        this.cartStore.count = 0
+        this.cartStore.totalAmount = 0
+      }
+    },
+    toggleTheme () {
+      toggleDarkMode()
     }
   },
   mounted () {
-    if (this.isLoggedIn) {
-       this.cartStore.fetchCart()
-      // this.refreshCart()
-    }
-    // window.addEventListener('cart:updated', this.refreshCart) // Removed, Pinia is reactive
-  },
-  unmounted () {
-    // window.removeEventListener('cart:updated', this.refreshCart)
+    this.$watch(
+      () => this.authStore.isLoggedIn,
+      (loggedIn) => {
+        if (loggedIn) {
+          this.cartStore.fetchCart()
+        }
+      },
+      { immediate: true }
+    )
   }
 }
 </script>
-
-<style scoped>
-/* Scoped styles if needed */
-</style>

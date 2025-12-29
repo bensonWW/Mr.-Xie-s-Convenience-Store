@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
-
+use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\HasApiTokens;
+use App\Enums\Role;
 
 /**
  * @property int $id
@@ -17,7 +17,6 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string $password
  * @property string|null $phone
  * @property string $role
- * @property string|null $address
  * @property string|null $birthday
  * @property int|null $store_id
  * @property int|null $member_level_id
@@ -48,7 +47,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role',
         'phone',
-        'address',
         'birthday',
         'store_id',
         'status',
@@ -101,9 +99,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Get the member level slug (backward compatibility accessor).
-     * This allows existing code using $user->member_level to continue working.
+     * Access via $user->member_level_slug
      */
-    public function getMemberLevelAttribute(): string
+    public function getMemberLevelSlugAttribute(): string
     {
         return $this->memberLevel?->slug ?? 'normal';
     }
@@ -111,21 +109,28 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Set member level by slug (backward compatibility for tests).
      * Converts slug to member_level_id.
+     * Usage: $user->member_level_slug = 'vip';
+     * 
+     * @deprecated Use member_level_id directly with a MemberLevel lookup in service layer.
      */
-    public function setMemberLevelAttribute(?string $value): void
+    public function setMemberLevelSlugAttribute(?string $value): void
     {
         if ($value === null) {
             return;
         }
 
-        // Try to find the level by slug and set member_level_id
-        try {
-            $level = MemberLevel::where('slug', $value)->first();
-            if ($level) {
-                $this->attributes['member_level_id'] = $level->id;
-            }
-        } catch (\Exception $e) {
-            // Ignore - MemberLevel table might not exist yet
+        // Log deprecation warning for tracking usage (skip in test environment)
+        if (!app()->runningUnitTests()) {
+            Log::warning('Deprecated: setMemberLevelSlugAttribute used. Consider using member_level_id directly.', [
+                'user_id' => $this->id ?? 'new',
+                'slug' => $value,
+            ]);
+        }
+
+        // Find the level by slug and set member_level_id
+        $level = MemberLevel::where('slug', $value)->first();
+        if ($level) {
+            $this->attributes['member_level_id'] = $level->id;
         }
     }
 
@@ -161,6 +166,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === Role::ADMIN->value;
     }
 }

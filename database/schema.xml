@@ -1,3 +1,460 @@
-<schema>
-    <!-- Add schema definition here -->
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ * 謝先生便利店 (Mr. Xie's Convenience Store)
+ * 資料庫 Schema 定義
+ * 
+ * 版本：1.1.0
+ * 最後更新：2025-12-27
+ * 
+ * 此文檔定義了系統完整的資料庫結構（符合 3NF 正規化）
+-->
+<schema name="mr_xie_convenience_store" version="1.2.0">
+
+    <!-- ========================================
+         核心會員系統 (User System)
+         ======================================== -->
+
+    <!-- 會員等級表 (normalized from users.member_level) -->
+    <table name="member_levels">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="slug" type="VARCHAR(50)" unique="true" description="等級代碼: normal, vip, platinum"/>
+        <column name="name" type="VARCHAR(100)" description="等級名稱: 一般會員, VIP 會員, 白金會員"/>
+        <column name="threshold" type="INTEGER" default="0" description="升級門檻 (單位: cents)"/>
+        <column name="discount" type="DECIMAL(5,4)" default="0.0000" description="折扣率: 0.05 = 5%"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+    </table>
+
+    <!-- 使用者表 -->
+    <table name="users">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="name" type="VARCHAR(255)"/>
+        <column name="email" type="VARCHAR(255)" unique="true"/>
+        <column name="email_verified_at" type="TIMESTAMP" nullable="true"/>
+        <column name="password" type="VARCHAR(255)"/>
+        <column name="remember_token" type="VARCHAR(100)" nullable="true"/>
+        <column name="role" type="VARCHAR(255)" default="customer" description="角色: customer, admin, staff"/>
+        <column name="phone" type="VARCHAR(255)" nullable="true"/>
+        <column name="birthday" type="DATE" nullable="true"/>
+        <column name="store_id" type="BIGINT UNSIGNED" nullable="true"/>
+        <column name="status" type="VARCHAR(255)" default="active" description="狀態: active, banned"/>
+        <column name="balance" type="INTEGER" default="0" description="錢包餘額 (單位: cents)"/>
+        <column name="member_level_id" type="BIGINT UNSIGNED" nullable="true"/>
+        <column name="is_level_locked" type="BOOLEAN" default="false" description="等級是否鎖定"/>
+        <column name="last_login_at" type="TIMESTAMP" nullable="true" description="最後登入時間"/>
+        <column name="verification_code" type="VARCHAR(255)" nullable="true" description="Email 驗證碼"/>
+        <column name="verification_code_expires_at" type="TIMESTAMP" nullable="true" description="驗證碼過期時間"/>
+        <column name="deleted_at" type="TIMESTAMP" nullable="true"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+        <foreignKey column="member_level_id" references="member_levels(id)" onDelete="SET NULL"/>
+        <foreignKey column="store_id" references="stores(id)" onDelete="SET NULL"/>
+        <index name="users_email_unique" columns="email" unique="true"/>
+        <index name="users_store_id_index" columns="store_id"/>
+        <index name="users_member_level_id_index" columns="member_level_id"/>
+        <index name="users_status_index" columns="status"/>
+        <index name="users_deleted_at_email_index" columns="deleted_at,email"/>
+    </table>
+
+    <!-- 密碼重設 tokens -->
+    <table name="password_reset_tokens">
+        <column name="email" type="VARCHAR(255)" primaryKey="true"/>
+        <column name="token" type="VARCHAR(255)"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+    </table>
+
+    <!-- Sessions -->
+    <table name="sessions">
+        <column name="id" type="VARCHAR(255)" primaryKey="true"/>
+        <column name="user_id" type="BIGINT UNSIGNED" nullable="true"/>
+        <column name="ip_address" type="VARCHAR(45)" nullable="true"/>
+        <column name="user_agent" type="TEXT" nullable="true"/>
+        <column name="payload" type="LONGTEXT"/>
+        <column name="last_activity" type="INTEGER"/>
+        <foreignKey column="user_id" references="users(id)" onDelete="CASCADE"/>
+        <index name="sessions_user_id_index" columns="user_id"/>
+        <index name="sessions_last_activity_index" columns="last_activity"/>
+    </table>
+
+    <!-- ========================================
+         商店與產品系統 (Store & Product System)
+         ======================================== -->
+
+    <!-- 商店表 -->
+    <table name="stores">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="name" type="VARCHAR(255)"/>
+        <column name="slug" type="VARCHAR(255)" unique="true" nullable="true" description="商店代碼 (多租戶用)"/>
+        <column name="email" type="VARCHAR(255)" unique="true"/>
+        <column name="address" type="TEXT"/>
+        <column name="phone" type="VARCHAR(255)"/>
+        <column name="settings" type="JSON" nullable="true" description="商店設定 (JSON)"/>
+        <column name="status" type="VARCHAR(255)" default="active" description="狀態: active, inactive"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+    </table>
+
+    <!-- 商品分類表 (normalized from products.category) -->
+    <table name="categories">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="name" type="VARCHAR(255)" unique="true"/>
+        <column name="slug" type="VARCHAR(255)" unique="true"/>
+        <column name="description" type="TEXT" nullable="true"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+    </table>
+
+    <!-- 商品表 -->
+    <table name="products">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="name" type="VARCHAR(255)"/>
+        <column name="price" type="INTEGER" description="價格 (單位: cents)"/>
+        <column name="original_price" type="INTEGER" nullable="true" description="原價 (單位: cents)"/>
+        <column name="information" type="TEXT" nullable="true" description="商品描述"/>
+        <column name="image" type="VARCHAR(255)" nullable="true"/>
+        <column name="category_id" type="BIGINT UNSIGNED" nullable="true"/>
+        <column name="status" type="VARCHAR(255)" default="active" description="商品狀態: active, inactive"/>
+        <column name="stock" type="INTEGER" default="0"/>
+        <column name="store_id" type="BIGINT UNSIGNED"/>
+        <column name="deleted_at" type="TIMESTAMP" nullable="true"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+        <foreignKey column="store_id" references="stores(id)" onDelete="CASCADE"/>
+        <foreignKey column="category_id" references="categories(id)" onDelete="SET NULL"/>
+        <index name="products_store_id_index" columns="store_id"/>
+        <index name="products_category_id_index" columns="category_id"/>
+        <index name="products_status_index" columns="status"/>
+        <index name="products_stock_index" columns="stock"/>
+        <index name="products_deleted_at_status_index" columns="deleted_at,status"/>
+    </table>
+
+    <!-- ========================================
+         購物車系統 (Cart System)
+         ======================================== -->
+
+    <!-- 購物車表 -->
+    <table name="carts">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="user_id" type="BIGINT UNSIGNED"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+        <foreignKey column="user_id" references="users(id)" onDelete="CASCADE"/>
+        <index name="carts_user_id_index" columns="user_id"/>
+    </table>
+
+    <!-- 購物車項目表 -->
+    <table name="cart_items">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="cart_id" type="BIGINT UNSIGNED"/>
+        <column name="product_id" type="BIGINT UNSIGNED"/>
+        <column name="quantity" type="INTEGER" default="1"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+        <foreignKey column="cart_id" references="carts(id)" onDelete="CASCADE"/>
+        <foreignKey column="product_id" references="products(id)" onDelete="CASCADE"/>
+        <index name="cart_items_cart_id_index" columns="cart_id"/>
+        <index name="cart_items_product_id_index" columns="product_id"/>
+        <index name="cart_items_cart_product_unique" columns="cart_id,product_id" unique="true"/>
+    </table>
+
+    <!-- ========================================
+         訂單系統 (Order System)
+         ======================================== -->
+
+    <!-- 序號產生器 -->
+    <table name="sequences">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="name" type="VARCHAR(255)" unique="true" description="序號名稱: order_logistics_YYYYMMDD"/>
+        <column name="current_value" type="BIGINT UNSIGNED" default="0"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+    </table>
+
+    <!-- 優惠券表 -->
+    <table name="coupons">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="code" type="VARCHAR(255)" unique="true"/>
+        <column name="discount_amount" type="INTEGER" description="折扣金額 (單位: cents)"/>
+        <column name="limit_price" type="INTEGER" nullable="true" description="使用門檻 (單位: cents)"/>
+        <column name="type" type="VARCHAR(255)" default="fixed" description="折扣類型: fixed, percentage"/>
+        <column name="starts_at" type="TIMESTAMP" nullable="true"/>
+        <column name="ends_at" type="TIMESTAMP" nullable="true"/>
+        <column name="usage_limit" type="INTEGER" nullable="true" description="最大使用次數 (null = 無限)"/>
+        <column name="usage_count" type="INTEGER" default="0" description="已使用次數"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+        <index name="coupons_code_unique" columns="code" unique="true"/>
+        <index name="coupons_starts_at_ends_at_index" columns="starts_at,ends_at"/>
+    </table>
+
+    <!-- 訂單表 -->
+    <table name="orders">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="user_id" type="BIGINT UNSIGNED"/>
+        <column name="status" type="VARCHAR(255)" default="pending_payment" description="訂單狀態: pending_payment, processing, shipped, delivered, completed, cancelled, returned"/>
+        <column name="total_amount" type="INTEGER" description="總金額 (單位: cents)"/>
+        <column name="discount_amount" type="INTEGER" default="0" description="會員折扣金額 (單位: cents)"/>
+        <column name="shipping_fee" type="INTEGER" default="0" description="運費 (單位: cents)"/>
+        <column name="payment_method" type="VARCHAR(255)" default="wallet" description="付款方式"/>
+        <column name="logistics_number" type="VARCHAR(255)" nullable="true" description="物流編號"/>
+        <column name="coupon_id" type="BIGINT UNSIGNED" nullable="true" description="使用的優惠券"/>
+        <column name="deleted_at" type="TIMESTAMP" nullable="true"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+        <foreignKey column="user_id" references="users(id)" onDelete="CASCADE"/>
+        <foreignKey column="coupon_id" references="coupons(id)" onDelete="SET NULL"/>
+        <index name="orders_user_id_index" columns="user_id"/>
+        <index name="orders_status_index" columns="status"/>
+        <index name="orders_created_at_index" columns="created_at"/>
+        <index name="orders_coupon_id_index" columns="coupon_id"/>
+        <index name="orders_user_id_status_index" columns="user_id,status"/>
+        <index name="orders_user_id_created_at_index" columns="user_id,created_at"/>
+        <index name="orders_deleted_at_user_id_index" columns="deleted_at,user_id"/>
+    </table>
+
+    <!-- 訂單項目表 -->
+    <table name="order_items">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="order_id" type="BIGINT UNSIGNED"/>
+        <column name="product_id" type="BIGINT UNSIGNED"/>
+        <column name="quantity" type="INTEGER"/>
+        <column name="price" type="INTEGER" description="單價 (單位: cents)"/>
+        <column name="product_name" type="VARCHAR(255)" nullable="true" description="商品名稱快照"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+        <foreignKey column="order_id" references="orders(id)" onDelete="CASCADE"/>
+        <foreignKey column="product_id" references="products(id)" onDelete="CASCADE"/>
+        <index name="order_items_order_id_index" columns="order_id"/>
+        <index name="order_items_product_id_index" columns="product_id"/>
+    </table>
+
+    <!-- 訂單項目選項表 (normalized from order_items.options JSON) -->
+    <table name="order_item_options">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="order_item_id" type="BIGINT UNSIGNED"/>
+        <column name="option_name" type="VARCHAR(255)" description="選項名稱: size, color, flavor"/>
+        <column name="option_value" type="VARCHAR(255)" description="選項值: large, red, vanilla"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+        <foreignKey column="order_item_id" references="order_items(id)" onDelete="CASCADE"/>
+        <index name="order_item_options_order_item_id_option_name_index" columns="order_item_id,option_name"/>
+    </table>
+
+    <!-- 訂單地址表 (normalized shipping info) -->
+    <table name="order_addresses">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="order_id" type="BIGINT UNSIGNED" unique="true"/>
+        <column name="name" type="VARCHAR(255)" nullable="true" description="收件人姓名"/>
+        <column name="phone" type="VARCHAR(255)" nullable="true" description="收件人電話"/>
+        <column name="address" type="VARCHAR(255)" nullable="true" description="收件地址"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+        <foreignKey column="order_id" references="orders(id)" onDelete="CASCADE"/>
+        <index name="order_addresses_order_id_unique" columns="order_id" unique="true"/>
+    </table>
+
+    <!-- 訂單快照表 (structured snapshot data for historical preservation) -->
+    <table name="order_snapshots">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="order_id" type="BIGINT UNSIGNED" unique="true"/>
+        <column name="buyer_email" type="VARCHAR(255)" nullable="true" description="下單時的買家 Email"/>
+        <column name="member_level_name" type="VARCHAR(50)" nullable="true" description="下單時的會員等級"/>
+        <column name="user_name" type="VARCHAR(255)" nullable="true" description="下單時的用戶姓名"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+        <foreignKey column="order_id" references="orders(id)" onDelete="CASCADE"/>
+        <index name="order_snapshots_order_id_index" columns="order_id"/>
+    </table>
+
+    <!-- ========================================
+         優惠系統 (Coupon & Event System)
+         ======================================== -->
+
+    <!-- 特殊活動表 -->
+    <table name="special_events">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="name" type="VARCHAR(255)"/>
+        <column name="discount_rate" type="DECIMAL(5,4)" description="折扣率: 0.10 = 10% off"/>
+        <column name="starts_at" type="TIMESTAMP" nullable="true"/>
+        <column name="ends_at" type="TIMESTAMP" nullable="true"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+        <index name="special_events_starts_at_ends_at_index" columns="starts_at,ends_at"/>
+    </table>
+
+    <!-- ========================================
+         錢包系統 (Wallet System)
+         ======================================== -->
+
+    <!-- 錢包交易紀錄表 -->
+    <table name="wallet_transactions">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="user_id" type="BIGINT UNSIGNED"/>
+        <column name="order_id" type="BIGINT UNSIGNED" nullable="true" description="關聯訂單 ID"/>
+        <column name="type" type="VARCHAR(255)" description="交易類型: deposit, withdrawal, payment, refund, adjustment"/>
+        <column name="amount" type="INTEGER" description="交易金額 (單位: cents)"/>
+        <column name="description" type="VARCHAR(255)" nullable="true"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+        <foreignKey column="user_id" references="users(id)" onDelete="CASCADE"/>
+        <foreignKey column="order_id" references="orders(id)" onDelete="SET NULL"/>
+        <index name="wallet_transactions_user_id_index" columns="user_id"/>
+        <index name="wallet_transactions_type_index" columns="type"/>
+        <index name="wallet_transactions_order_id_index" columns="order_id"/>
+        <index name="wallet_transactions_user_id_type_index" columns="user_id,type"/>
+    </table>
+
+    <!-- 錢包審計日誌表 (ADR-008) -->
+    <table name="wallet_logs">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="wallet_transaction_id" type="BIGINT UNSIGNED"/>
+        <column name="user_id" type="BIGINT UNSIGNED"/>
+        <column name="operator_id" type="BIGINT UNSIGNED" nullable="true" description="操作人員 ID (null = 用戶本人)"/>
+        <column name="operator_type" type="VARCHAR(50)" default="user" description="操作者類型: user, admin, system"/>
+        <column name="action" type="VARCHAR(50)" description="交易動作: deposit, withdrawal, payment, refund, adjustment"/>
+        <column name="amount" type="INTEGER" description="金額 (單位: cents)"/>
+        <column name="balance_before" type="INTEGER" description="交易前餘額"/>
+        <column name="balance_after" type="INTEGER" description="交易後餘額"/>
+        <column name="ip_address" type="VARCHAR(45)" nullable="true" description="IPv4/IPv6"/>
+        <column name="user_agent" type="TEXT" nullable="true"/>
+        <column name="reason" type="TEXT" nullable="true" description="交易原因/備註"/>
+        <column name="checksum" type="VARCHAR(64)" nullable="true" description="防竄改校驗碼"/>
+        <column name="created_at" type="TIMESTAMP" default="CURRENT_TIMESTAMP"/>
+        <foreignKey column="wallet_transaction_id" references="wallet_transactions(id)" onDelete="CASCADE"/>
+        <foreignKey column="user_id" references="users(id)" onDelete="CASCADE"/>
+        <foreignKey column="operator_id" references="users(id)" onDelete="SET NULL"/>
+        <index name="wallet_logs_user_id_created_at_index" columns="user_id,created_at"/>
+        <index name="wallet_logs_operator_id_index" columns="operator_id"/>
+        <index name="wallet_logs_action_index" columns="action"/>
+    </table>
+
+    <!-- ========================================
+         使用者相關功能 (User Features)
+         ======================================== -->
+
+    <!-- 收藏清單表 -->
+    <table name="favorites">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="user_id" type="BIGINT UNSIGNED"/>
+        <column name="product_id" type="BIGINT UNSIGNED"/>
+        <column name="notify_on_restock" type="BOOLEAN" default="false" description="補貨通知"/>
+        <column name="notify_on_price_drop" type="BOOLEAN" default="false" description="降價通知"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+        <foreignKey column="user_id" references="users(id)" onDelete="CASCADE"/>
+        <foreignKey column="product_id" references="products(id)" onDelete="CASCADE"/>
+        <index name="favorites_user_id_index" columns="user_id"/>
+        <index name="favorites_product_id_index" columns="product_id"/>
+        <index name="favorites_user_product_unique" columns="user_id,product_id" unique="true"/>
+    </table>
+
+    <!-- 地址簿表 -->
+    <table name="addresses">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="user_id" type="BIGINT UNSIGNED"/>
+        <column name="recipient_name" type="VARCHAR(255)"/>
+        <column name="phone" type="VARCHAR(255)"/>
+        <column name="city" type="VARCHAR(255)"/>
+        <column name="district" type="VARCHAR(255)"/>
+        <column name="zip_code" type="VARCHAR(255)"/>
+        <column name="detail_address" type="VARCHAR(255)"/>
+        <column name="is_default" type="BOOLEAN" default="false"/>
+        <column name="deleted_at" type="TIMESTAMP" nullable="true"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+        <foreignKey column="user_id" references="users(id)" onDelete="CASCADE"/>
+        <index name="addresses_user_id_index" columns="user_id"/>
+    </table>
+
+    <!-- ========================================
+         系統表 (System Tables)
+         ======================================== -->
+
+    <!-- 系統設定表 -->
+    <table name="settings">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="key" type="VARCHAR(255)" unique="true"/>
+        <column name="value" type="TEXT" nullable="true"/>
+        <column name="description" type="VARCHAR(255)" nullable="true"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+    </table>
+
+    <!-- API Token 表 (Laravel Sanctum) -->
+    <table name="personal_access_tokens">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="tokenable_type" type="VARCHAR(255)"/>
+        <column name="tokenable_id" type="BIGINT UNSIGNED"/>
+        <column name="name" type="TEXT"/>
+        <column name="token" type="VARCHAR(64)" unique="true"/>
+        <column name="abilities" type="TEXT" nullable="true"/>
+        <column name="last_used_at" type="TIMESTAMP" nullable="true"/>
+        <column name="expires_at" type="TIMESTAMP" nullable="true"/>
+        <column name="created_at" type="TIMESTAMP" nullable="true"/>
+        <column name="updated_at" type="TIMESTAMP" nullable="true"/>
+        <index name="personal_access_tokens_tokenable_type_tokenable_id_index" columns="tokenable_type,tokenable_id"/>
+    </table>
+
+    <!-- ========================================
+         快取與佇列表 (Cache & Queue Tables)
+         ======================================== -->
+
+    <!-- 快取表 -->
+    <table name="cache">
+        <column name="key" type="VARCHAR(255)" primaryKey="true"/>
+        <column name="value" type="MEDIUMTEXT"/>
+        <column name="expiration" type="INTEGER"/>
+    </table>
+
+    <!-- 快取鎖定表 -->
+    <table name="cache_locks">
+        <column name="key" type="VARCHAR(255)" primaryKey="true"/>
+        <column name="owner" type="VARCHAR(255)"/>
+        <column name="expiration" type="INTEGER"/>
+    </table>
+
+    <!-- 佇列工作表 -->
+    <table name="jobs">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="queue" type="VARCHAR(255)"/>
+        <column name="payload" type="LONGTEXT"/>
+        <column name="attempts" type="TINYINT UNSIGNED"/>
+        <column name="reserved_at" type="INTEGER UNSIGNED" nullable="true"/>
+        <column name="available_at" type="INTEGER UNSIGNED"/>
+        <column name="created_at" type="INTEGER UNSIGNED"/>
+        <index name="jobs_queue_index" columns="queue"/>
+    </table>
+
+    <!-- 失敗工作表 -->
+    <table name="failed_jobs">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="uuid" type="VARCHAR(255)" unique="true"/>
+        <column name="connection" type="TEXT"/>
+        <column name="queue" type="TEXT"/>
+        <column name="payload" type="LONGTEXT"/>
+        <column name="exception" type="LONGTEXT"/>
+        <column name="failed_at" type="TIMESTAMP" default="CURRENT_TIMESTAMP"/>
+    </table>
+
+    <!-- 批次工作表 -->
+    <table name="job_batches">
+        <column name="id" type="VARCHAR(255)" primaryKey="true"/>
+        <column name="name" type="VARCHAR(255)"/>
+        <column name="total_jobs" type="INTEGER"/>
+        <column name="pending_jobs" type="INTEGER"/>
+        <column name="failed_jobs" type="INTEGER"/>
+        <column name="failed_job_ids" type="LONGTEXT"/>
+        <column name="options" type="MEDIUMTEXT" nullable="true"/>
+        <column name="cancelled_at" type="INTEGER" nullable="true"/>
+        <column name="created_at" type="INTEGER"/>
+        <column name="finished_at" type="INTEGER" nullable="true"/>
+    </table>
+
+    <!-- Migration 追蹤表 -->
+    <table name="migrations">
+        <column name="id" type="BIGINT UNSIGNED" primaryKey="true" autoIncrement="true"/>
+        <column name="migration" type="VARCHAR(255)"/>
+        <column name="batch" type="INTEGER"/>
+    </table>
+
 </schema>

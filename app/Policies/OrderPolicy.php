@@ -21,6 +21,18 @@ class OrderPolicy
         return $user->id === $order->user_id || $user->isAdmin();
     }
 
+    public function update(User $user, Order $order): bool
+    {
+        // Only admins can update order details (logistics, status, etc.)
+        return $user->isAdmin();
+    }
+
+    public function pay(User $user, Order $order): bool
+    {
+        // Only the order owner can pay for their own order
+        return $user->id === $order->user_id;
+    }
+
     public function refund(User $user, Order $order): bool
     {
         return $user->id === $order->user_id || $user->isAdmin();

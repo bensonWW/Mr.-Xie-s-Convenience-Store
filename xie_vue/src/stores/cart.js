@@ -12,6 +12,7 @@ export const useCartStore = defineStore('cart', {
     }),
 
     getters: {
+        cartItems: (state) => state.items,
         cartCount: (state) => state.count,
         cartTotal: (state) => state.totalAmount
     },
@@ -63,12 +64,33 @@ export const useCartStore = defineStore('cart', {
         },
 
         async updateItem(itemId, quantity) {
+            // Optimistic update: update local state immediately for instant UI feedback
+            const itemIndex = this.items.findIndex(item => item.id === itemId)
+            if (itemIndex === -1) return
+
+            const oldQuantity = this.items[itemIndex].quantity
+            const oldTotalAmount = this.totalAmount
+            const oldCount = this.count
+
+            // Immediately update local state
+            const quantityDiff = quantity - oldQuantity
+            this.items[itemIndex].quantity = quantity
+            this.count = Math.max(0, this.count + quantityDiff)
+            // Update total amount optimistically (estimate based on item price)
+            const itemPrice = this.items[itemIndex].product?.price || 0
+            this.totalAmount = Math.max(0, this.totalAmount + (quantityDiff * itemPrice))
+
             try {
+                // Sync with server (no fetchCart to avoid overwriting optimistic state)
                 await api.put(`/cart/items/${itemId}`, { quantity })
-                await this.fetchCart()
+                // Success: local state is already correct, no need to refetch
             } catch (e) {
-                console.error(e)
-                // toast.error('更新失敗')
+                console.error('Update cart error:', e)
+                // Rollback on error
+                this.items[itemIndex].quantity = oldQuantity
+                this.totalAmount = oldTotalAmount
+                this.count = oldCount
+                toast.error('更新失敗，請重試')
             }
         },
 
@@ -81,6 +103,13 @@ export const useCartStore = defineStore('cart', {
                 console.error(e)
                 toast.error('移除失敗')
             }
+        },
+
+        // Locally clear cart state (used on logout)
+        clearCart() {
+            this.items = []
+            this.count = 0
+            this.totalAmount = 0
         }
     }
 })

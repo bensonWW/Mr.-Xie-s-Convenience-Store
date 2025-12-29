@@ -6,11 +6,11 @@
     <ul class="text-sm text-gray-700 divide-y divide-gray-100">
       <li
         v-for="cat in categories"
-        :key="cat.id || cat.name || cat"
+        :key="cat.id || getCategoryName(cat)"
         class="hover:bg-orange-50 hover:text-xieOrange cursor-pointer px-4 py-3 flex justify-between group"
         @click="$emit('select-category', cat)"
       >
-        <span><i class="fas fa-tag w-6 text-center text-gray-400 group-hover:text-xieOrange"></i> {{ cat.name || cat }}</span>
+        <span><i class="fas fa-tag w-6 text-center text-gray-400 group-hover:text-xieOrange"></i> {{ getCategoryName(cat) }}</span>
         <i class="fas fa-chevron-right text-xs mt-1"></i>
       </li>
     </ul>
@@ -26,6 +26,14 @@ export default {
       required: true
     }
   },
-  emits: ['select-category']
+  emits: ['select-category'],
+  methods: {
+    getCategoryName (cat) {
+      if (!cat) return ''
+      if (typeof cat === 'string') return cat
+      // Defensive: support name or slug; fallback to safe string
+      return cat.name || cat.slug || String(cat)
+    }
+  }
 }
 </script>

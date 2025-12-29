@@ -1,12 +1,12 @@
 <template>
   <div class="p-6">
-    <h2 class="text-2xl font-bold text-gray-800 mb-6">訂單管理</h2>
+    <h2 class="text-2xl font-bold text-gray-800 dark:text-stone-100 mb-6">訂單管理</h2>
 
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div class="bg-white dark:bg-slate-800 rounded-lg shadow-sm overflow-hidden transition-colors duration-300">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-gray-50 border-b border-gray-100 text-gray-600 text-sm uppercase tracking-wider">
+            <tr class="bg-gray-50 dark:bg-slate-900 border-b border-gray-100 dark:border-slate-700 text-gray-600 dark:text-stone-400 text-sm uppercase tracking-wider">
               <th class="p-4 font-bold">訂單編號</th>
               <th class="p-4 font-bold">會員</th>
               <th class="p-4 font-bold">總金額</th>
@@ -15,22 +15,22 @@
               <th class="p-4 font-bold">操作</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
+          <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
             <tr v-if="orders.length === 0">
-              <td colspan="6" class="p-8 text-center text-gray-400">暫無訂單資料</td>
+              <td colspan="6" class="p-8 text-center text-gray-400 dark:text-stone-500">暫無訂單資料</td>
             </tr>
-            <tr v-for="order in orders" :key="order.id" class="hover:bg-gray-50 transition cursor-pointer" @click="$router.push(`/admin/orders/${order.id}`)">
-              <td class="p-4 text-gray-500 font-bold">#{{ order.id }}</td>
-              <td class="p-4 font-bold text-gray-800">{{ order.user ? order.user.name : 'Unknown' }}</td>
+            <tr v-for="order in orders" :key="order.id" class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition cursor-pointer" @click="$router.push(`/admin/orders/${order.id}`)">
+              <td class="p-4 text-gray-500 dark:text-stone-400 font-bold">#{{ order.id }}</td>
+              <td class="p-4 font-bold text-gray-800 dark:text-stone-100">{{ order.user ? order.user.name : 'Unknown' }}</td>
               <td class="p-4 text-xieOrange font-bold">${{ order.total_amount }}</td>
               <td class="p-4">
                 <span class="px-2 py-1 rounded text-xs font-bold" :class="getStatusClass(order.status)">
                   {{ order.status }}
                 </span>
               </td>
-              <td class="p-4 text-gray-600 text-sm">{{ new Date(order.created_at).toLocaleDateString() }}</td>
+              <td class="p-4 text-gray-600 dark:text-stone-400 text-sm">{{ new Date(order.created_at).toLocaleDateString() }}</td>
               <td class="p-4" @click.stop>
-                <button class="bg-xieBlue text-white px-3 py-1 rounded text-xs hover:bg-gray-700 transition" @click.stop="$router.push(`/admin/orders/${order.id}`)">
+                <button class="bg-xieBlue dark:bg-sky-700 text-white px-3 py-1 rounded text-xs hover:bg-gray-700 dark:hover:bg-sky-600 transition" @click.stop="$router.push(`/admin/orders/${order.id}`)">
                     查看詳情
                 </button>
               </td>
@@ -43,15 +43,15 @@
     <!-- Pagination -->
     <div class="mt-4 flex justify-between items-center" v-if="totalPages > 1">
       <button
-        class="px-4 py-2 border rounded bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+        class="px-4 py-2 border dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-50"
         :disabled="currentPage <= 1"
         @click="fetchOrders(currentPage - 1)"
       >
         上一頁
       </button>
-      <span class="text-gray-600">第 {{ currentPage }} 頁 / 共 {{ totalPages }} 頁</span>
+      <span class="text-gray-600 dark:text-stone-400">第 {{ currentPage }} 頁 / 共 {{ totalPages }} 頁</span>
       <button
-        class="px-4 py-2 border rounded bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+        class="px-4 py-2 border dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-50"
         :disabled="currentPage >= totalPages"
         @click="fetchOrders(currentPage + 1)"
       >
@@ -79,7 +79,6 @@ export default {
     async fetchOrders (page = 1) {
       try {
         const res = await api.get(`/admin/orders?page=${page}`)
-        // Laravel paginate(): { data: [...], current_page: 1, last_page: 5, ... }
         this.orders = res.data.data || []
         this.currentPage = res.data.current_page
         this.totalPages = res.data.last_page
@@ -87,16 +86,15 @@ export default {
         console.error(e)
       }
     },
-    // updateOrderStatus removed as inline editing is disabled
     getStatusClass (status) {
       const map = {
-        pending_payment: 'bg-yellow-100 text-yellow-600',
-        processing: 'bg-blue-100 text-blue-600',
-        shipped: 'bg-purple-100 text-purple-600',
-        completed: 'bg-green-100 text-green-600',
-        cancelled: 'bg-red-100 text-red-600'
+        pending_payment: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400',
+        processing: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
+        shipped: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+        completed: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
+        cancelled: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
       }
-      return map[status] || 'bg-gray-100 text-gray-600'
+      return map[status] || 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-stone-400'
     }
   }
 }

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\MemberLevel;
 use App\Models\Product;
 use App\Models\Setting;
 use App\Models\Store;
@@ -19,6 +20,12 @@ class SystemSmokeTest extends TestCase
         // Seed Settings
         Setting::create(['key' => 'free_shipping_threshold', 'value' => 1000]);
         Setting::create(['key' => 'shipping_fee', 'value' => 60]);
+
+        // Seed normal level for MemberLevelService fallback
+        MemberLevel::firstOrCreate(
+            ['slug' => 'normal'],
+            ['name' => 'Normal', 'threshold' => 0, 'discount' => 0.00]
+        );
     }
 
     public function test_critical_system_flow()
@@ -56,11 +63,7 @@ class SystemSmokeTest extends TestCase
             'stock' => 10,
             'store_id' => $store->id,
             'status' => 'active',
-            'category' => 'Test Category',
-            'sku' => 'SMOKE-001',
-            'barcode' => '99999999',
-            'description' => 'Smoke Test Product',
-            'information' => 'Info'
+            'information' => 'Smoke Test Product'
         ]);
 
         // 1.4 Add to Cart

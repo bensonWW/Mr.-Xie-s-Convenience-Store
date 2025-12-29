@@ -28,12 +28,12 @@ class InsufficientBalanceException extends Exception
     {
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => '餘額不足，請先儲值',
+                'message' => $this->getMessage() ?: 'Insufficient balance.',
                 'error_code' => 'INSUFFICIENT_BALANCE'
-            ], 402);
+            ], 400);
         }
 
         // Fallback for non-JSON requests (though this is an API)
-        return response('Insufficient Balance', 402);
+        return response('Insufficient Balance', 400);
     }
 }

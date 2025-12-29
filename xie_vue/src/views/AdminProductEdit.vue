@@ -123,17 +123,17 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                   <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">銷售價格 (Price)</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">銷售價格 (整數)</label>
                     <div class="relative">
                       <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
-                      <input v-model="form.price" type="number" placeholder="0.00" class="w-full pl-7 border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
+                      <input v-model.number="form.price" type="number" step="1" min="0" placeholder="0" @keydown="preventDecimal" class="w-full pl-7 border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                     </div>
                   </div>
                   <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">原價 (Compare at price)</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">原價 (整數)</label>
                     <div class="relative">
                       <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
-                      <input v-model="form.original_price" type="number" placeholder="0.00" class="w-full pl-7 border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
+                      <input v-model.number="form.original_price" type="number" step="1" min="0" placeholder="0" @keydown="preventDecimal" class="w-full pl-7 border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                     </div>
                     <p class="text-xs text-gray-400 mt-1">若填寫此欄位，前台將顯示刪除線價格</p>
                   </div>
@@ -183,15 +183,7 @@
                   <label class="block text-sm font-bold text-gray-700 mb-2">商品分類</label>
                   <select v-model="form.category" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                     <option value="">選擇分類...</option>
-                    <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
-                    <!-- Fallback hardcoded if empty -->
-                    <option value="手機">手機</option>
-                    <option value="家電">家電</option>
-                    <option value="美妝">美妝</option>
-                    <option value="食品">食品</option>
-                    <option value="日用品">日用品</option>
-                    <option value="書籍">書籍</option>
-                    <option value="服飾">服飾</option>
+                    <option v-for="cat in validCategories" :key="cat.id" :value="cat.name">{{ cat.name }}</option>
                   </select>
                 </div>
 
@@ -261,6 +253,20 @@ export default {
   computed: {
     isEdit () {
       return !!this.$route.params.id
+    },
+    validCategories () {
+      return this.categories
+        .map((cat, index) => {
+          if (typeof cat === 'string') {
+            return { id: index, name: cat }
+          }
+          let name = cat.name
+          if (typeof name === 'object' && name !== null) {
+            name = name.name || name.label || ''
+          }
+          return { id: cat.id || index, name: name || '' }
+        })
+        .filter(cat => cat.name && typeof cat.name === 'string' && !cat.name.includes('[object'))
     }
   },
   created () {
@@ -273,8 +279,7 @@ export default {
     async fetchCategories () {
       try {
         const res = await api.get('/categories')
-        // Filter duplicates if any
-        this.categories = [...new Set(res.data)]
+        this.categories = res.data
       } catch (e) {
         console.error(e)
       }
@@ -283,12 +288,24 @@ export default {
       try {
         const res = await api.get(`/products/${id}`)
         const prod = res.data
+        
+        // Handle category - could be object or string
+        let categoryName = ''
+        if (prod.category) {
+          if (typeof prod.category === 'object') {
+            categoryName = prod.category.name || ''
+          } else {
+            categoryName = prod.category
+          }
+        }
+        
         this.form = {
           name: prod.name,
-          price: prod.price / 100,
-          original_price: prod.original_price ? prod.original_price / 100 : null,
+          price: prod.price, // Already integer, no conversion needed
+          original_price: prod.original_price || null, // Already integer
           stock: prod.stock,
-          category: prod.category,
+          category: categoryName,
+          category_id: prod.category_id || (prod.category?.id),
           information: prod.information,
           image: null,
           status: prod.status || 'active',
@@ -302,17 +319,10 @@ export default {
           if (prod.image.startsWith('http')) {
             this.previewImage = prod.image
           } else {
-            // Adjust path based on your storage
-            this.previewImage = '/storage/' + prod.image // Usually Laravel uses storage link
-            // Fallback for demo
-            if (!prod.image.includes('/')) {
-              // If it's just filename
-              this.previewImage = '/images/' + prod.image // Or whatever your base is
-            }
-            // For safety in this environment where I don't know exact public path mapping:
-            if (!this.previewImage.startsWith('/') && !this.previewImage.startsWith('http')) {
-              this.previewImage = '/' + prod.image
-            }
+            // Get backend base URL from api config
+            const apiBaseUrl = api.defaults.baseURL || ''
+            const baseUrl = apiBaseUrl.replace('/api', '')
+            this.previewImage = baseUrl + '/storage/' + prod.image
           }
         }
       } catch (e) {
@@ -346,6 +356,12 @@ export default {
     },
     removeTag (index) {
       this.form.tags.splice(index, 1)
+    },
+    preventDecimal (e) {
+      // Block decimal point and comma input
+      if (e.key === '.' || e.key === ',') {
+        e.preventDefault()
+      }
     },
     logout () {
       localStorage.removeItem('token')

@@ -1,7 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-import store from './store'
 import { createPinia } from 'pinia'
 
 import Toast from 'vue-toastification'
@@ -13,4 +12,4 @@ const options = {
 
 const pinia = createPinia()
 
-createApp(App).use(store).use(pinia).use(router).use(Toast, options).mount('#app')
+createApp(App).use(pinia).use(router).use(Toast, options).mount('#app')

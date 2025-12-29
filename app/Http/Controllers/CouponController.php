@@ -21,29 +21,29 @@ class CouponController extends Controller
             return response()->json(['message' => 'Invalid coupon code'], 404);
         }
 
-        $now = Carbon::now();
+        $totalAmount = (int) $request->total_amount;
 
-        if ($coupon->starts_at && $now->lt($coupon->starts_at)) {
-            return response()->json(['message' => 'Coupon is not active yet'], 400);
+        // Use model's isValidFor() which checks dates, limit_price, AND usage_limit
+        if (!$coupon->isValidFor($totalAmount)) {
+            // Provide specific error messages
+            $now = Carbon::now();
+            if ($coupon->starts_at && $now->lt($coupon->starts_at)) {
+                return response()->json(['message' => 'Coupon is not active yet'], 400);
+            }
+            if ($coupon->ends_at && $now->gt($coupon->ends_at)) {
+                return response()->json(['message' => 'Coupon has expired'], 400);
+            }
+            if ($coupon->limit_price && $totalAmount < $coupon->limit_price) {
+                return response()->json(['message' => "Minimum spend of {$coupon->limit_price} required"], 400);
+            }
+            if ($coupon->usage_limit !== null && $coupon->usage_count >= $coupon->usage_limit) {
+                return response()->json(['message' => 'Coupon usage limit reached'], 400);
+            }
+            return response()->json(['message' => 'Coupon is not valid'], 400);
         }
 
-        if ($coupon->ends_at && $now->gt($coupon->ends_at)) {
-            return response()->json(['message' => 'Coupon has expired'], 400);
-        }
-
-        if ($coupon->limit_price && $request->total_amount < $coupon->limit_price) {
-            return response()->json(['message' => "Minimum spend of {$coupon->limit_price} required"], 400);
-        }
-
-        $discount = 0;
-        if ($coupon->type === 'fixed') {
-            $discount = $coupon->discount_amount;
-        } elseif ($coupon->type === 'percentage') {
-            $discount = $request->total_amount * ($coupon->discount_amount / 100);
-        }
-
-        // Ensure discount doesn't exceed total amount
-        $discount = min($discount, $request->total_amount);
+        // Use model's calculateDiscount method which uses bcmath for precision
+        $discount = $coupon->calculateDiscount($totalAmount);
 
         return response()->json([
             'code' => $coupon->code,

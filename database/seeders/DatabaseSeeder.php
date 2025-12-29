@@ -2,12 +2,15 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
+use App\Models\MemberLevel;
 use App\Models\Product;
 use App\Models\Store;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,6 +19,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Create Member Levels first (required for normalization)
+        $this->seedMemberLevels();
+
         // Create Admin
         User::create([
             'name' => 'Admin User',
@@ -40,6 +46,9 @@ class DatabaseSeeder extends Seeder
             'role' => 'staff',
             'store_id' => $store->id,
         ]);
+
+        // Create Categories first
+        $categories = $this->seedCategories();
 
         $products = [
             [
@@ -196,8 +205,17 @@ class DatabaseSeeder extends Seeder
             ]
         ];
 
-        foreach ($products as $product) {
-            Product::create(array_merge($product, ['store_id' => $store->id]));
+        foreach ($products as $productData) {
+            $categoryName = $productData['category'];
+            unset($productData['category']);
+
+            // Get category_id from the created categories
+            $categoryId = $categories[$categoryName] ?? null;
+
+            Product::create(array_merge($productData, [
+                'store_id' => $store->id,
+                'category_id' => $categoryId,
+            ]));
         }
 
         // Create Coupons
@@ -218,5 +236,53 @@ class DatabaseSeeder extends Seeder
             'starts_at' => now(),
             'ends_at' => now()->addMonth(),
         ]);
+    }
+
+    /**
+     * Seed member levels for normalization.
+     */
+    private function seedMemberLevels(): void
+    {
+        $levels = [
+            ['slug' => 'normal', 'name' => '一般會員', 'threshold' => 0, 'discount' => 0.00],
+            ['slug' => 'vip', 'name' => 'VIP 會員', 'threshold' => 100000, 'discount' => 0.05],
+            ['slug' => 'gold', 'name' => '黃金會員', 'threshold' => 300000, 'discount' => 0.08],
+            ['slug' => 'platinum', 'name' => '白金會員', 'threshold' => 500000, 'discount' => 0.10],
+            ['slug' => 'diamond', 'name' => '鑽石會員', 'threshold' => 1000000, 'discount' => 0.15],
+        ];
+
+        foreach ($levels as $level) {
+            MemberLevel::firstOrCreate(['slug' => $level['slug']], $level);
+        }
+    }
+
+    /**
+     * Seed categories and return a mapping of name => id.
+     */
+    private function seedCategories(): array
+    {
+        // Chinese name => English slug mapping
+        $categoryData = [
+            '手機' => 'phones',
+            '家電' => 'appliances',
+            '美妝' => 'beauty',
+            '食品' => 'food',
+            '日用品' => 'daily',
+            '玩具' => 'toys',
+            '服飾' => 'clothing',
+            '書籍' => 'books',
+        ];
+
+        $categories = [];
+
+        foreach ($categoryData as $name => $slug) {
+            $category = Category::firstOrCreate(
+                ['name' => $name],
+                ['slug' => $slug, 'description' => $name . '類商品']
+            );
+            $categories[$name] = $category->id;
+        }
+
+        return $categories;
     }
 }

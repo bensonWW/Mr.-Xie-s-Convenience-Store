@@ -29,8 +29,8 @@ class PriceCalculator
 
         // 1. Calculate Subtotal
         foreach ($items as $item) {
-            // Support both CartItem (with product relation) and manual item arrays if converted to objects
-            // Assuming CartItem approach where price comes from product
+            // Support both CartItem (with product relation) and manual item arrays
+            // Using round() as safeguard for any unexpected float values
             $price = $item->product ? (int) round($item->product->price) : (int) round($item->price);
             $quantity = $item->quantity;
 

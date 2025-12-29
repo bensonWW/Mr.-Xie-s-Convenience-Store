@@ -25,13 +25,19 @@ class MemberLevelService
             $level = MemberLevel::findBySlug('normal');
         }
 
-        if (!$level || $level->discount <= 0) {
+        // If still no level found or no discount defined, return 0
+        if (!$level) {
+            return 0;
+        }
+
+        $discount = $level->discount ?? 0;
+        if ($discount <= 0) {
             return 0;
         }
 
         // Discount is a decimal e.g. 0.05 for 5% off.
-        // Result should be rounded to nearest cent.
-        return (int) round($subtotal * $level->discount);
+        // Use bcmul for precision, then round to nearest cent.
+        return (int) round((float) bcmul((string) $subtotal, (string) $discount, 4));
     }
 
     /**

@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 import HomeView from '../views/HomeView.vue'
 import ItemsView from '../views/ItemsView.vue'
 import ProfileView from '../views/ProfileView.vue'
@@ -38,6 +39,16 @@ const routes = [
     component: CarView
   },
   {
+    path: '/login',
+    name: 'login',
+    component: () => import('../views/LoginView.vue')
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: () => import('../views/RegisterView.vue')
+  },
+  {
     path: '/admin',
     component: () => import('../views/AdminView.vue'),
     meta: { requiresAuth: true, roles: ['admin', 'staff'] },
@@ -71,6 +82,11 @@ const routes = [
         path: 'coupons',
         name: 'admin-coupons',
         component: () => import('../components/AdminCoupon.vue')
+      },
+      {
+        path: 'categories',
+        name: 'admin-categories',
+        component: () => import('../components/AdminCategories.vue')
       },
       {
         path: 'analytics',
@@ -115,16 +131,23 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth) {
-    const token = localStorage.getItem('token')
-    const role = localStorage.getItem('user_role')
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore()
 
-    if (!token) {
-      // alert('請先登入')
-      // Use simple redirect, Toast is hard to invoke outside component context without setup,
-      // but we can try importing it if installed as a plugin usually exposes it.
-      // For now, let's just redirect. The user will see login screen.
+  // Ensure session is initialized before checking auth
+  if (!authStore.initialized && !authStore.loading) {
+    try {
+      await authStore.fetchUser()
+    } catch (e) {
+      console.error('Auth check failed', e)
+    }
+  }
+
+  if (to.meta.requiresAuth) {
+    const isLoggedIn = authStore.isLoggedIn
+    const role = authStore.currentUser?.role
+
+    if (!isLoggedIn) {
       return next({ path: '/profile', query: { redirect: to.fullPath } })
     }
 

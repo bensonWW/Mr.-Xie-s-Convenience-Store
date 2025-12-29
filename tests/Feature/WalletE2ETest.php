@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\MemberLevel;
 use App\Models\Product;
 use App\Models\User;
 use App\Enums\OrderStatus;
@@ -11,6 +12,17 @@ use Tests\TestCase;
 class WalletE2ETest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Seed normal level for MemberLevelService fallback
+        MemberLevel::firstOrCreate(
+            ['slug' => 'normal'],
+            ['name' => 'Normal', 'threshold' => 0, 'discount' => 0.00]
+        );
+    }
 
     public function test_full_wallet_shopping_flow()
     {
@@ -50,11 +62,7 @@ class WalletE2ETest extends TestCase
             'stock' => 10,
             'status' => 'active',
             'original_price' => 25000,
-            'category' => 'General',
-            'sku' => 'TEST-001',
-            'barcode' => '12345678',
-            'description' => 'Desc',
-            'information' => 'Info',
+            'information' => 'Test product info',
             'store_id' => $store->id,
         ]);
 
@@ -130,11 +138,7 @@ class WalletE2ETest extends TestCase
             'price' => 20000, // $200
             'stock' => 10,
             'status' => 'active',
-            'category' => 'General',
-            'sku' => 'TEST-002',
-            'barcode' => '87654321',
-            'description' => 'Desc',
-            'information' => 'Info',
+            'information' => 'Test product info',
             'store_id' => $store->id,
         ]);
 

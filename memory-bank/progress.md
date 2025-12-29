@@ -1,267 +1,251 @@
 # Project Progress
 
+> **Last Updated**: 2025-12-25
+> **Version**: 2.0 (Cold Start Revision)
+
+---
+
 ## Status Legend
 - [ ] Todo
 - [/] In Progress
 - [x] Done
 
+---
+
+## Current Status
+
+| Metric | Value |
+|--------|-------|
+| **Current Phase** | Phase 12 - Cold Start & Documentation |
+| **Overall Progress** | ~85% MVP Complete |
+| **Technical Debt Items** | 16 identified |
+| **Test Coverage** | Partial (21 Feature Tests, no coverage report) |
+
+---
+
 ## Milestones
 
-### 1. Initialization
+### Phase 1-8: Foundation & Initial Features
 - [x] Create Memory Bank
 - [x] Update to Laravel 12.0
 - [x] Stabilize Docker Environment
-
-### 2. Backend Development (Internal Credits)
 - [x] Wallet Database Migrations
 - [x] WalletService Implementation
 - [x] WalletController & Routes
 - [x] Automated Tests (Wallet)
-
-
-
-### 3. Backend - API Verification & Completeness
 - [x] Gap Analysis
-- [x] Identify missing endpoints (None found)
-- [x] Fix & Test (Verified existing)
-
-### 4. Frontend Development (xie_vue)
 - [x] User Profile - Wallet View
 - [x] Top-up Modal (Mock)
 - [x] Checkout with Wallet Balance
+- [x] Full E2E Test (Register → Topup → Shop)
 
-### 5. Verification
-- [x] Full E2E Test (Register -> Topup -> Shop)
-    - Implemented `tests/Feature/WalletE2ETest.php` simulating user journey.
+### Phase 9: Major Refactoring & Features Integration
+- [x] Admin & Security Hardening
+  - Removed `VITE_BYPASS_AUTH_DEV`
+  - Logout clears `localStorage`
+  - Added `is_level_locked` to users
+- [x] Database Schema & Settings
+  - Created `settings` table
+  - Created `addresses` table
+  - 3NF normalization audit
+- [x] Frontend Experience Refinement
+  - City/District selectors
+  - Guest cart badge hidden
+  - Server-side order filtering
+  - Original/Sale price display
+- [x] Smart Payment & Logistics
+  - Auto-generate logistics number
+  - Wallet-only payment enforcement
+- [x] Admin Dashboard & Stats
+  - Revenue chart (Last 7 days)
+  - Order status modal confirmation
+- [x] Comprehensive Database Audit
+  - Performance indexes added
+  - Soft deletes enforced
 
-### 6. Admin Panel Updates (Wallet Management)
-- [x] **Backend: Wallet Administration**
-    - [x] Create `POST /api/admin/users/{id}/wallet/transaction` (Admin Deposit/Withdraw).
-    - [x] Update `AdminController@users` to ensure balance visibility.
-    - [x] Update `AdminController@showUser` to include `walletTransactions`.
-- [x] **Frontend: User List**
-    - [x] Update `AdminUsers.vue` to show "Wallet Balance" column.
-- [x] **Frontend: User Details & Actions**
-    - [x] Update `AdminUserEdit.vue` to display balance.
-    - [x] Implement "Admin Top-up/Deduct" modal in `AdminUserEdit.vue`.
-    - [x] Display transaction history in `AdminUserEdit.vue`.
-
-### 7. Final Polish & Fixes
-### 7. Final Polish & Fixes
-- [x] **Step 1: Debug Admin Auth Redirection (P0)**
-    - **Status**: Done.
-    - **Fix**: Updated `router/index.js` to carry `redirect` query param, and `AuthOverlay.vue` to respect it. verified via Browser Subagent that `VUE_APP_BYPASS_AUTH_DEV` works for dev access.
-- [x] **Step 2: Wallet UI Polish (P1)**
-    - **Status**: Done.
-    - **Changes**:
-        - `WalletBalanceCard`: Applied `bg-gradient-to-br` (Blue/Purple), added decorative icon, and glassmorphism button.
-        - `WalletTransactionTable`: Added rounded corners (`rounded-xl`), pill badges for transaction types, and improved spacing.
-        - `WalletActionModal`: Updated to use `backdrop-blur`, rounded inputs, and modern shadows.
-        - **Fix**: Updated `docker-compose.yml` to set `VUE_APP_API_URL` to `http://localhost:8000/api` for correct local API targeting.
-
-### 8. Bug Fixes & Refinements (Phase 8)
-- [x] **Step 1: Fix Wishlist Refresh Issue (P1)**
-    - **Status**: Done.
-    - **Fix**:
-        - **Backend**: Created `favorites` table (migration), `Favorite` model, and `FavoriteController`. Added routes: `GET/POST /favorites`, `DELETE /favorites/{id}`.
-        - **Frontend**: Updated `ProfileView.vue` to fetch real wishlist from API. Modified `WishlistGrid.vue` to emit remove events after API deletion. Updated `ProductDetail.vue` to toggle wishlist status via API.
-
-- [x] **Step 2: Simplify Admin Product Creation (P2)**
-    - **Status**: Done.
-    - **Fix**:
-        - **Backend**: Updated `ProductController.php` to default `store_id` (fallback to 1 or auth user's store), removing strict validation blockers.
-        - **Frontend**: Simplified `AdminProductEdit.vue` by hiding complicated/unused fields (SKU, Barcode, Brand, Tags).
-
-- [x] **Step 3: Fix Add to Cart Notification (P2)**
-    - **Status**: Done.
-    - **Fix**:
-        - **Frontend**: Updated `ItemsView.vue` to import and use `vue-toastification`. Implemented `addToCart(item)` with `@click.prevent` to avoid router link issues. Added global toast success/error feedback.
-
-- [x] **Step 4: Fix Cart Count Reactivity (P2)**
-    - **Status**: Done.
-    - **Fix**:
-        - **Vuex**: Added `cart` module with `count` state and `fetchCount` action.
-        - **Frontend**: Updated `AppHeader.vue` to bind to `cart/count` and dispatch `fetchCount` on load.
-        - **Actions**: Updated `ItemsView`, `ProductDetail`, and `ProfileView` to dispatch 'cart/fetchCount' after adding items, ensuring the badge updates immediately.
-
-    - [x] **Step 5: Implement Missing Profile Sections (P2)**
-    - [x] **Issue**: "Order History" and "Address Management" UI sections are incomplete or placeholders.
-    - [x] **Task**:
-        - Implement `OrderHistory.vue`: List user orders with status and detail view.
-        - Implement `AddressManager.vue` (or `ProfileEdit.vue` expansion): CRUD for user addresses.
-
-- [x] **Step 6: Order Status Workflow & Refunds (P1)**
-    - **Status**: Done.
-    - **Implementation**:
-        - **Backend**: Created `OrderService` with `refund` method (Transaction: Credit Wallet + Restore Stock + set Status 'refunded').
-        - **API**: Added `POST /api/orders/{id}/refund` endpoint.
-        - **Frontend**: Updated `OrderHistory.vue` with Status Tabs (All, Processing, Shipped...) and "Cancel Order" button for processing orders.
-        - **Test**: `OrderRefundTest.php` Passed (4 tests). Fixed `ProductFactory` and `StoreFactory` dependencies.
-        - **Linting**: Fixed ESLint errors in `WalletActionModal.vue`, `WalletBalanceCard.vue`, `WalletTransactionTable.vue`, `OrderHistory.vue`, `WishlistGrid.vue`, `store/index.js`, `AdminProductEdit.vue` to pass build pipeline.
-
-- [x] **Step 7: Enforce Wallet-Only Payment & Discount Prep (P1)**
-    - **Status**: Done.
-    - **Implementation**:
-        - **Frontend**: Created `UserTopUpModal.vue` component. Integrated it into `CartView` (Checkout) and `ProfileView`.
-        - **Checkout UX**: `CartView` now checks Wallet Balance vs Cart Total. If insufficient, shows warning and "Top Up Now" button (Inline Modal).
-        - **Backend**: Updated `OrderController::store` to enforce Atomic Transaction (Deduct Balance + Create Order). Returns `402` if insufficient balance.
-        - **Verification**: Verified flow where insufficient balance blocks checkout until user tops up inline.
-
-- [x] **Step 8: Order Snapshots (Data Integrity) (P2)**
-    - **Status**: Done.
-    - **Implementation**:
-        - **Migration**: Added `snapshot_data` (JSON) to `orders` table.
-        - **Backend**: Updated `OrderController` to store User Name, Email, Phone, and Address in `snapshot_data` during order creation.
-        - **Frontend**: Updated `AdminOrderDetail.vue` to display customer info from Snapshot (with "快照" badge) to ensure historical accuracy.
-        - **Test**: `OrderSnapshotTest.php` Passed (Verifies data persistence after profile update).
-
-- [x] **Step 9: Smart Check-out Address UX (P2)**
-    - **Status**: Done.
-    - **Implementation**:
-        - **Frontend**: Created `InlineAddressModal.vue` for quick address entry without leaving checkout.
-        - **Logic**: Updated `CarView.vue` to check for empty address on Checkout click. Calls Inline Modal if needed.
-        - **UX**: User fills address -> Modal Closes -> Can immediately proceed to Payment. No page reload/redirect.
-
-- [x] **Step 10: Admin User Edit Improvements (P3)**
-    - **Status**: Done.
-    - **Implementation**:
-        - **Backend Verification**: Confirmed `AdminController::updateUser` handles optional password.
-        - **Test**: Created `tests/Feature/AdminUserUpdateTest.php`. Validated Admin can update Name/Email without requiring Password reset. Validated Password update works when provided.
-
-- [x] **Step 11: Member Levels & Discounts (P2)**
-    - **Status**: Done.
-    - **Implementation**:
-        - **Schema**: Added `member_level` to `users` and `discount_amount` to `orders`.
-        - **Config**: Created `shop.php` for Level Definitions (Normal, VIP, Platinum).
-        - **Backend**: Implemented `MemberLevelService` and `UpgradeMemberLevel` Listener. Discounts applied in `OrderController`.
-        - **Test**: `MemberUpgradeTest.php` Passed (Verifies Spending -> Upgrade -> Discount Application).
-        - **Frontend**: Updated `CarView.vue` to fetch User Level and display calculated Discount.
-
-- [x] **Step 12: Fix Wishlist Navigation (P3)**
-    - **Status**: Done.
-    - **Implementation**:
-        - **Frontend**: Updated `AppHeader.vue` to link Heart icon to `/profile?tab=wishlist`.
-### 9. Major Refactoring & Features Integration (Phase 9)
-- [x] **Step 1: Admin & Security Hardening (P1)**
-    - **Status**: Done.
-    - **Implementation**:
-        - **Auth**: Removed `VITE_BYPASS_AUTH_DEV` from `router/index.js`.
-        - **Logout**: Updated `store/index.js` `CLEAR_AUTH` mutation to use `localStorage.clear()` for complete cleanup.
-        - **Member Level**: Created migration `add_is_level_locked_to_users_table`. Updated `User` model.
-        - **Admin UI**: Updated `AdminController` to handle locking. Updated `AdminUserEdit.vue` to allow manual level setting and locking.
-        - **Tests**: Created and Verified `AdminAuthTest.php` (Route protection) and `MemberLevelTest.php` (Locking logic).
-
-- [x] **Step 1.1: Remove Admin Debug Bypass (P0)**
-    - **Status**: Done.
-    - **Fix**: Removed `VUE_APP_BYPASS_AUTH_DEV` from `docker-compose.yml` and `Dockerfile`. Cleaned up `ProfileView.vue` debug banner.Verified via `AdminAuthTest`.
-
-- [x] **Step 1.2: Fix Cloud Admin Role Sync (P0)**
-    - **Status**: Done.
-    - **Issue**: `AppHeader` missed admin role data on page reload. `AuthOverlay` didn't update Vuex store directly.
-    - **Fix**: Updated `App.vue` to dispatch `checkAuth` on load. Refactored `AuthOverlay.vue` to use Vuex actions.
-
-- [x] **Step 1.3: Fix Logout UX (P1)**
-    - **Status**: Done.
-    - **Issue**: Logout required page refresh to update UI.
-    - **Fix**: Replaced `window.location.reload()` with `$router.push` and updated `ProfileView.vue` to use reactive Vuex state.
-
-- [x] **Step 2: Database Schema & Settings (P1)**
-    - **Status**: Done.
-    - **Implementation**:
-        - **Schema**: Created `settings` table (Key/Value store) and `Setting` model.
-        - **Address**: Created `addresses` table (City, District, Zip, etc.) and `Address` model (Soft Deletes).
-        - **Frontend**: Added `taiwan_districts.json` for city/district selector logic.
-        - **Normalization**: Validated 3NF for core tables via Audit.
-        - **Test**: Created `SchemaIntegrityTest.php` to verify table existence and structure. **PASSED**.
-
-- [x] **Step 3: Frontend Experience Refinement (P1)**
-    - **Status**: Done.
-    - **Implementation**:
-        - **Backend**: Added `original_price` (Decimal) to `products` table.
-        - **API**: Updated `OrderController@index` to support `?status={status}` filtering. Updated `ProfileController@update` to handle structured address data (`city`, `district`, `detail_address`).
-        - **Frontend**:
-            - **Address**: Implemented `AddressManager.vue` with City/District selectors (using `taiwan_districts.json`).
-            - **Cart**: Updated `AppHeader.vue` to hide Cart Badge for guests.
-            - **Orders**: Updated `OrderHistory.vue` and `ProfileView.vue` to use Server-side status filtering.
-            - **Products**: Updated `ItemsView.vue` to display Original Price vs Sale Price.
-        - **Test**: Created `tests/Feature/Phase9Step3Test.php` verifying schema, order filtering, and address update logic. **PASSED**.
-        - **Issues Encountered & Resolved**:
-            - **User Model**: Missing `addresses()` relationship caused `ProfileController` logic to fail. -> **Fixed**: Added `hasMany` relationship.
-            - **Test Factory**: `OrderFactory` referenced a non-existent `payment_method` column, causing test crashes. -> **Fixed**: Removed invalid column from Factory definition.
-
-- [x] **Step 4: Smart Payment & Logistics (P1)**
-    - **Status**: Done.
-    - **Implementation**:
-        - **Backend**: Added `logistics_number` and `payment_method` to `orders` table.
-        - **Logic**: Implemented auto-generation of `LOGI-{YYYYMMDD}-{Unique}` in `Order::booted()`. Enforced default `payment_method` = 'wallet'.
-        - **Frontend**: Updated `WalletView` to auto-refresh balance/transactions after successful Top-up. Refined `UserTopUpModal` toast logic.
-        - **Test**: Created `tests/Feature/Phase9Step4Test.php`. **PASSED**.
-        - **Issues Encountered & Resolved**:
-            - **Order Model**: Accidentally removed `items()` relationship while adding `booted()` method. -> **Fixed**: Restored `items()` method.
-
-- [x] **Step 5: Admin Dashboard & Stats (P1)**
-    - **Status**: Done.
-    - **Implementation**:
-        - **Backend**: Updated `AdminController@stats` to aggregate revenue from `WalletTransaction` (type='payment'). Added `WalletService::pay` method.
-        - **Frontend**:
-            - `AdminDashboard.vue`: Implemented dynamic charts fetching data from API.
-            - `AdminOrders.vue`: Removed unsafe inline status editing.
-            - `AdminOrderDetail.vue`: Added confirmation modal for status updates.
-        - **Test**: Created `tests/Feature/DashboardStatsTest.php`. **PASSED**.
-        - **Issues Encountered & Resolved**:
-            - **Discrepancy**: `WalletService` was strictly using `withdrawal` for payments. Added `pay()` (type='payment') to align with stats logic.
-
-- [x] **Step 6: Comprehensive Database Audit (P1)**
-    - **Status**: Done.
-    - **Implementation**:
-        - **Indexing**: Added performance indexes for `products.category`, `orders.status`, `orders.created_at`, `wallet_transactions.type`, `wallet_transactions.created_at`.
-        - **Integrity**: Enforced `SoftDeletes` on `users`, `products`, `orders` to ensure data safety.
-        - **Migration**: Cleaned up schema via `2025_12_19_000029_audit_add_indexes_and_cleanup.php`.
-        - **Test**: Created `tests/Feature/SchemaAuditTest.php` verifying indexes and soft delete columns. **PASSED**.
-
-### 10. Final Polish & Launch Readiness (Phase 10)
-- [x] **Step 1: Free Shipping & Add-on Logic (P1)**
-    - **Status**: Done.
-    - **Implementation**:
-        - **Backend**: Added `shipping_fee` to `orders`. Implemented `OrderController` logic to fetch `free_shipping_threshold` (1000) and apply fee (60).
-        - **Settings**: Created `SettingsController` API (`GET /settings`). Added `Setting::get` helper. Seeder added.
-        - **Frontend**: Updated `CarView.vue` to fetch settings, show dynamic progress banner ("還差 $X 免運"), and calculate Final Total with Shipping Fee.
-        - **Test**: Created `ShippingFeeTest.php`. **PASSED**.
-        - **Issues Encountered & Resolved**:
-            - **Setting Model**: `Setting::get` helper method was missing in the model, causing test failures. -> **Fixed**: Added static `get` method to retrieve value or default.
-
-### Phase 10 Step 2: System-wide Verification
-- **Status**: Completed
-- **Changes**:
-    - Created `tests/Feature/SystemSmokeTest.php` to verify critical flows (Register, Top-up, Shop, Admin View/Ship, User Profile).
-    - Verified `AdminAuthTest.php` for security.
-    - Verified `OrderController` interaction with `WalletService` and `Settings`.
-- **Results**:
-    - All smoke tests passed.
-    - Found and fixed issue where `Admin View` required `actingAs` session properly.
-    - Confirmed `200` vs `201` status quirk in `OrderController` (handled in test).
-- **Next Step**: Await user instructions (Launch or Deployment).
+### Phase 10: Final Polish & Launch Readiness
+- [x] Free Shipping & Add-on Logic
+- [x] System-wide Verification (SystemSmokeTest)
 
 ### Phase 11: Deployment Preparation
-- **Status**: Completed
-- **Changes**:
-    - **Frontend**: Built `xie_vue` for production (`npm run build`). Output `dist/` verified.
-    - **Nginx**: Created `docker/nginx/prod.conf` to serve Static Vue Files and Proxy API.
-    - **Docker**: Created `docker-compose.prod.yml` for simplified Production orchestration (App + Web + DB + Redis + Meili).
-    - **Documentation**: Created `deployment_guide.md`.
-- **Issues Resolved**:
-    - **PowerShell**: Fixed `&&` operator syntax error by splitting commands.
-    - **Vue Build**: Fixed syntax error in `OrderHistory.vue` (nested methods block).
-    - **ESLint**: Fixed `padded-blocks` rule violation in `router/index.js`.
-- **Results**:
-    - Production build successful. Artifacts ready for deployment.
+- [x] Frontend Production Build (`npm run build`)
+- [x] Nginx Production Config
+- [x] Docker Production Configuration
+- [x] Final Launch Verification (Dry Run)
 
-### Phase 11 Step 4: Final Launch Verification
-- **Status**: Completed
-- **Changes**:
-    - **Environment**: Stopped dev containers (`docker-compose down`).
-    - **Execution**: Started production stack (`docker-compose -f docker-compose.prod.yml up -d`).
-    - **Verification**: User verified local access via `http://localhost`.
-- **Results**:
-    - Production containers (`nginx-prod`, `app`, `db`, `redis`, `meili`) started successfully.
-    - Dry Run passed. System ready for actual deployment.
+### Phase 12: Cold Start & Documentation (Current)
+- [x] Clarification Phase (72 questions answered)
+- [x] PRD.md updated
+- [x] tech-stack.md updated
+- [x] architecture.md updated
+- [x] implementation-plan.md updated
+- [x] progress.md updated
+- [x] ADR directory creation (`/memory-bank/adr/`)
+- [x] 10 individual ADR files created
+- [x] OpenAPI/Scribe 整合（ADR-010）
+
+### Phase 13: Security Hardening (Complete)
+- [x] 13.1 Wallet Audit System (P0)
+  - Created `wallet_logs` migration
+  - Created `WalletLog` model with checksum verification
+  - Integrated audit logging into `WalletService`
+  - Created `WalletAuditTest` (7 tests passing)
+- [/] 13.2 Authentication Enhancement (P1)
+  - Token Expiration set to 24h (ADR-007)
+  - Implemented Sliding Expiration via `RefreshTokenExpiration` middleware
+  - *HttpOnly Cookie migration deferred to Phase 14*
+- [x] 13.3 Admin Protection (P1)
+  - Implemented `throttle:admin` (60 req/min)
+- [x] 13.4 Log Sanitization (P1)
+  - Created `SanitizeLogProcessor` to redact sensitive fields
+  - Configured `logging.php` to use sanitizer on `single` and `daily` channels
+- [x] 13.5 Verification Enhancement (P2)
+  - 60s Resend Limit & 15-min TTL
+- [x] 13.6 CI/CD Security (P2)
+  - Added Github Actions Security Scan & Makefile audit targets
+
+### Phase 14: Testing & Architecture Refinement (In Progress)
+- [x] 14.1 HttpOnly Cookie Migration (P0)
+  - Backend: Stateful Auth config
+  - Frontend: Axios / Pinia AuthStore
+  - Migrated Profile/Header/Router to use Pinia
+- [x] 14.2 Technical Debt Cleanup (P2)
+  - TD-017: Migrate Auth Vuex module to Pinia (Partial)
+
+---
+
+## Recent Changes (2025-12-25)
+
+### Memory Bank Cold Start
+基於 72 個澄清問題的回覆，完整更新 Memory Bank：
+
+1. **PRD.md**
+   - 新增商業模式定義（單店鋪 B2C）
+   - 新增使用者角色詳細權限
+   - 新增核心功能規格（錢包、訂單、會員等級）
+   - 新增 Known Gaps & Technical Debt 清單
+
+2. **tech-stack.md**
+   - 新增技術選型理由
+   - 新增版本約束
+   - 新增 Security & Compliance 規劃
+   - 新增 ADR Index
+
+3. **architecture.md**
+   - 新增系統架構圖
+   - 新增 Service Layer 職責說明
+   - 新增資料庫設計細節
+   - 新增訂單狀態機草案
+   - 新增 9 個 ADR 條目
+
+4. **implementation-plan.md**
+   - 新增 Phase 13-16 未來規劃
+   - 新增 16 項 Technical Debt Backlog
+   - 新增依賴與阻擋項目
+
+---
+
+## Known Issues & Technical Debt
+
+### P0 - Critical
+| Issue | Description | Status |
+|-------|-------------|--------|
+| Wallet Audit | 缺少 `wallet_logs` 審計表 | Planned (Phase 13) |
+
+### P1 - High Priority
+| Issue | Description | Status |
+|-------|-------------|--------|
+| HttpOnly Cookie | Token 儲存於 localStorage | ✅ Done (Phase 14) |
+| Admin Rate Limiting | 無 API 限流保護 | ✅ Done (Phase 13) |
+| Log Sanitizer | 日誌未脫敏 | ✅ Done (Phase 13) |
+| PriceCalculator Tests | 缺少單元測試 | Planned (Phase 14) |
+| Concurrency Tests | 缺少並發測試 | Planned (Phase 14) |
+
+### P2 - Medium Priority
+| Issue | Description | Status |
+|-------|-------------|--------|
+| OrderCreationService | 付款邏輯待重構 | Planned (Phase 15) |
+| Order State Machine | 狀態轉換未正規化 | Planned (Phase 15) |
+| ADJUSTMENT Type | 缺少調整交易類型 | Planned (Phase 15) |
+| Regional Shipping | 區域運費未實作 | Planned (Phase 15) |
+| Inventory Alert | 庫存預警未實作 | Planned (Phase 15) |
+| Sentry Integration | 無錯誤監控 | Planned (Phase 15) |
+| Vuex Cleanup | 殘留 Vuex 模組清理 | ✅ Done (Phase 14) |
+
+### P3 - Low Priority
+| Issue | Description | Status |
+|-------|-------------|--------|
+| ~~OpenAPI Docs~~ | ~~API 文檔未同步~~ | ✅ Done (Scribe) |
+| ~~ADR Directory~~ | ~~ADR 目錄未建立~~ | ✅ Done |
+| Frontend Tests | 無 Vitest 測試 | Planned (Phase 14) |
+| E2E Tests | 無 Playwright 測試 | Planned (Phase 14) |
+
+---
+
+## Test Results Summary
+
+### Feature Tests (21 total)
+```
+✓ AdminAuthTest
+✓ AdminUserUpdateTest
+✓ AdminWalletTest
+✓ CouponTest
+✓ DashboardStatsTest
+✓ MemberLevelSeedingTest
+✓ MemberLevelTest
+✓ MemberUpgradeTest
+✓ OrderCreationServiceTest
+✓ OrderRefundTest
+✓ OrderSequenceGeneratorTest
+✓ OrderSnapshotTest
+✓ Phase9Step3Test
+✓ Phase9Step4Test
+✓ SchemaAuditTest
+✓ SchemaIntegrityTest
+✓ ShippingFeeTest
+✓ SystemSmokeTest
+✓ WalletE2ETest
+✓ WalletTest
+✓ ExampleTest
+```
+
+### Coverage Gaps
+- [ ] PriceCalculator unit tests
+- [ ] Concurrency scenarios
+- [ ] Frontend component tests
+- [ ] E2E browser tests
+
+---
+
+## Next Steps
+
+### Immediate (Phase 12 Completion)
+1. [ ] 提交 Memory Bank 更新供審核
+2. [ ] 建立 `/docs/adr/` 目錄
+3. [ ] 初始化 ADR 模板
+
+### Short-term (Phase 13)
+1. [ ] 建立 `wallet_logs` 審計表
+2. [ ] 實作 HttpOnly Cookie
+3. [ ] 實作 Admin Rate Limiting
+
+### Medium-term (Phase 14-15)
+1. [ ] 補齊單元測試
+2. [ ] 建立 CI/CD Pipeline
+3. [ ] 新增 `adjustment` 交易類型
+4. [ ] 實作訂單狀態機
+
+---
+
+## Deployment Status
+
+| Environment | Status | URL |
+|-------------|--------|-----|
+| Development | ✅ Active | localhost:8080 (Frontend), localhost:8000 (API) |
+| Production | ✅ Ready | localhost (Nginx) |
+
+### Production Containers
+- `nginx-prod` - Static Vue + API Proxy
+- `app` - Laravel + PHP-FPM
+- `db` - MySQL 8.0
+- `redis` - Cache/Session/Queue

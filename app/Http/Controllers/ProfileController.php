@@ -2,31 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ProfileController extends Controller
 {
-    public function update(Request $request)
+    public function update(Request $request): JsonResponse
     {
         $user = $request->user();
 
         $request->validate([
-            'name' => 'string|max:255',
+            'name' => 'sometimes|string|max:255',
             'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string', // Backward compatibility for legacy string address
             'city' => 'nullable|string',
             'district' => 'nullable|string',
             'zip_code' => 'nullable|string',
             'detail_address' => 'nullable|string',
+            'recipient_name' => 'nullable|string|max:255',
             'birthday' => 'nullable|date',
         ]);
 
         // Update User Basic Info
         $user->update($request->only(['name', 'phone', 'birthday']));
 
-        // Handle Address Logic
+        // Handle Structured Address
         if ($request->has('city') && $request->has('district') && $request->has('detail_address')) {
-            // Create or Update Default Address
             $recipientName = $request->input('recipient_name', $user->name);
             $phone = $request->input('phone', $user->phone);
 
@@ -52,12 +52,6 @@ class ProfileController extends Controller
                     'is_default' => true
                 ]);
             }
-
-            // Backfill legacy address column for compatibility
-            $fullAddress = $request->zip_code . ' ' . $request->city . $request->district . $request->detail_address;
-            $user->update(['address' => $fullAddress]);
-        } elseif ($request->has('address')) {
-            $user->update(['address' => $request->address]);
         }
 
         return response()->json(['message' => 'Profile updated', 'user' => $user->load('addresses')]);
