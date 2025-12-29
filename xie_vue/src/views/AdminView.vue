@@ -277,4 +277,10 @@ export default {
 .fade-leave-to {
   opacity: 0;
 }
+
+/* Reset visited link colors for navigation */
+nav a,
+nav a:visited {
+  color: inherit;
+}
 </style>
