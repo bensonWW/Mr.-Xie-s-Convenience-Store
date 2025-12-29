@@ -80,7 +80,7 @@
                         <p class="text-gray-500 text-sm mb-3">{{ form.email || 'email@example.com' }}</p>
 
                         <div class="flex justify-center gap-2 mb-6">
-                            <span class="bg-xieBlue text-white text-xs px-2 py-1 rounded">一般會員</span>
+                            <span :class="memberLevelClass" class="text-white text-xs px-2 py-1 rounded font-bold">{{ memberLevelName }}</span>
                             <span :class="form.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'" class="text-xs px-2 py-1 rounded font-bold">
                                 {{ form.status === 'active' ? '帳號正常' : '已停用' }}
                             </span>
@@ -351,6 +351,7 @@ export default {
       orders: [],
       showWalletModal: false,
       walletLoading: false,
+      memberLevelData: null,
       form: {
         email: '',
         name: '',
@@ -370,6 +371,26 @@ export default {
   computed: {
     isEdit () {
       return !!this.$route.params.id
+    },
+    memberLevelName () {
+      if (this.memberLevelData?.name) {
+        return this.memberLevelData.name
+      }
+      const levelMap = {
+        normal: '一般會員',
+        vip: 'VIP 會員',
+        vvip: 'VVIP 大戶'
+      }
+      return levelMap[this.form.member_level] || '一般會員'
+    },
+    memberLevelClass () {
+      const slug = this.memberLevelData?.slug || this.form.member_level
+      const classMap = {
+        normal: 'bg-gray-500',
+        vip: 'bg-blue-600',
+        vvip: 'bg-gradient-to-r from-amber-500 to-orange-600'
+      }
+      return classMap[slug] || 'bg-gray-500'
     }
   },
   created () {
@@ -391,13 +412,14 @@ export default {
           status: user.status || 'active',
           memo: user.memo || '',
           newsletter: user.newsletter !== undefined ? user.newsletter : true,
-          member_level: user.member_level || 'normal',
+          member_level: user.member_level?.slug || user.member_level || 'normal',
           is_level_locked: !!user.is_level_locked,
           password: '',
           password_confirmation: ''
         }
         // Set Wallet & Order Data
-        this.balance = user.wallet_balance || 0
+        this.balance = user.balance || 0
+        this.memberLevelData = user.member_level || null
         this.transactions = user.wallet_transactions || []
         this.orders = user.orders || []
         // Helper to safely access aggregates

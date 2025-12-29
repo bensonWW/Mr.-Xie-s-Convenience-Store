@@ -46,7 +46,7 @@ class UserController extends Controller
                 $query->latest();
             }, 'walletTransactions' => function ($query) {
                 $query->latest();
-            }])->findOrFail($id);
+            }, 'memberLevel'])->findOrFail($id);
     }
 
     public function store(Request $request)
