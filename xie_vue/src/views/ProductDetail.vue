@@ -259,7 +259,7 @@
                   v-for="star in 5" 
                   :key="star" 
                   @click="newReview.rating = star"
-                  class="text-2xl transition-transform hover:scale-110"
+                  class="text-2xl transition-transform hover:scale-110 bg-transparent border-0 p-0 cursor-pointer focus:outline-none"
                   :class="star <= newReview.rating ? 'text-xieOrange' : 'text-stone-300 dark:text-slate-600'"
                 >
                   <i :class="star <= newReview.rating ? 'fas fa-star' : 'far fa-star'"></i>
