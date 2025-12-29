@@ -128,6 +128,8 @@ Route::middleware(['auth:sanctum', 'refresh_token'])->group(function () {
         Route::put('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'update']);
         Route::post('/users/{id}/wallet/transaction', [App\Http\Controllers\Admin\UserController::class, 'walletTransaction']);
         Route::put('/users/{id}/role', [App\Http\Controllers\Admin\UserController::class, 'updateRole']);
+        Route::delete('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'destroy']);
+        Route::delete('/users/{id}/force', [App\Http\Controllers\Admin\UserController::class, 'forceDestroy']);
 
         // Admin Category Management - admin only
         Route::get('/categories', [App\Http\Controllers\Admin\CategoryController::class, 'index']);

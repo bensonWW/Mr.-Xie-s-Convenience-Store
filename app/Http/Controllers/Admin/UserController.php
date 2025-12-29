@@ -174,4 +174,93 @@ class UserController extends Controller
             'user' => $user,
         ]);
     }
+
+    /**
+     * Delete a user account
+     * Prevents deletion of:
+     * - Current logged-in admin
+     * - Users with non-zero wallet balance
+     * - Users with orders (can be changed to soft delete)
+     */
+    public function destroy(Request $request, $id)
+    {
+        $user = User::withCount('orders')->findOrFail($id);
+
+        // Prevent deleting yourself
+        if ($user->id === $request->user()->id) {
+            return response()->json(['message' => '無法刪除自己的帳號'], 400);
+        }
+
+        // Prevent deleting admin users (safety)
+        if ($user->role === 'admin') {
+            return response()->json(['message' => '無法刪除管理員帳號'], 400);
+        }
+
+        // Check if user has wallet balance
+        if ($user->balance > 0) {
+            return response()->json([
+                'message' => '用戶錢包尚有餘額，請先處理餘額後再刪除',
+                'balance' => $user->balance
+            ], 400);
+        }
+
+        // Check if user has orders (optional: you may want to allow deletion anyway)
+        if ($user->orders_count > 0) {
+            return response()->json([
+                'message' => '用戶有訂單記錄，是否確定刪除？',
+                'orders_count' => $user->orders_count,
+                'requires_confirmation' => true
+            ], 400);
+        }
+
+        // Delete related data first
+        $user->cart()->delete();
+        $user->favorites()->delete();
+        $user->addresses()->delete();
+
+        // Soft delete or hard delete the user
+        $user->delete();
+
+        return response()->json(['message' => '用戶已刪除成功']);
+    }
+
+    /**
+     * Force delete a user (with confirmation, bypasses order check)
+     */
+    public function forceDestroy(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        // Prevent deleting yourself
+        if ($user->id === $request->user()->id) {
+            return response()->json(['message' => '無法刪除自己的帳號'], 400);
+        }
+
+        // Prevent deleting admin users
+        if ($user->role === 'admin') {
+            return response()->json(['message' => '無法刪除管理員帳號'], 400);
+        }
+
+        // Check balance - this is mandatory
+        if ($user->balance > 0) {
+            return response()->json([
+                'message' => '用戶錢包尚有餘額，請先處理餘額後再刪除',
+                'balance' => $user->balance
+            ], 400);
+        }
+
+        // Delete all related data
+        $user->cart()->delete();
+        $user->favorites()->delete();
+        $user->addresses()->delete();
+        $user->walletTransactions()->delete();
+
+        // Note: Orders are kept for record keeping, just remove user reference
+        $user->orders()->update(['user_id' => null]);
+
+        // Delete the user
+        $user->delete();
+
+        return response()->json(['message' => '用戶及相關資料已刪除成功']);
+    }
 }
