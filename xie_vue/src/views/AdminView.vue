@@ -12,7 +12,7 @@
     >
       <!-- Logo -->
       <div class="h-20 flex items-center px-6 border-b border-slate-800/50">
-        <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center text-white font-serif font-bold text-lg shadow-lg shadow-emerald-500/20 mr-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-xieOrange to-amber-500 rounded-xl flex items-center justify-center text-white font-serif font-bold text-lg shadow-lg shadow-xieOrange/20 mr-3">
           謝
         </div>
         <div>
@@ -32,7 +32,7 @@
             </div>
             <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
               <div class="text-xs text-slate-500 mb-1">待處理</div>
-              <div class="text-lg font-bold text-emerald-400">{{ pendingOrders }}</div>
+              <div class="text-lg font-bold text-amber-400">{{ pendingOrders }}</div>
             </div>
           </div>
         </div>
@@ -43,7 +43,7 @@
           to="/admin/dashboard" 
           class="mx-3 mb-1 px-4 py-3 rounded-xl flex items-center gap-3 transition-all duration-200"
           :class="$route.name === 'admin-dashboard' 
-            ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/20' 
+            ? 'bg-gradient-to-r from-xieOrange to-amber-500 text-white shadow-lg shadow-xieOrange/20' 
             : 'hover:bg-slate-800/70 hover:text-white'"
         >
           <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="$route.name === 'admin-dashboard' ? 'bg-white/20' : 'bg-slate-800'">
@@ -60,7 +60,7 @@
           :to="item.route" 
           class="mx-3 mb-1 px-4 py-3 rounded-xl flex items-center gap-3 transition-all duration-200"
           :class="isActiveRoute(item.routeName) 
-            ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/20' 
+            ? 'bg-gradient-to-r from-xieOrange to-amber-500 text-white shadow-lg shadow-xieOrange/20' 
             : 'hover:bg-slate-800/70 hover:text-white'"
         >
           <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="isActiveRoute(item.routeName) ? 'bg-white/20' : 'bg-slate-800'">
@@ -80,7 +80,7 @@
           :to="item.route" 
           class="mx-3 mb-1 px-4 py-3 rounded-xl flex items-center gap-3 transition-all duration-200"
           :class="isActiveRoute(item.routeName) 
-            ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/20' 
+            ? 'bg-gradient-to-r from-xieOrange to-amber-500 text-white shadow-lg shadow-xieOrange/20' 
             : 'hover:bg-slate-800/70 hover:text-white'"
         >
           <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="isActiveRoute(item.routeName) ? 'bg-white/20' : 'bg-slate-800'">
@@ -93,7 +93,7 @@
       <!-- User Section -->
       <div class="p-4 border-t border-slate-800/50">
         <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold shadow-lg">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center text-white font-bold shadow-lg">
             A
           </div>
           <div class="flex-1 min-w-0">
@@ -132,7 +132,7 @@
               <i class="fas fa-home text-[10px]"></i>
               <span>後台</span>
               <i class="fas fa-chevron-right text-[8px]"></i>
-              <span class="text-emerald-500">{{ getPageTitle }}</span>
+              <span class="text-xieOrange">{{ getPageTitle }}</span>
             </div>
           </div>
         </div>
@@ -169,10 +169,10 @@
       </main>
 
       <!-- Footer -->
-      <footer class="py-3 px-6 border-t border-stone-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm">
-        <div class="flex items-center justify-between text-xs text-stone-400 dark:text-stone-500">
+      <footer class="py-3 px-6 border-t border-emerald-200/50 dark:border-emerald-800/30 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-slate-800/80 dark:to-slate-800/80 backdrop-blur-sm">
+        <div class="flex items-center justify-between text-xs text-emerald-600 dark:text-emerald-400">
           <span>© 2024 謝老闆便利商店</span>
-          <span>Version 1.0.0</span>
+          <span class="flex items-center gap-1"><i class="fas fa-leaf text-[10px]"></i> Version 1.0.0</span>
         </div>
       </footer>
     </div>
@@ -210,7 +210,7 @@ export default {
     shopMenuItems () {
       return [
         { route: '/admin/products', routeName: 'admin-products', icon: 'fas fa-cube', label: '商品管理' },
-        { route: '/admin/orders', routeName: 'admin-order', icon: 'fas fa-shopping-bag', label: '訂單管理', badge: this.pendingOrders || null, badgeClass: 'bg-emerald-400 text-slate-900' },
+        { route: '/admin/orders', routeName: 'admin-order', icon: 'fas fa-shopping-bag', label: '訂單管理', badge: this.pendingOrders || null, badgeClass: 'bg-amber-400 text-slate-900' },
         { route: '/admin/coupons', routeName: 'admin-coupons', icon: 'fas fa-ticket-alt', label: '優惠券' },
         { route: '/admin/categories', routeName: 'admin-categories', icon: 'fas fa-layer-group', label: '分類管理' }
       ]
