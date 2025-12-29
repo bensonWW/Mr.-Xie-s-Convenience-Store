@@ -57,6 +57,16 @@ html, body {
   min-height: 100vh;
 }
 
+// Reset link colors - remove browser default purple
+a {
+  color: inherit;
+  text-decoration: none;
+  
+  &:visited {
+    color: inherit;
+  }
+}
+
 // Functional colors for alerts/status
 .text-success { @apply text-emerald-600; }
 .dark .text-success { @apply text-emerald-400; }
