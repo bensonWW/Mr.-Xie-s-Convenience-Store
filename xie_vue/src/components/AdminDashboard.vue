@@ -63,7 +63,7 @@
             <!-- Subtle grid dots -->
             <div class="absolute inset-0 opacity-[0.02] dark:opacity-[0.015]" style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 24px 24px;"></div>
             <h3 class="font-bold text-slate-800 dark:text-stone-100 mb-4 relative">近 7 天營收趨勢</h3>
-            <div class="h-64 bg-[url('/images/grid-dots.png')] bg-repeat bg-[length:8px_8px] bg-gray-200 dark:bg-gray-700"> relative">
+            <div class="h-64 relative">
                 <canvas ref="revenueChart"></canvas>
             </div>
         </div>
@@ -71,12 +71,7 @@
         <!-- Recent Orders -->
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-0 overflow-hidden transition-colors duration-300">
             <div class="px-6 py-4 border-b border-stone-100 dark:border-slate-700 flex justify-between items-center">
-                <h2 class="font-semibold text-slate-700 dark:text-stone-100">{{ getPageTitle }}</h2>
-          <div class="text-xs text-stone-400 dark:text-stone-500 flex items-center gap-1">
-            <span class="hover:text-xieOrange cursor-pointer transition">管理後台</span>
-            <span>/</span>
-            <span class="text-slate-600 dark:text-stone-300">{{ getPageTitle }}</span>
-          </div>
+                <h3 class="font-semibold text-slate-700 dark:text-stone-100">最近訂單</h3>
                 <router-link to="/admin/orders" class="text-xs text-xieOrange hover:underline font-medium">查看全部</router-link>
             </div>
             <ul class="divide-y divide-stone-100 dark:divide-slate-700">
