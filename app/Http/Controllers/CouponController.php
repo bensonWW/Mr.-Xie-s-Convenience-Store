@@ -56,24 +56,38 @@ class CouponController extends Controller
     {
         // This endpoint is for users to see available coupons at checkout
         // Admin management of coupons uses the /admin/coupons resource route
-        // All users see only currently valid coupons (with 7-day grace period after expiry)
+        // Only show currently valid coupons (not expired)
         $today = Carbon::now()->format('Y-m-d');
-        // Keep coupons visible for 7 days after expiration
-        $gracePeriodDate = Carbon::now()->subDays(7)->format('Y-m-d');
 
         $coupons = Coupon::where(function ($query) use ($today) {
             // starts_at check: null (no start date) OR start date has passed
             $query->whereNull('starts_at')
                 ->orWhereRaw('DATE(starts_at) <= ?', [$today]);
-        })->where(function ($query) use ($gracePeriodDate) {
-            // ends_at check: null (no end date) OR end date is within grace period
-            // Coupons remain visible for 7 days after expiration
+        })->where(function ($query) use ($today) {
+            // ends_at check: null (no end date) OR end date has NOT passed yet
             $query->whereNull('ends_at')
-                ->orWhereRaw('DATE(ends_at) >= ?', [$gracePeriodDate]);
+                ->orWhereRaw('DATE(ends_at) >= ?', [$today]);
         })->where(function ($query) {
             // usage_limit check: null (unlimited) OR still has uses left
             $query->whereNull('usage_limit')
                 ->orWhereColumn('usage_count', '<', 'usage_limit');
+        })->get();
+
+        return response()->json($coupons);
+    }
+
+    /**
+     * Admin endpoint - shows coupons with 7-day grace period after expiration
+     * Expired coupons remain visible in admin for 7 days for record keeping
+     */
+    public function adminIndex()
+    {
+        $gracePeriodDate = Carbon::now()->subDays(7)->format('Y-m-d');
+
+        $coupons = Coupon::where(function ($query) use ($gracePeriodDate) {
+            // Show coupons that expired within the last 7 days, or haven't expired yet, or have no end date
+            $query->whereNull('ends_at')
+                ->orWhereRaw('DATE(ends_at) >= ?', [$gracePeriodDate]);
         })->get();
 
         return response()->json($coupons);

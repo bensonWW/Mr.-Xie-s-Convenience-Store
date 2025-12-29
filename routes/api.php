@@ -115,8 +115,11 @@ Route::middleware(['auth:sanctum', 'refresh_token'])->group(function () {
 
     // Admin-only routes - only admin can access, not staff
     Route::middleware(['is_admin_only', 'throttle:admin'])->prefix('admin')->group(function () {
-        // Coupon Management - admin only
-        Route::apiResource('coupons', CouponController::class);
+        // Coupon Management - admin only (with 7-day grace period for expired coupons)
+        Route::get('/coupons', [CouponController::class, 'adminIndex']);
+        Route::post('/coupons', [CouponController::class, 'store']);
+        Route::put('/coupons/{id}', [CouponController::class, 'update']);
+        Route::delete('/coupons/{id}', [CouponController::class, 'destroy']);
 
         // Admin User Management - admin only
         Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index']);
