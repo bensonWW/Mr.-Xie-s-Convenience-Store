@@ -225,7 +225,8 @@ class UserController extends Controller
     }
 
     /**
-     * Force delete a user (with confirmation, bypasses order check)
+     * Force delete a user (bypasses order check, can bypass balance check with confirmation)
+     * Use query param ?confirm_balance=true to delete users with balance
      */
     public function forceDestroy(Request $request, $id)
     {
@@ -241,11 +242,12 @@ class UserController extends Controller
             return response()->json(['message' => '無法刪除管理員帳號'], 400);
         }
 
-        // Check balance - this is mandatory
-        if ($user->balance > 0) {
+        // Check balance - can be bypassed with confirm_balance=true
+        if ($user->balance > 0 && !$request->boolean('confirm_balance')) {
             return response()->json([
-                'message' => '用戶錢包尚有餘額，請先處理餘額後再刪除',
-                'balance' => $user->balance
+                'message' => '用戶錢包尚有餘額，請先處理餘額後再刪除，或使用 ?confirm_balance=true 強制刪除',
+                'balance' => $user->balance,
+                'requires_confirmation' => true
             ], 400);
         }
 
@@ -261,6 +263,9 @@ class UserController extends Controller
         // Delete the user
         $user->delete();
 
-        return response()->json(['message' => '用戶及相關資料已刪除成功']);
+        return response()->json([
+            'message' => '用戶及相關資料已刪除成功',
+            'deleted_balance' => $user->balance > 0 ? $user->balance : null
+        ]);
     }
 }
