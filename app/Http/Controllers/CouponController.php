@@ -57,21 +57,23 @@ class CouponController extends Controller
         // This endpoint is for users to see available coupons at checkout
         // Admin management of coupons uses the /admin/coupons resource route
         // All users see only currently valid coupons
-        $now = Carbon::now();
-        $today = $now->toDateString(); // 'YYYY-MM-DD' format
+        $today = Carbon::now()->format('Y-m-d');
 
-        return response()->json(Coupon::where(function ($query) use ($now) {
-            // Check starts_at: null or already started
-            $query->whereNull('starts_at')->orWhere('starts_at', '<=', $now);
+        $coupons = Coupon::where(function ($query) use ($today) {
+            // starts_at check: null (no start date) OR start date has passed
+            $query->whereNull('starts_at')
+                ->orWhereRaw('DATE(starts_at) <= ?', [$today]);
         })->where(function ($query) use ($today) {
-            // Check ends_at: null or not yet expired (compare date portion only)
-            // ends_at date should be >= today (the end date is inclusive)
-            $query->whereNull('ends_at')->orWhereDate('ends_at', '>=', $today);
+            // ends_at check: null (no end date) OR end date has NOT passed yet
+            $query->whereNull('ends_at')
+                ->orWhereRaw('DATE(ends_at) >= ?', [$today]);
         })->where(function ($query) {
-            // Check usage limit: null or not exceeded
+            // usage_limit check: null (unlimited) OR still has uses left
             $query->whereNull('usage_limit')
                 ->orWhereColumn('usage_count', '<', 'usage_limit');
-        })->get());
+        })->get();
+
+        return response()->json($coupons);
     }
 
     public function store(Request $request)
