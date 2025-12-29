@@ -7,11 +7,11 @@
 
     <!-- Admin Sidebar -->
     <aside 
-      class="fixed md:static inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-stone-400 flex flex-col transform transition-transform duration-300 ease-in-out md:translate-x-0"
+      class="fixed md:static inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-emerald-900 via-emerald-900 to-emerald-950 text-emerald-300/70 flex flex-col transform transition-transform duration-300 ease-in-out md:translate-x-0"
       :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
     >
       <!-- Logo -->
-      <div class="h-20 flex items-center px-6 border-b border-slate-800/50">
+      <div class="h-20 flex items-center px-6 border-b border-emerald-800/50">
         <div class="w-10 h-10 bg-gradient-to-br from-xieOrange to-amber-500 rounded-xl flex items-center justify-center text-white font-serif font-bold text-lg shadow-lg shadow-xieOrange/20 mr-3">
           謝
         </div>
@@ -26,33 +26,33 @@
         <!-- Quick Stats Mini Cards -->
         <div class="px-4 mb-6">
           <div class="grid grid-cols-2 gap-2">
-            <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
-              <div class="text-xs text-slate-500 mb-1">今日訂單</div>
+            <div class="bg-emerald-800/50 rounded-xl p-3 border border-emerald-700/50">
+              <div class="text-xs text-emerald-400/70 mb-1">今日訂單</div>
               <div class="text-lg font-bold text-white">{{ todayOrders }}</div>
             </div>
-            <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
-              <div class="text-xs text-slate-500 mb-1">待處理</div>
+            <div class="bg-emerald-800/50 rounded-xl p-3 border border-emerald-700/50">
+              <div class="text-xs text-emerald-400/70 mb-1">待處理</div>
               <div class="text-lg font-bold text-amber-400">{{ pendingOrders }}</div>
             </div>
           </div>
         </div>
 
-        <div class="px-4 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-widest">主要功能</div>
+        <div class="px-4 py-2 text-[10px] font-bold text-emerald-500/70 uppercase tracking-widest">主要功能</div>
         
         <router-link 
           to="/admin/dashboard" 
           class="mx-3 mb-1 px-4 py-3 rounded-xl flex items-center gap-3 transition-all duration-200"
           :class="$route.name === 'admin-dashboard' 
             ? 'bg-gradient-to-r from-xieOrange to-amber-500 text-white shadow-lg shadow-xieOrange/20' 
-            : 'hover:bg-slate-800/70 hover:text-white'"
+            : 'hover:bg-emerald-800/70 hover:text-white'"
         >
-          <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="$route.name === 'admin-dashboard' ? 'bg-white/20' : 'bg-slate-800'">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="$route.name === 'admin-dashboard' ? 'bg-white/20' : 'bg-emerald-800'">
             <i class="fas fa-chart-pie text-sm"></i>
           </div>
           <span class="font-medium">儀表板</span>
         </router-link>
 
-        <div class="px-4 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-widest mt-4">商店管理</div>
+        <div class="px-4 py-2 text-[10px] font-bold text-emerald-500/70 uppercase tracking-widest mt-4">商店管理</div>
         
         <router-link 
           v-for="item in shopMenuItems" 
@@ -61,9 +61,9 @@
           class="mx-3 mb-1 px-4 py-3 rounded-xl flex items-center gap-3 transition-all duration-200"
           :class="isActiveRoute(item.routeName) 
             ? 'bg-gradient-to-r from-xieOrange to-amber-500 text-white shadow-lg shadow-xieOrange/20' 
-            : 'hover:bg-slate-800/70 hover:text-white'"
+            : 'hover:bg-emerald-800/70 hover:text-white'"
         >
-          <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="isActiveRoute(item.routeName) ? 'bg-white/20' : 'bg-slate-800'">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="isActiveRoute(item.routeName) ? 'bg-white/20' : 'bg-emerald-800'">
             <i :class="item.icon" class="text-sm"></i>
           </div>
           <span class="font-medium">{{ item.label }}</span>
@@ -72,7 +72,7 @@
           </span>
         </router-link>
 
-        <div class="px-4 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-widest mt-4">顧客與數據</div>
+        <div class="px-4 py-2 text-[10px] font-bold text-emerald-500/70 uppercase tracking-widest mt-4">顧客與數據</div>
         
         <router-link 
           v-for="item in dataMenuItems" 
@@ -81,9 +81,9 @@
           class="mx-3 mb-1 px-4 py-3 rounded-xl flex items-center gap-3 transition-all duration-200"
           :class="isActiveRoute(item.routeName) 
             ? 'bg-gradient-to-r from-xieOrange to-amber-500 text-white shadow-lg shadow-xieOrange/20' 
-            : 'hover:bg-slate-800/70 hover:text-white'"
+            : 'hover:bg-emerald-800/70 hover:text-white'"
         >
-          <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="isActiveRoute(item.routeName) ? 'bg-white/20' : 'bg-slate-800'">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="isActiveRoute(item.routeName) ? 'bg-white/20' : 'bg-emerald-800'">
             <i :class="item.icon" class="text-sm"></i>
           </div>
           <span class="font-medium">{{ item.label }}</span>
@@ -91,18 +91,18 @@
       </nav>
 
       <!-- User Section -->
-      <div class="p-4 border-t border-slate-800/50">
+      <div class="p-4 border-t border-emerald-800/50">
         <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center text-white font-bold shadow-lg">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold shadow-lg">
             A
           </div>
           <div class="flex-1 min-w-0">
             <div class="text-sm font-medium text-white truncate">管理員</div>
-            <div class="text-xs text-slate-500 truncate">admin@example.com</div>
+            <div class="text-xs text-emerald-400/70 truncate">admin@example.com</div>
           </div>
         </div>
         <div class="flex gap-2">
-          <router-link to="/" class="flex-1 py-2 text-center text-xs bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-lg transition">
+          <router-link to="/" class="flex-1 py-2 text-center text-xs bg-emerald-800 hover:bg-emerald-700 text-emerald-300 hover:text-white rounded-lg transition">
             <i class="fas fa-store mr-1"></i> 前台
           </router-link>
           <button @click="logout" class="flex-1 py-2 text-center text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-lg transition">
