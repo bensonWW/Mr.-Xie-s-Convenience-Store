@@ -81,22 +81,26 @@ const routes = [
       {
         path: 'coupons',
         name: 'admin-coupons',
-        component: () => import('../components/AdminCoupon.vue')
+        component: () => import('../components/AdminCoupon.vue'),
+        meta: { roles: ['admin'] }
       },
       {
         path: 'categories',
         name: 'admin-categories',
-        component: () => import('../components/AdminCategories.vue')
+        component: () => import('../components/AdminCategories.vue'),
+        meta: { roles: ['admin'] }
       },
       {
         path: 'analytics',
         name: 'admin-analytics',
-        component: () => import('../components/AdminAnalytics.vue')
+        component: () => import('../components/AdminAnalytics.vue'),
+        meta: { roles: ['admin'] }
       },
       {
         path: 'users',
         name: 'admin-users',
-        component: () => import('../components/AdminUsers.vue')
+        component: () => import('../components/AdminUsers.vue'),
+        meta: { roles: ['admin'] }
       }
     ]
   },
@@ -110,13 +114,13 @@ const routes = [
     path: '/admin/users/new',
     name: 'admin-user-create',
     component: () => import('../views/AdminUserEdit.vue'),
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] }
+    meta: { requiresAuth: true, roles: ['admin'] }
   },
   {
     path: '/admin/users/:id/edit',
     name: 'admin-user-edit',
     component: () => import('../views/AdminUserEdit.vue'),
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] }
+    meta: { requiresAuth: true, roles: ['admin'] }
   },
   {
     path: '/admin/products/:id/edit',
