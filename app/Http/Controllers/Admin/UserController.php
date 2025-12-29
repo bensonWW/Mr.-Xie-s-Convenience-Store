@@ -214,9 +214,15 @@ class UserController extends Controller
         }
 
         // Delete related data first
-        $user->cart()->delete();
+        // Cart is hasOne, need to get the instance first
+        $cart = $user->cart;
+        if ($cart) {
+            $cart->items()->delete();
+            $cart->delete();
+        }
         $user->favorites()->delete();
         $user->addresses()->delete();
+        $user->tokens()->delete();
 
         // Soft delete or hard delete the user
         $user->delete();
@@ -252,20 +258,30 @@ class UserController extends Controller
         }
 
         // Delete all related data
-        $user->cart()->delete();
+        // Cart is hasOne, need to get the instance first
+        $cart = $user->cart;
+        if ($cart) {
+            // Delete cart items first
+            $cart->items()->delete();
+            $cart->delete();
+        }
+
         $user->favorites()->delete();
         $user->addresses()->delete();
         $user->walletTransactions()->delete();
 
         // Note: Orders are kept for record keeping, just remove user reference
+        // Check if orders table has nullable user_id
         $user->orders()->update(['user_id' => null]);
+
+        // Delete user's tokens
+        $user->tokens()->delete();
 
         // Delete the user
         $user->delete();
 
         return response()->json([
-            'message' => '用戶及相關資料已刪除成功',
-            'deleted_balance' => $user->balance > 0 ? $user->balance : null
+            'message' => '用戶及相關資料已刪除成功'
         ]);
     }
 }
