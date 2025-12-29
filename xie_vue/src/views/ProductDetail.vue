@@ -144,7 +144,6 @@
                 </span>
               </div>
 
-              
               <div class="flex items-center justify-between">
                 <span class="text-sm text-stone-500 dark:text-stone-400 tracking-wide">購買數量</span>
                 <div class="flex items-center gap-3">
