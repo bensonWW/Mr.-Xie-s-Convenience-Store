@@ -148,4 +148,30 @@ class UserController extends Controller
             return response()->json(['message' => $e->getMessage()], 400);
         }
     }
+
+    /**
+     * Update user role (admin, staff, customer)
+     */
+    public function updateRole(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $request->validate([
+            'role' => 'required|in:admin,staff,customer',
+        ]);
+
+        // Prevent demoting yourself
+        if ($user->id === $request->user()->id && $request->role !== 'admin') {
+            return response()->json(['message' => '無法降級自己的權限'], 400);
+        }
+
+        $oldRole = $user->role;
+        $user->role = $request->role;
+        $user->save();
+
+        return response()->json([
+            'message' => "角色已從 {$oldRole} 更新為 {$request->role}",
+            'user' => $user,
+        ]);
+    }
 }

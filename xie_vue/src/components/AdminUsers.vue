@@ -59,6 +59,7 @@
             <th class="px-6 py-4 font-bold">聯絡電話</th>
             <th class="px-6 py-4 font-bold text-center">錢包餘額</th>
             <th class="px-6 py-4 font-bold text-center">等級</th>
+            <th class="px-6 py-4 font-bold text-center">角色</th>
             <th class="px-6 py-4 font-bold">消費數據 (LTV)</th>
             <th class="px-6 py-4 font-bold text-center">狀態</th>
             <th class="px-6 py-4 font-bold text-right">操作</th>
@@ -87,6 +88,18 @@
                 {{ getUserLevel(user.orders_sum_total_amount) }}
               </span>
             </td>
+            <td class="px-6 py-4 text-center">
+              <select 
+                :value="user.role"
+                @change="updateRole(user, $event.target.value)"
+                class="text-xs p-1.5 rounded border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 cursor-pointer focus:ring-2 focus:ring-xieOrange focus:border-transparent"
+                :class="getRoleBadgeClass(user.role)"
+              >
+                <option value="customer">顧客</option>
+                <option value="staff">店員</option>
+                <option value="admin">管理員</option>
+              </select>
+            </td>
             <td class="px-6 py-4">
               <div>
                 <span class="text-xs text-gray-400 dark:text-stone-500">總消費:</span>
@@ -110,7 +123,7 @@
             </td>
           </tr>
           <tr v-if="users.length === 0">
-            <td colspan="6" class="px-6 py-8 text-center text-gray-500 dark:text-stone-400">
+            <td colspan="8" class="px-6 py-8 text-center text-gray-500 dark:text-stone-400">
               沒有找到符合條件的會員
             </td>
           </tr>
@@ -198,6 +211,31 @@ export default {
       if (level === 'VVIP') return 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-1 rounded text-xs font-bold border border-purple-200 dark:border-purple-800'
       if (level === 'VIP') return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 px-2 py-1 rounded text-xs font-bold border border-yellow-200 dark:border-yellow-800'
       return 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-stone-400 px-2 py-1 rounded text-xs font-bold border border-gray-200 dark:border-slate-600'
+    },
+    getRoleBadgeClass (role) {
+      if (role === 'admin') return 'text-orange-600 dark:text-orange-400 font-bold'
+      if (role === 'staff') return 'text-emerald-600 dark:text-emerald-400 font-bold'
+      return 'text-gray-600 dark:text-stone-400'
+    },
+    async updateRole (user, newRole) {
+      if (newRole === user.role) return
+
+      const roleLabels = { admin: '管理員', staff: '店員', customer: '顧客' }
+      if (!confirm(`確定要將 ${user.name} 的角色從「${roleLabels[user.role]}」變更為「${roleLabels[newRole]}」嗎？`)) {
+        // Reset select to original value
+        this.$forceUpdate()
+        return
+      }
+
+      try {
+        await api.put(`/admin/users/${user.id}/role`, { role: newRole })
+        user.role = newRole
+        this.$toast.success(`${user.name} 已設定為${roleLabels[newRole]}`)
+      } catch (e) {
+        console.error('Update role error:', e)
+        this.$toast.error(e.response?.data?.message || '更新角色失敗')
+        this.$forceUpdate()
+      }
     },
     resetFilters () {
       this.filters = {

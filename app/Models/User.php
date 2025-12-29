@@ -168,4 +168,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->role === Role::ADMIN->value;
     }
+
+    public function isStaff(): bool
+    {
+        return in_array($this->role, [Role::ADMIN->value, Role::STAFF->value]);
+    }
+
+    public function canAccessAdminPanel(): bool
+    {
+        return $this->isStaff();
+    }
 }

@@ -72,33 +72,36 @@
           </span>
         </router-link>
 
-        <div class="px-4 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-4">顧客與數據</div>
-        
-        <router-link 
-          v-for="item in dataMenuItems" 
-          :key="item.route"
-          :to="item.route" 
-          class="mx-3 mb-1 px-4 py-3 rounded-xl flex items-center gap-3 transition-all duration-200"
-          :class="isActiveRoute(item.routeName) 
-            ? 'bg-gradient-to-r from-xieOrange to-amber-500 text-white shadow-lg shadow-xieOrange/20' 
-            : 'hover:bg-gray-700/70 hover:text-white'"
-        >
-          <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="isActiveRoute(item.routeName) ? 'bg-white/20' : 'bg-gray-700'">
-            <i :class="item.icon" class="text-sm"></i>
-          </div>
-          <span class="font-medium">{{ item.label }}</span>
-        </router-link>
+        <template v-if="dataMenuItems.length > 0">
+          <div class="px-4 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-4">顧客與數據</div>
+          
+          <router-link 
+            v-for="item in dataMenuItems" 
+            :key="item.route"
+            :to="item.route" 
+            class="mx-3 mb-1 px-4 py-3 rounded-xl flex items-center gap-3 transition-all duration-200"
+            :class="isActiveRoute(item.routeName) 
+              ? 'bg-gradient-to-r from-xieOrange to-amber-500 text-white shadow-lg shadow-xieOrange/20' 
+              : 'hover:bg-gray-700/70 hover:text-white'"
+          >
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="isActiveRoute(item.routeName) ? 'bg-white/20' : 'bg-gray-700'">
+              <i :class="item.icon" class="text-sm"></i>
+            </div>
+            <span class="font-medium">{{ item.label }}</span>
+          </router-link>
+        </template>
       </nav>
 
       <!-- User Section -->
       <div class="p-4 border-t border-gray-700/50">
         <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center text-white font-bold shadow-lg">
-            A
+          <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-lg"
+               :class="isAdmin ? 'bg-gradient-to-br from-xieOrange to-amber-500' : 'bg-gradient-to-br from-emerald-500 to-teal-600'">
+            {{ userName.charAt(0).toUpperCase() }}
           </div>
           <div class="flex-1 min-w-0">
-            <div class="text-sm font-medium text-white truncate">管理員</div>
-            <div class="text-xs text-gray-400 truncate">admin@example.com</div>
+            <div class="text-sm font-medium text-white truncate">{{ userName }}</div>
+            <div class="text-xs text-gray-400 truncate">{{ roleLabel }}</div>
           </div>
         </div>
         <div class="flex gap-2">
@@ -181,6 +184,7 @@
 
 <script>
 import api from '../services/api'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'AdminView',
@@ -192,6 +196,25 @@ export default {
     }
   },
   computed: {
+    authStore () {
+      return useAuthStore()
+    },
+    userRole () {
+      return this.authStore.user?.role || 'customer'
+    },
+    isAdmin () {
+      return this.userRole === 'admin'
+    },
+    userName () {
+      return this.authStore.user?.name || '使用者'
+    },
+    userEmail () {
+      return this.authStore.user?.email || ''
+    },
+    roleLabel () {
+      const labels = { admin: '管理員', staff: '店員', customer: '顧客' }
+      return labels[this.userRole] || '使用者'
+    },
     getPageTitle () {
       const map = {
         'admin-dashboard': '儀表板',
@@ -208,18 +231,28 @@ export default {
       return map[this.$route.name] || '後台管理'
     },
     shopMenuItems () {
-      return [
-        { route: '/admin/products', routeName: 'admin-products', icon: 'fas fa-cube', label: '商品管理' },
-        { route: '/admin/orders', routeName: 'admin-order', icon: 'fas fa-shopping-bag', label: '訂單管理', badge: this.pendingOrders || null, badgeClass: 'bg-amber-400 text-slate-900' },
-        { route: '/admin/coupons', routeName: 'admin-coupons', icon: 'fas fa-ticket-alt', label: '優惠券' },
-        { route: '/admin/categories', routeName: 'admin-categories', icon: 'fas fa-layer-group', label: '分類管理' }
+      const items = [
+        { route: '/admin/products', routeName: 'admin-products', icon: 'fas fa-cube', label: '商品管理', staffAccess: true },
+        { route: '/admin/orders', routeName: 'admin-order', icon: 'fas fa-shopping-bag', label: '訂單管理', badge: this.pendingOrders || null, badgeClass: 'bg-amber-400 text-slate-900', staffAccess: true },
+        { route: '/admin/coupons', routeName: 'admin-coupons', icon: 'fas fa-ticket-alt', label: '優惠券', staffAccess: false },
+        { route: '/admin/categories', routeName: 'admin-categories', icon: 'fas fa-layer-group', label: '分類管理', staffAccess: false }
       ]
+      // Staff can only see items marked with staffAccess: true
+      if (!this.isAdmin) {
+        return items.filter(item => item.staffAccess)
+      }
+      return items
     },
     dataMenuItems () {
-      return [
-        { route: '/admin/users', routeName: 'admin-users', icon: 'fas fa-users', label: '會員管理' },
-        { route: '/admin/analytics', routeName: 'admin-analytics', icon: 'fas fa-chart-bar', label: '銷售分析' }
+      const items = [
+        { route: '/admin/users', routeName: 'admin-users', icon: 'fas fa-users', label: '會員管理', staffAccess: false },
+        { route: '/admin/analytics', routeName: 'admin-analytics', icon: 'fas fa-chart-bar', label: '銷售分析', staffAccess: false }
       ]
+      // Staff cannot access any of these
+      if (!this.isAdmin) {
+        return items.filter(item => item.staffAccess)
+      }
+      return items
     }
   },
   created () {

@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // If you need cookie-based SPA auth, add it back and configure SANCTUM_STATEFUL_DOMAINS
         $middleware->alias([
             'is_admin' => \App\Http\Middleware\IsAdmin::class,
+            'is_admin_only' => \App\Http\Middleware\IsAdminOnly::class,
             'refresh_token' => \App\Http\Middleware\RefreshTokenExpiration::class,
         ]);
     })

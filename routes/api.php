@@ -76,33 +76,26 @@ Route::middleware(['auth:sanctum', 'refresh_token'])->group(function () {
     Route::get('/products/{id}/reviews/can-review', [ReviewController::class, 'canReview']);
     Route::delete('/reviews/{id}', [ReviewController::class, 'destroy']);
 
-    // Admin routes (all admin order operations consolidated)
+    // Admin routes - accessible by both admin and staff
     Route::middleware(['is_admin', 'throttle:admin'])->prefix('admin')->group(function () {
-        Route::apiResource('coupons', CouponController::class);
+        // Dashboard stats - staff can view
         Route::get('/stats', [App\Http\Controllers\AdminController::class, 'stats']);
         Route::get('/inventory-report', [App\Http\Controllers\AdminController::class, 'inventoryReport']);
 
-        // Admin User Management
-        Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index']);
-        Route::post('/users', [App\Http\Controllers\Admin\UserController::class, 'store']);
-        Route::get('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'show']);
-        Route::put('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'update']);
-        Route::post('/users/{id}/wallet/transaction', [App\Http\Controllers\Admin\UserController::class, 'walletTransaction']);
-
-        // Admin Order Management (all in Admin\OrderController)
+        // Admin Order Management - staff can manage orders
         Route::get('/orders', [App\Http\Controllers\Admin\OrderController::class, 'index']);
         Route::get('/orders/{id}', [App\Http\Controllers\Admin\OrderController::class, 'show']);
         Route::post('/orders/{order}/refund', [App\Http\Controllers\Admin\OrderController::class, 'refund']);
         Route::put('/orders/{order}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus']);
         Route::put('/orders/{order}/logistics', [App\Http\Controllers\Admin\OrderController::class, 'updateLogistics']);
 
-        // Admin Product Management
+        // Admin Product Management - staff can manage products
         Route::get('/products', [ProductController::class, 'adminIndex']);
         Route::post('/products', [ProductController::class, 'store']);
         Route::put('/products/{id}', [ProductController::class, 'update']);
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 
-        // Admin Product Variants Management
+        // Admin Product Variants Management - staff can manage variants
         Route::prefix('products/{product}')->group(function () {
             Route::get('/variants', [App\Http\Controllers\Admin\ProductVariantController::class, 'index']);
             Route::post('/variants', [App\Http\Controllers\Admin\ProductVariantController::class, 'storeVariant']);
@@ -118,8 +111,22 @@ Route::middleware(['auth:sanctum', 'refresh_token'])->group(function () {
         Route::delete('/attribute-values/{value}', [App\Http\Controllers\Admin\ProductVariantController::class, 'destroyAttributeValue']);
         Route::put('/variants/{variant}', [App\Http\Controllers\Admin\ProductVariantController::class, 'updateVariant']);
         Route::delete('/variants/{variant}', [App\Http\Controllers\Admin\ProductVariantController::class, 'destroyVariant']);
+    });
 
-        // Admin Category Management
+    // Admin-only routes - only admin can access, not staff
+    Route::middleware(['is_admin_only', 'throttle:admin'])->prefix('admin')->group(function () {
+        // Coupon Management - admin only
+        Route::apiResource('coupons', CouponController::class);
+
+        // Admin User Management - admin only
+        Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index']);
+        Route::post('/users', [App\Http\Controllers\Admin\UserController::class, 'store']);
+        Route::get('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'show']);
+        Route::put('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'update']);
+        Route::post('/users/{id}/wallet/transaction', [App\Http\Controllers\Admin\UserController::class, 'walletTransaction']);
+        Route::put('/users/{id}/role', [App\Http\Controllers\Admin\UserController::class, 'updateRole']);
+
+        // Admin Category Management - admin only
         Route::get('/categories', [App\Http\Controllers\Admin\CategoryController::class, 'index']);
         Route::post('/categories', [App\Http\Controllers\Admin\CategoryController::class, 'store']);
         Route::post('/categories/fix-slugs', [App\Http\Controllers\Admin\CategoryController::class, 'fixSlugs']);
@@ -127,7 +134,7 @@ Route::middleware(['auth:sanctum', 'refresh_token'])->group(function () {
         Route::delete('/categories/{id}', [App\Http\Controllers\Admin\CategoryController::class, 'destroy']);
         Route::post('/categories/{id}/reassign', [App\Http\Controllers\Admin\CategoryController::class, 'reassignAndDelete']);
 
-        // Store Management
+        // Store Management - admin only
         Route::put('/stores/{id}', [StoreController::class, 'update']);
     });
 });
