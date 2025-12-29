@@ -59,12 +59,21 @@ class CouponController extends Controller
             return response()->json(Coupon::all());
         }
 
-        // Users get only active coupons
+        // Users get only currently valid coupons
         $now = Carbon::now();
+        $today = $now->toDateString(); // 'YYYY-MM-DD' format
+
         return response()->json(Coupon::where(function ($query) use ($now) {
+            // Check starts_at: null or already started
             $query->whereNull('starts_at')->orWhere('starts_at', '<=', $now);
-        })->where(function ($query) use ($now) {
-            $query->whereNull('ends_at')->orWhere('ends_at', '>=', $now);
+        })->where(function ($query) use ($today) {
+            // Check ends_at: null or not yet expired (compare date portion only)
+            // ends_at date should be >= today (the end date is inclusive)
+            $query->whereNull('ends_at')->orWhereDate('ends_at', '>=', $today);
+        })->where(function ($query) {
+            // Check usage limit: null or not exceeded
+            $query->whereNull('usage_limit')
+                ->orWhereColumn('usage_count', '<', 'usage_limit');
         })->get());
     }
 
