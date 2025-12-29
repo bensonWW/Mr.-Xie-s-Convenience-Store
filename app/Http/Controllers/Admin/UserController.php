@@ -110,31 +110,28 @@ class UserController extends Controller
 
         // For adjustments, amount can be negative (debit) or positive (credit)
         // For deposit/withdraw, amount must be positive
-        $amount = $request->amount;
+        $amount = (int) $request->amount;
         if ($request->type !== 'adjustment' && $amount <= 0) {
             return response()->json(['message' => 'Amount must be greater than 0 for deposit/withdraw'], 422);
         }
-
-        // Use bcmul for precision when converting to cents
-        $amountInCents = (int) bcmul((string) $amount, '100', 0);
 
         try {
             if ($request->type === 'deposit') {
                 $walletService->deposit(
                     $user,
-                    $amountInCents,
+                    $amount,
                     $request->description
                 );
             } elseif ($request->type === 'withdraw') {
                 $walletService->withdraw(
                     $user,
-                    abs($amountInCents), // Ensure positive for withdraw method
+                    abs($amount), // Ensure positive for withdraw method
                     $request->description
                 );
             } elseif ($request->type === 'adjustment') {
                 $walletService->adjust(
                     $user,
-                    $amountInCents, // Can be positive or negative
+                    $amount, // Can be positive or negative
                     $request->description
                 );
             }
