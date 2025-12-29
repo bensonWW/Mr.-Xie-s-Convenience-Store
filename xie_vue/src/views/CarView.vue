@@ -7,6 +7,7 @@ import { useCartStore } from '../stores/cart'
 import UserTopUpModal from '../components/profile/UserTopUpModal.vue'
 import InlineAddressModal from '../components/profile/InlineAddressModal.vue'
 import { formatPrice } from '../utils/currency'
+import { resolveImageUrl } from '../utils/image'
 
 const router = useRouter()
 const toast = useToast()
@@ -269,7 +270,7 @@ function handleAddressSuccess (newAddress) {
                     <div class="col-span-6 flex gap-4 items-center">
                         <input type="checkbox" checked class="w-4 h-4 text-xieOrange focus:ring-xieOrange border-stone-300 dark:border-slate-600 rounded bg-stone-50 dark:bg-slate-700">
                         <div class="w-20 h-20 bg-stone-100 dark:bg-slate-700 rounded-lg border border-stone-200 dark:border-slate-600 flex items-center justify-center overflow-hidden shrink-0">
-                            <img v-if="item.product?.image" :src="item.product.image" :alt="item.product?.name" class="w-full h-full object-cover">
+                            <img v-if="item.product?.image" :src="resolveImageUrl(item.product.image)" :alt="item.product?.name" class="w-full h-full object-cover">
                             <i v-else class="fas fa-box-open text-2xl text-stone-300 dark:text-slate-500"></i>
                         </div>
                         <div>

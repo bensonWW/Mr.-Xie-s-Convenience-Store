@@ -53,7 +53,7 @@
             class="flex gap-4 p-4 bg-stone-50 dark:bg-slate-700/50 rounded-xl"
           >
             <img 
-              :src="item.product?.image || 'https://via.placeholder.com/80'" 
+              :src="getProductImage(item.product?.image)" 
               :alt="item.product?.name"
               class="w-20 h-20 object-cover rounded-lg"
             >
@@ -116,6 +116,7 @@
 <script>
 import { useCartStore } from '@/stores/cart'
 import { formatPrice } from '@/utils/currency'
+import { resolveImageUrl } from '@/utils/image'
 
 export default {
   name: 'CartDrawer',
@@ -143,6 +144,10 @@ export default {
   },
   methods: {
     formatPrice,
+    getProductImage (imagePath) {
+      if (!imagePath) return 'https://via.placeholder.com/80?text=No+Image'
+      return resolveImageUrl(imagePath)
+    },
     close () {
       this.$emit('close')
     },
